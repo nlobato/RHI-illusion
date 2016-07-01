@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{88D13601-469F-E9E0-63DB-84AFB4D8A494}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Hand_animation",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	]
+}
