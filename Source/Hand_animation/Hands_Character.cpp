@@ -53,6 +53,10 @@ AHands_Character::AHands_Character()
 
 	RightMiddleKnuckleSensorOffset = FVector(-2.252283, 1.617367, 0.055583);
 
+	SensorDelayRangeHigh = 0.5;
+
+	SensorDelayRangeLow = 0.f;
+
 	MyMesh = GetMesh();
 }
 
@@ -68,6 +72,7 @@ void AHands_Character::BeginPlay()
 	bIsObject2Spawned = false;
 	bHasObjectSizeChanged = false;
 	bAreDPset = false;
+	SensorDelayTime = 0;
 }
 
 // Called every frame
@@ -107,6 +112,9 @@ void AHands_Character::Tick( float DeltaTime )
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index joint world x = %f, y = %f, z= %f"), WorldPosition.X, WorldPosition.Y, WorldPosition.Z));
 		FVector LocalToWorld = MyMesh->ComponentToWorld.TransformPosition(LeftIndexFingerPosition);
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index joint local x = %f, y = %f, z= %f"), LocalToWorld.X, LocalToWorld.Y, LocalToWorld.Z));*/
+		
+		
+		
 		if (bIsObject1Spawned || bIsObject2Spawned)
 		{
 			DPVirtualObject.Empty();
@@ -115,77 +123,91 @@ void AHands_Character::Tick( float DeltaTime )
 			{
 				AHands_Character::DrawDescriptionPoints(DPVirtualObject);
 			}
+			if (bIsDelayActive)
+			{
+				SensorDelayTime += DeltaTime;
+			}
+			else
+			{
+				SensorDelayRangeHigh = 0;
+			}
+			if (SensorDelayTime >= SensorDelayRangeHigh)
+			{
+				SensorDelayTime = 0.f;
+			
+				LeftHandWeights.Empty();
+				LeftHandTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
+				DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
 
-			LeftHandWeights.Empty();
-			LeftHandTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
-			DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
-												
-			LeftMiddleKnuckleWeights.Empty();
-			LeftMiddleKnuckleTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
-			DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);
-			
-			LeftIndexFingerWeights.Empty();
-			LeftIndexFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
-			DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);
-			
-			LeftMiddleFingerWeights.Empty();
-			LeftMiddleFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, LeftMiddleFingerPosition);
-			DPLeftMiddleFingerPosition = AHands_Character::NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, DPVirtualObject);
-			
-			LeftRingFingerWeights.Empty();
-			LeftRingFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftRingFingerWeights, LeftRingFingerTransformation, LeftRingFingerPosition);
-			DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);
-					
-			LeftPinkyFingerWeights.Empty();
-			LeftPinkyFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, LeftPinkyFingerPosition);
-			DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);
-			
-			LeftThumbWeights.Empty();
-			LeftThumbTransformation.Empty();
-			AHands_Character::WeightsComputation(LeftThumbWeights, LeftThumbTransformation, LeftThumbPosition);
-			DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);
-			
-			RightHandWeights.Empty();
-			RightHandTransformation.Empty();
-			AHands_Character::WeightsComputation(RightHandWeights, RightHandTransformation, RightHandPosition);
-			DPRightHandPosition = AHands_Character::NewJointPosition(RightHandWeights, RightHandTransformation, DPVirtualObject);
-			
-			RightMiddleKnuckleWeights.Empty();
-			RightMiddleKnuckleTransformation.Empty();
-			AHands_Character::WeightsComputation(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, RightMiddleKnucklePosition);
-			DPRightMiddleKnucklePosition = AHands_Character::NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, DPVirtualObject);
-			
-			RightIndexFingerWeights.Empty();
-			RightIndexFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(RightIndexFingerWeights, RightIndexFingerTransformation, RightIndexFingerPosition);
-			DPRightIndexFingerPosition = AHands_Character::NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformation, DPVirtualObject);
-			
-			RightMiddleFingerWeights.Empty();
-			RightMiddleFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(RightMiddleFingerWeights, RightMiddleFingerTransformation, RightMiddleFingerPosition);
-			DPRightMiddleFingerPosition = AHands_Character::NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformation, DPVirtualObject);
-			
-			RightRingFingerWeights.Empty();
-			RightRingFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(RightRingFingerWeights, RightRingFingerTransformation, RightRingFingerPosition);
-			DPRightRingFingerPosition = AHands_Character::NewJointPosition(RightRingFingerWeights, RightRingFingerTransformation, DPVirtualObject);
-			
-			RightPinkyFingerWeights.Empty();
-			RightPinkyFingerTransformation.Empty();
-			AHands_Character::WeightsComputation(RightPinkyFingerWeights, RightPinkyFingerTransformation, RightPinkyFingerPosition);
-			DPRightPinkyFingerPosition = AHands_Character::NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformation, DPVirtualObject);			
+				LeftMiddleKnuckleWeights.Empty();
+				LeftMiddleKnuckleTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
+				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);
 
-			RightThumbWeights.Empty();
-			RightThumbTransformation.Empty();
-			AHands_Character::WeightsComputation(RightThumbWeights, RightThumbTransformation, RightThumbPosition);
-			DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);
-			
+				/*SensorDelayTime = FMath::FRandRange(SensorDelayRangeLow, SensorDelayRangeHigh);
+				GetWorldTimerManager().SetTimer(SensorDelayHandler, this, &AHands_Character::SensorDelay, SensorDelayTime, false);*/
+
+				LeftIndexFingerWeights.Empty();
+				LeftIndexFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
+				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);
+
+				LeftMiddleFingerWeights.Empty();
+				LeftMiddleFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, LeftMiddleFingerPosition);
+				DPLeftMiddleFingerPosition = AHands_Character::NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, DPVirtualObject);
+
+				LeftRingFingerWeights.Empty();
+				LeftRingFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftRingFingerWeights, LeftRingFingerTransformation, LeftRingFingerPosition);
+				DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);
+
+				LeftPinkyFingerWeights.Empty();
+				LeftPinkyFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, LeftPinkyFingerPosition);
+				DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);
+
+				LeftThumbWeights.Empty();
+				LeftThumbTransformation.Empty();
+				AHands_Character::WeightsComputation(LeftThumbWeights, LeftThumbTransformation, LeftThumbPosition);
+				DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);
+
+				RightHandWeights.Empty();
+				RightHandTransformation.Empty();
+				AHands_Character::WeightsComputation(RightHandWeights, RightHandTransformation, RightHandPosition);
+				DPRightHandPosition = AHands_Character::NewJointPosition(RightHandWeights, RightHandTransformation, DPVirtualObject);
+
+				RightMiddleKnuckleWeights.Empty();
+				RightMiddleKnuckleTransformation.Empty();
+				AHands_Character::WeightsComputation(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, RightMiddleKnucklePosition);
+				DPRightMiddleKnucklePosition = AHands_Character::NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, DPVirtualObject);
+
+				RightIndexFingerWeights.Empty();
+				RightIndexFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(RightIndexFingerWeights, RightIndexFingerTransformation, RightIndexFingerPosition);
+				DPRightIndexFingerPosition = AHands_Character::NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformation, DPVirtualObject);
+
+				RightMiddleFingerWeights.Empty();
+				RightMiddleFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(RightMiddleFingerWeights, RightMiddleFingerTransformation, RightMiddleFingerPosition);
+				DPRightMiddleFingerPosition = AHands_Character::NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformation, DPVirtualObject);
+
+				RightRingFingerWeights.Empty();
+				RightRingFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(RightRingFingerWeights, RightRingFingerTransformation, RightRingFingerPosition);
+				DPRightRingFingerPosition = AHands_Character::NewJointPosition(RightRingFingerWeights, RightRingFingerTransformation, DPVirtualObject);
+
+				RightPinkyFingerWeights.Empty();
+				RightPinkyFingerTransformation.Empty();
+				AHands_Character::WeightsComputation(RightPinkyFingerWeights, RightPinkyFingerTransformation, RightPinkyFingerPosition);
+				DPRightPinkyFingerPosition = AHands_Character::NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformation, DPVirtualObject);
+
+				RightThumbWeights.Empty();
+				RightThumbTransformation.Empty();
+				AHands_Character::WeightsComputation(RightThumbWeights, RightThumbTransformation, RightThumbPosition);
+				DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);
+			}
 
 			if (bDrawRightHandPoints)
 			{
@@ -1235,4 +1257,9 @@ FVector AHands_Character::GetRightMiddleKnucklePosition()
 	{
 		return RightMiddleKnucklePosition;
 	}
+}
+
+void AHands_Character::SensorDelay()
+{
+	// do nothing
 }

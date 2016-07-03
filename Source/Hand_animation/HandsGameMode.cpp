@@ -13,6 +13,8 @@ AHandsGameMode::AHandsGameMode()
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetCurrentState(EExperimentPlayState::EStudyInitiated);
 }
 
 void AHandsGameMode::Tick(float DeltaTime)
@@ -43,8 +45,8 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 {
 	switch (NewState)
 	{
-	case EExperimentPlayState::ECalibration:
-		{
+	case EExperimentPlayState::EStudyInitiated:
+	{
 	}
 		break;
 		
@@ -60,7 +62,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	}
 		break;
 
-	case EExperimentPlayState::EFinished:
+	case EExperimentPlayState::EStudyFinished:
 	{
 
 	}

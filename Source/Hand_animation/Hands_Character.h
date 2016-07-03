@@ -377,6 +377,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightMiddleKnuckleSensorOffset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timer", meta = (BlueprintProtected = "true"))
+	float SensorDelayRangeLow;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timer", meta = (BlueprintProtected = "true"))
+	float SensorDelayRangeHigh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timer", meta = (BlueprintProtected = "true"))
+	bool bIsDelayActive;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -472,4 +481,10 @@ private:
 	FVector RectifyHandPosition(FVector RawPosition);
 
 	FVector ApplySensorOffset(FVector CurrentPosition, FVector SensorOffset, FRotator SensorOrientation);
+
+	float SensorDelayTime;	
+
+	FTimerHandle SensorDelayHandler;
+
+	void SensorDelay();
 };

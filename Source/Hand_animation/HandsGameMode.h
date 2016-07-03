@@ -7,10 +7,10 @@
 UENUM(BlueprintType)
 enum class EExperimentPlayState
 {
-	ECalibration,
+	EStudyInitiated,
 	ESynchronous,
 	EAsynchronous,
-	EFinished,
+	EStudyFinished,
 	EUnknown
 };
 
