@@ -31,9 +31,10 @@ AHands_Character::AHands_Character()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	
+	bAreDPsActive = true;
+
 	// Left hand sensors offset
 	LeftHandSensorOffset = FVector(-10.581812, -2.98531, 0.622225);
-	// + + -
 	LeftIndexFingerSensorOffset = FVector(-1.561717, -1.282756, 0.064839);
 	LeftMiddleFingerSensorOffset = FVector(-2.739685, -0.870843, 0.165751);
 	LeftRingFingerSensorOffset = FVector(-1.81612, -1.565517, 0.065366);
@@ -111,7 +112,7 @@ void AHands_Character::Tick( float DeltaTime )
 	{
 		
 		// If a virtual object is active, use DP algorithm to calculate the fingers position
-		if (bIsObject1Spawned || bIsObject2Spawned)
+		if (SpawnedObject)
 		{
 			// Empty the array where the descriptor points will be stored
 			DPVirtualObject.Empty();
@@ -283,8 +284,16 @@ void AHands_Character::SetupPlayerInputComponent(class UInputComponent* InputCom
 	// Object spawning
 	InputComponent->BindAction("SpawnObject1", IE_Pressed, this, &AHands_Character::SpawnObject1);
 	InputComponent->BindAction("SpawnObject2", IE_Pressed, this, &AHands_Character::SpawnObject2);
+	InputComponent->BindAction("SpawnObject3", IE_Pressed, this, &AHands_Character::SpawnObject3);
+	InputComponent->BindAction("SpawnObject4", IE_Pressed, this, &AHands_Character::SpawnObject4);
+
+	//Object movement and modification
 	InputComponent->BindAxis("ObjectSensor1", this, &AHands_Character::Object1Movement);
 	InputComponent->BindAxis("ObjectSensor2", this, &AHands_Character::Object2Movement);
+	InputComponent->BindAxis("ObjectSensor3", this, &AHands_Character::Object3Movement);
+	InputComponent->BindAxis("ObjectSensor4", this, &AHands_Character::Object4Movement);
+
+	//Object modification
 	InputComponent->BindAction("ChangeObjectSize", IE_Pressed, this, &AHands_Character::ModifyObjectSize);
 	InputComponent->BindAction("ResetObjectSize", IE_Pressed, this, &AHands_Character::ResetObjectSize);
 
@@ -667,6 +676,8 @@ void AHands_Character::SpawnObject1()
 	{
 		SpawnedObject->Destroy();
 		bIsObject2Spawned = false;
+		bIsObject3Spawned = false;
+		bIsObject4Spawned = false;
 	}
 	
 	// Check for a valid world
@@ -693,6 +704,8 @@ void AHands_Character::SpawnObject2()
 	{
 		SpawnedObject->Destroy();
 		bIsObject1Spawned = false;
+		bIsObject3Spawned = false;
+		bIsObject4Spawned = false;
 	}
 	
 	// Check for a valid world
@@ -709,6 +722,62 @@ void AHands_Character::SpawnObject2()
 		if (SpawnedObject)
 		{
 			bIsObject2Spawned = true;
+		}
+	}
+}
+
+void AHands_Character::SpawnObject3()
+{
+	if (SpawnedObject)
+	{
+		SpawnedObject->Destroy();
+		bIsObject1Spawned = false;
+		bIsObject2Spawned = false;
+		bIsObject4Spawned = false;
+	}
+
+	// Check for a valid world
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		// Set the spawn parameters
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = Instigator;
+
+		// spawn the pickup
+		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn3, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+		if (SpawnedObject)
+		{
+			bIsObject3Spawned = true;
+		}
+	}
+}
+
+void AHands_Character::SpawnObject4()
+{
+	if (SpawnedObject)
+	{
+		SpawnedObject->Destroy();
+		bIsObject1Spawned = false;
+		bIsObject2Spawned = false;
+		bIsObject3Spawned = false;
+	}
+
+	// Check for a valid world
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		// Set the spawn parameters
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = Instigator;
+
+		// spawn the pickup
+		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn4, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+		if (SpawnedObject)
+		{
+			bIsObject4Spawned = true;
 		}
 	}
 }
@@ -784,9 +853,79 @@ void AHands_Character::Object2Movement(float ValueX)
 	}
 }
 
+void AHands_Character::Object3Movement(float ValueX)
+{
+	if (bIsObject3Spawned)
+	{
+		// Access the skeletal mesh
+
+		// get the mesh position in world coordinates
+		FVector RootLocation = MyMesh->GetSocketLocation(TEXT("Root"));
+		// get the direction the mesh is facing
+		FRotator RootDirection = MyMesh->GetForwardVector().GetSafeNormal().Rotation();
+
+		// Get the position of the object's sensor
+		FVector RawPosition;
+		RawPosition.X = ValueX;
+		RawPosition.Y = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_15MotionY");
+		RawPosition.Z = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_15MotionZ");
+
+		// Apply our calibration settings and rotate them -90 degrees to match the x,y axis
+		FVector FirstChange = RawPosition - AxisTranslation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
+		// Rotate the sensor position to match the direction faced by the skeletal mesh
+		FVector SecondChange = FirstChange.RotateAngleAxis(RootDirection.Yaw + 90, FVector(0.f, 0.f, 1.f));
+		// Translate our sensor position to match the world position of the skeletal mesh
+		FVector ObjectPosition = SecondChange + RootLocation;
+
+		// Get the rotation of the object's sensor
+		FRotator RawOrientation;
+		RawOrientation.Roll = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_15RotationRoll");
+		RawOrientation.Pitch = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_15RotationPitch");
+		RawOrientation.Yaw = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_15RotationYaw");
+
+		// Set the position and orientation for the object
+		SpawnedObject->SetActorLocationAndRotation(ObjectPosition, RawOrientation, false, false);
+	}
+}
+
+void AHands_Character::Object4Movement(float ValueX)
+{
+	if (bIsObject4Spawned)
+	{
+		// Access the skeletal mesh
+
+		// get the mesh position in world coordinates
+		FVector RootLocation = MyMesh->GetSocketLocation(TEXT("Root"));
+		// get the direction the mesh is facing
+		FRotator RootDirection = MyMesh->GetForwardVector().GetSafeNormal().Rotation();
+
+		// Get the position of the object's sensor
+		FVector RawPosition;
+		RawPosition.X = ValueX;
+		RawPosition.Y = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_16MotionY");
+		RawPosition.Z = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_16MotionZ");
+
+		// Apply our calibration settings and rotate them -90 degrees to match the x,y axis
+		FVector FirstChange = RawPosition - AxisTranslation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
+		// Rotate the sensor position to match the direction faced by the skeletal mesh
+		FVector SecondChange = FirstChange.RotateAngleAxis(RootDirection.Yaw + 90, FVector(0.f, 0.f, 1.f));
+		// Translate our sensor position to match the world position of the skeletal mesh
+		FVector ObjectPosition = SecondChange + RootLocation;
+
+		// Get the rotation of the object's sensor
+		FRotator RawOrientation;
+		RawOrientation.Roll = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_16RotationRoll");
+		RawOrientation.Pitch = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_16RotationPitch");
+		RawOrientation.Yaw = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_16RotationYaw");
+
+		// Set the position and orientation for the object
+		SpawnedObject->SetActorLocationAndRotation(ObjectPosition, RawOrientation, false, false);
+	}
+}
+
 void AHands_Character::ModifyObjectSize()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject)
 	{
 		FVector ObjectScale = SpawnedObject->OurVisibleComponent->RelativeScale3D;
 		//float NewZScale = ObjectScale.Z * 1.05f;
@@ -798,7 +937,7 @@ void AHands_Character::ModifyObjectSize()
 
 void AHands_Character::ResetObjectSize()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject)
 	{
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		bHasObjectSizeChanged = false;
@@ -1043,7 +1182,7 @@ float AHands_Character::GetAlphaValue()
 FVector AHands_Character::GetLeftHandPosition()
 {
 	//if (false)
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftHandPosition;
 	}
@@ -1055,7 +1194,7 @@ FVector AHands_Character::GetLeftHandPosition()
 
 FVector AHands_Character::GetLeftIndexFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftIndexFingerPosition;
 	}
@@ -1067,7 +1206,7 @@ FVector AHands_Character::GetLeftIndexFingerPosition()
 
 FVector AHands_Character::GetLeftMiddleFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftMiddleFingerPosition;
 	}
@@ -1079,7 +1218,7 @@ FVector AHands_Character::GetLeftMiddleFingerPosition()
 
 FVector AHands_Character::GetLeftRingFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftRingFingerPosition;
 	}
@@ -1091,7 +1230,7 @@ FVector AHands_Character::GetLeftRingFingerPosition()
 
 FVector AHands_Character::GetLeftPinkyFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftPinkyFingerPosition;
 	}
@@ -1103,7 +1242,7 @@ FVector AHands_Character::GetLeftPinkyFingerPosition()
 
 FVector AHands_Character::GetLeftThumbPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftThumbPosition;
 	}
@@ -1148,7 +1287,7 @@ FRotator AHands_Character::GetLeftThumbOrientation()
 FVector AHands_Character::GetLeftMiddleKnucklePosition()
 {
 	//if (false)
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPLeftMiddleKnucklePosition;
 	}
@@ -1161,7 +1300,7 @@ FVector AHands_Character::GetLeftMiddleKnucklePosition()
 // Functions to access the right hand and fingers P & O
 FVector AHands_Character::GetRightHandPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightHandPosition;
 	}
@@ -1173,7 +1312,7 @@ FVector AHands_Character::GetRightHandPosition()
 
 FVector AHands_Character::GetRightIndexFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightIndexFingerPosition;
 	}
@@ -1185,7 +1324,7 @@ FVector AHands_Character::GetRightIndexFingerPosition()
 
 FVector AHands_Character::GetRightMiddleFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightMiddleFingerPosition;
 	}
@@ -1197,7 +1336,7 @@ FVector AHands_Character::GetRightMiddleFingerPosition()
 
 FVector AHands_Character::GetRightRingFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightRingFingerPosition;
 	}
@@ -1209,7 +1348,7 @@ FVector AHands_Character::GetRightRingFingerPosition()
 
 FVector AHands_Character::GetRightPinkyFingerPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightPinkyFingerPosition;
 	}
@@ -1221,7 +1360,7 @@ FVector AHands_Character::GetRightPinkyFingerPosition()
 
 FVector AHands_Character::GetRightThumbPosition()
 {
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightThumbPosition;
 	}
@@ -1266,7 +1405,7 @@ FRotator AHands_Character::GetRightThumbOrientation()
 FVector AHands_Character::GetRightMiddleKnucklePosition()
 {
 	//if (false)
-	if (bIsObject1Spawned || bIsObject2Spawned)
+	if (SpawnedObject && bAreDPsActive)
 	{
 		return DPRightMiddleKnucklePosition;
 	}

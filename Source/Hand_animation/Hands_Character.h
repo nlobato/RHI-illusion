@@ -65,6 +65,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn2;
 
+	/** What object to spawn */
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn3;
+
+	/** What object to spawn */
+	UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn4;
+
 	/** The spawned object */
 	AInteractionObject* SpawnedObject;
 
@@ -73,6 +81,12 @@ protected:
 
 	/** Has the object been spawned? */
 	bool bIsObject2Spawned;
+
+	/** Has the object been spawned? */
+	bool bIsObject3Spawned;
+
+	/** Has the object been spawned? */
+	bool bIsObject4Spawned;
 
 
 	bool bHasObjectSizeChanged;
@@ -84,10 +98,18 @@ protected:
 
 	void SpawnObject2();
 
+	void SpawnObject3();
+
+	void SpawnObject4();
+
 	/** Object P & O*/
 	void Object1Movement(float Value);
 
 	void Object2Movement(float Value);
+
+	void Object3Movement(float Value);
+
+	void Object4Movement(float Value);
 
 	void ModifyObjectSize();
 
@@ -189,6 +211,9 @@ protected:
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<float>& TransformationArray, TArray<FVector>& DescriptorPointsArray);
 
 protected:
+
+	UPROPERTY(EditAnywhere, Category = "Hand", meta = (BlueprintProtected = "true"))
+	bool bAreDPsActive;
 
 	// Right hand & fingers
 	/** Right hand P & O */
