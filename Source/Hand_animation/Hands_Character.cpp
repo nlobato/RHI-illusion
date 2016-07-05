@@ -72,7 +72,8 @@ void AHands_Character::BeginPlay()
 	bIsObject2Spawned = false;
 	bHasObjectSizeChanged = false;
 	bAreDPset = false;
-	SensorDelayTime = 0;
+	SensorDelayTotalTime = 0;
+	bIsDelayCompleted = false;
 }
 
 // Called every frame
@@ -108,33 +109,50 @@ void AHands_Character::Tick( float DeltaTime )
 	}
 
 	{
-		/*FVector WorldPosition = MyMesh->GetSocketLocation(TEXT("index_03_l"));
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index joint world x = %f, y = %f, z= %f"), WorldPosition.X, WorldPosition.Y, WorldPosition.Z));
-		FVector LocalToWorld = MyMesh->ComponentToWorld.TransformPosition(LeftIndexFingerPosition);
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index joint local x = %f, y = %f, z= %f"), LocalToWorld.X, LocalToWorld.Y, LocalToWorld.Z));*/
 		
-		
-		
+		// If a virtual object is active, use DP algorithm to calculate the fingers position
 		if (bIsObject1Spawned || bIsObject2Spawned)
 		{
+			// Empty the array where the descriptor points will be stored
 			DPVirtualObject.Empty();
+
+			// Access the vertices from hte object's mesh, stored them in our TArray
 			AHands_Character::AccessTriVertices(SpawnedObject->OurVisibleComponent, DPVirtualObject);				
+			
+			// Draw the position, normal, tangent and binormal of our DPs
 			if (bDrawPoints)
-			{
+			{				
 				AHands_Character::DrawDescriptionPoints(DPVirtualObject);
 			}
+			
+			// Introduce a time delay to our hand's movements
 			if (bIsDelayActive)
 			{
-				SensorDelayTime += DeltaTime;
+				// Have the time delay be a random number in a range specified by our two variables
+				if (bIsDelayCompleted)
+				{
+					SensorDelayTotalTime = FMath::FRandRange(SensorDelayRangeLow, SensorDelayRangeHigh);
+					bIsDelayCompleted = false;
+				}
+
+				// Tick up our timer
+				SensorDelayElapsedTime += DeltaTime;
 			}
 			else
 			{
-				SensorDelayRangeHigh = 0;
+				SensorDelayTotalTime = 0;
 			}
-			if (SensorDelayTime >= SensorDelayRangeHigh)
+			// If the delay has been completed or if it is not active, update our hands position
+			if (SensorDelayElapsedTime >= SensorDelayTotalTime || !bIsDelayActive)
 			{
-				SensorDelayTime = 0.f;
-			
+				
+				// Reset our time delay's parameters
+				if (bIsDelayActive)
+				{
+					SensorDelayElapsedTime = 0.f;
+					bIsDelayCompleted = true;
+				}
+
 				LeftHandWeights.Empty();
 				LeftHandTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
@@ -144,9 +162,6 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftMiddleKnuckleTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
 				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);
-
-				/*SensorDelayTime = FMath::FRandRange(SensorDelayRangeLow, SensorDelayRangeHigh);
-				GetWorldTimerManager().SetTimer(SensorDelayHandler, this, &AHands_Character::SensorDelay, SensorDelayTime, false);*/
 
 				LeftIndexFingerWeights.Empty();
 				LeftIndexFingerTransformation.Empty();
@@ -209,6 +224,8 @@ void AHands_Character::Tick( float DeltaTime )
 				DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);
 			}
 
+
+			// For debug purposes, draw the calculated joint positions
 			if (bDrawRightHandPoints)
 			{
 				DrawDebugSphere(GetWorld(), DPRightHandPosition, 5.0, 50, FColor(0, 255, 0), false, 0.05);
@@ -675,7 +692,7 @@ void AHands_Character::SpawnObject2()
 	if (SpawnedObject)
 	{
 		SpawnedObject->Destroy();
-		bIsObject2Spawned = false;
+		bIsObject1Spawned = false;
 	}
 	
 	// Check for a valid world
@@ -783,7 +800,7 @@ void AHands_Character::ResetObjectSize()
 {
 	if (bIsObject1Spawned || bIsObject2Spawned)
 	{
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(0.07f, 0.07f, 0.07f));
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		bHasObjectSizeChanged = false;
 	}
 }
@@ -922,7 +939,7 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 	if (bHasObjectSizeChanged)
 	{
 		FVector ObjectScale = SpawnedObject->OurVisibleComponent->RelativeScale3D;
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(0.07f, 0.07f, 0.07f));		
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));		
 		DPOriginalObject.Empty();
 		AHands_Character::AccessTriVertices(SpawnedObject->OurVisibleComponent, DPOriginalObject);
 		//AHands_Character::DrawDescriptionPoints(DPOriginalObject);
@@ -1257,9 +1274,4 @@ FVector AHands_Character::GetRightMiddleKnucklePosition()
 	{
 		return RightMiddleKnucklePosition;
 	}
-}
-
-void AHands_Character::SensorDelay()
-{
-	// do nothing
 }

@@ -482,9 +482,9 @@ private:
 
 	FVector ApplySensorOffset(FVector CurrentPosition, FVector SensorOffset, FRotator SensorOrientation);
 
-	float SensorDelayTime;	
+	float SensorDelayTotalTime;
 
-	FTimerHandle SensorDelayHandler;
+	float SensorDelayElapsedTime;
 
-	void SensorDelay();
+	bool bIsDelayCompleted;
 };
