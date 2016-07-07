@@ -39,8 +39,16 @@ public:
 protected:
 
 	// Length of the experiment in minutes
-	UPROPERTY(EditAnywhere, Category = "Experiment")
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	float ExperimentDurationTime;
+
+	// Synchronous or asynchronous experiment
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bIsExperimentSynchronous;
+
+	// Activate/Deactivate the Descriptor Points algorithm for this experiment
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bAreDPsActive;
 
 private:
 	/** Keeps track of the current playing state */
@@ -52,5 +60,7 @@ private:
 	FTimerHandle ExperimentDurationTimerHandle;
 	
 	void HasTimeRunOut();
+
+	FVector AxisTranslation;
 
 };

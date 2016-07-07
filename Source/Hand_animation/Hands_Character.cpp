@@ -31,7 +31,7 @@ AHands_Character::AHands_Character()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
 	
-	bAreDPsActive = true;
+	//bAreDPsActive = true;
 
 	// Left hand sensors offset
 	LeftHandSensorOffset = FVector(-10.581812, -2.98531, 0.622225);
@@ -81,33 +81,6 @@ void AHands_Character::BeginPlay()
 void AHands_Character::Tick( float DeltaTime )
 {
 	Super::Tick(DeltaTime);
-
-	{
-		// Cast to calibration box		
-		TArray<AActor*> FoundActors;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACalibrationBox::StaticClass(), FoundActors);
-		for (auto Actor : FoundActors)
-		{
-			ACalibrationBox* CalibrationBox = Cast<ACalibrationBox>(Actor);
-			if (CalibrationBox)
-			{
-				if (CalibrationBox->GetSystemCalibrationState())
-				{
-					// Get calibration values
-					AlphaValue = 1.f;
-					AxisTranslation = CalibrationBox->GetAxisTranslation();
-					MeshScale = CalibrationBox->GetMeshScale();
-					bIsSystemCalibrated = CalibrationBox->GetSystemCalibrationState();
-				}
-				else
-				{
-					AlphaValue = 0.f;
-					AxisTranslation = FVector(0.f, 0.f, 0.f);
-					bIsSystemCalibrated = false;
-				}
-			}
-		}
-	}
 
 	{
 		
@@ -297,6 +270,19 @@ void AHands_Character::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAction("ChangeObjectSize", IE_Pressed, this, &AHands_Character::ModifyObjectSize);
 	InputComponent->BindAction("ResetObjectSize", IE_Pressed, this, &AHands_Character::ResetObjectSize);
 
+}
+
+void AHands_Character::CalibrateSystem(FVector AxisTranslationFromGameMode)
+{
+	AlphaValue = 1.f;
+	AxisTranslation = AxisTranslationFromGameMode;
+	bIsSystemCalibrated = true;
+}
+
+void AHands_Character::ExperimentSetup(bool bIsSync, bool IsDP)
+{
+	bIsDelayActive = !bIsSync;
+	bAreDPsActive = IsDP;
 }
 
 void AHands_Character::MoveForward(float Value)

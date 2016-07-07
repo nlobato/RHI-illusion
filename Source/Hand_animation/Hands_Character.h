@@ -415,6 +415,11 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	// Calibration completed
+	void CalibrateSystem(FVector AxisTranslation);
+
+	void ExperimentSetup(bool bIsSynchronous, bool bIsExperimentForDP);
+
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
 	float GetAlphaValue();

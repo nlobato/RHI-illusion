@@ -10,6 +10,8 @@
 AHandsGameMode::AHandsGameMode()
 {
 	ExperimentDurationTime = 5.f;
+	bIsExperimentSynchronous = true;
+	bAreDPsActive = true;
 }
 
 void AHandsGameMode::BeginPlay()
@@ -35,6 +37,7 @@ void AHandsGameMode::Tick(float DeltaTime)
 				{
 					if (CalibrationBox->GetSystemCalibrationState())
 					{
+						AxisTranslation = CalibrationBox->GetAxisTranslation();
 						SetCurrentState(EExperimentPlayState::EExperimentInProgress);
 
 					}
@@ -42,11 +45,6 @@ void AHandsGameMode::Tick(float DeltaTime)
 			}
 		}
 	}
-	/*AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
-	if (MyCharacter)
-	{
-
-	}*/
 }
 
 void AHandsGameMode::SetCurrentState(EExperimentPlayState NewState)
@@ -68,20 +66,25 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	{
 	case EExperimentPlayState::EExperimentInitiated:
 	{
-													   GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
 	}
 		break;
 	case EExperimentPlayState::EExperimentInProgress:
 	{
-														GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInProgress")));
-														float TimeInSeconds = ExperimentDurationTime * 60.f;
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInProgress")));
+		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+		if (MyCharacter)
+		{
+			MyCharacter->CalibrateSystem(AxisTranslation);
+			MyCharacter->ExperimentSetup(bIsExperimentSynchronous, bAreDPsActive);
+		}
+		float TimeInSeconds = ExperimentDurationTime * 60.f;
 		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::HasTimeRunOut, TimeInSeconds, false);
 	}
 		break;
 	case EExperimentPlayState::EExperimentFinished:
 	{
-													  GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentFinished")));
-													  GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Our time is running out!")));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentFinished")));
 	}
 		break;
 
