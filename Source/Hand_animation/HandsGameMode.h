@@ -7,10 +7,9 @@
 UENUM(BlueprintType)
 enum class EExperimentPlayState
 {
-	EStudyInitiated,
-	ESynchronous,
-	EAsynchronous,
-	EStudyFinished,
+	EExperimentInitiated,
+	EExperimentInProgress,
+	EExperimentFinished,
 	EUnknown
 };
 
@@ -34,11 +33,24 @@ public:
 	/** Sets a new playing state */
 	void SetCurrentState(EExperimentPlayState NewState);
 
+	/*UFUNCTION(BlueprintCallable, Category = "Timer")
+	void StartExperiment(bool bShouldExperimentStart);*/
+
+protected:
+
+	// Length of the experiment in minutes
+	UPROPERTY(EditAnywhere, Category = "Experiment")
+	float ExperimentDurationTime;
+
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
 
 	/** handle any functions calls that rely upon changing the playing state of our game */
 	void HandleNewState(EExperimentPlayState NewState);
+
+	FTimerHandle ExperimentDurationTimerHandle;
+	
+	void HasTimeRunOut();
 
 };

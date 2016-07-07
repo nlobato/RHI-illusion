@@ -4,23 +4,44 @@
 #include "HandsGameMode.h"
 #include "Hands_Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "CalibrationBox.h"
+#include "Engine.h"
 
 AHandsGameMode::AHandsGameMode()
 {
-
+	ExperimentDurationTime = 5.f;
 }
 
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetCurrentState(EExperimentPlayState::EStudyInitiated);
+	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
 void AHandsGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	{
+		if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		{
 
+			TArray<AActor*> FoundActors;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACalibrationBox::StaticClass(), FoundActors);
+			for (auto Actor : FoundActors)
+			{
+				ACalibrationBox* CalibrationBox = Cast<ACalibrationBox>(Actor);
+				if (CalibrationBox)
+				{
+					if (CalibrationBox->GetSystemCalibrationState())
+					{
+						SetCurrentState(EExperimentPlayState::EExperimentInProgress);
+
+					}
+				}
+			}
+		}
+	}
 	/*AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 	if (MyCharacter)
 	{
@@ -45,26 +66,22 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 {
 	switch (NewState)
 	{
-	case EExperimentPlayState::EStudyInitiated:
+	case EExperimentPlayState::EExperimentInitiated:
 	{
+													   GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
 	}
 		break;
-		
-	case EExperimentPlayState::ESynchronous:
+	case EExperimentPlayState::EExperimentInProgress:
 	{
-
+														GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInProgress")));
+														float TimeInSeconds = ExperimentDurationTime * 60.f;
+		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::HasTimeRunOut, TimeInSeconds, false);
 	}
 		break;
-
-	case EExperimentPlayState::EAsynchronous:
+	case EExperimentPlayState::EExperimentFinished:
 	{
-
-	}
-		break;
-
-	case EExperimentPlayState::EStudyFinished:
-	{
-
+													  GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentFinished")));
+													  GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Our time is running out!")));
 	}
 		break;
 
@@ -76,3 +93,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	}
 }
 
+void AHandsGameMode::HasTimeRunOut()
+{
+	SetCurrentState(EExperimentPlayState::EExperimentFinished);
+}

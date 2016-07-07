@@ -26,8 +26,8 @@ public:
 	virtual void BeginPlay() override;
 	
 	// Called every frame
-	virtual void Tick( float DeltaSeconds ) override;	
-
+	virtual void Tick( float DeltaSeconds ) override;
+	
 protected:
 
 	/** Called for forwards/backward input */
@@ -90,8 +90,6 @@ protected:
 
 
 	bool bHasObjectSizeChanged;
-
-protected:
 
 	/** Object spawning */
 	void SpawnObject1();
@@ -512,4 +510,5 @@ private:
 	float SensorDelayElapsedTime;
 
 	bool bIsDelayCompleted;
+	
 };

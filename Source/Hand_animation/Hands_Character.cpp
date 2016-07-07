@@ -57,7 +57,7 @@ AHands_Character::AHands_Character()
 	SensorDelayRangeHigh = 0.5;
 
 	SensorDelayRangeLow = 0.f;
-
+	
 	MyMesh = GetMesh();
 }
 
