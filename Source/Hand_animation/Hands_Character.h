@@ -57,24 +57,24 @@ protected:
 
 protected:
 	
-	/** What object to spawn */
+	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn1;
 
-	/** What object to spawn */
+	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn2;
 
-	/** What object to spawn */
+	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn3;
 
-	/** What object to spawn */
+	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn4;
 
-	/** The spawned object */
-	AInteractionObject* SpawnedObject;
+	/* The spawned object */
+	//AInteractionObject* SpawnedObject;
 
 	/** Has the object been spawned? */
 	bool bIsObject1Spawned;
@@ -92,13 +92,13 @@ protected:
 	bool bHasObjectSizeChanged;
 
 	/** Object spawning */
-	void SpawnObject1();
+	//void SpawnObject1();
 
-	void SpawnObject2();
+	//void SpawnObject2();
 
-	void SpawnObject3();
+	//void SpawnObject3();
 
-	void SpawnObject4();
+	//void SpawnObject4();
 
 	/** Object P & O*/
 	void Object1Movement(float Value);
@@ -415,11 +415,29 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	/* The spawned object */
+	AInteractionObject* SpawnedObject;
+
 	// Calibration completed
 	void CalibrateSystem(FVector AxisTranslation);
 
 	void ExperimentSetup(bool bIsSynchronous, bool bIsExperimentForDP);
 
+	UFUNCTION(BlueprintPure, Category = "Experiment")
+	bool GetDelayState();
+
+	/** Object spawning */
+	void SpawnObject1();
+
+	/** Object spawning */
+	void SpawnObject2();
+	
+	/** Object spawning */
+	void SpawnObject3();
+	
+	/** Object spawning */
+	void SpawnObject4();
+	
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
 	float GetAlphaValue();

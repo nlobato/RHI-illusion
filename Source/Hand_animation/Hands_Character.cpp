@@ -99,34 +99,11 @@ void AHands_Character::Tick( float DeltaTime )
 				AHands_Character::DrawDescriptionPoints(DPVirtualObject);
 			}
 			
-			// Introduce a time delay to our hand's movements
-			if (bIsDelayActive)
-			{
-				// Have the time delay be a random number in a range specified by our two variables
-				if (bIsDelayCompleted)
-				{
-					SensorDelayTotalTime = FMath::FRandRange(SensorDelayRangeLow, SensorDelayRangeHigh);
-					bIsDelayCompleted = false;
-				}
+			// Time delay for the asynchronous condition is now handled in the AnimBlueprint
 
-				// Tick up our timer
-				SensorDelayElapsedTime += DeltaTime;
-			}
-			else
+			if (bAreDPsActive)
 			{
-				SensorDelayTotalTime = 0;
-			}
-			// If the delay has been completed or if it is not active, update our hands position
-			if (SensorDelayElapsedTime >= SensorDelayTotalTime || !bIsDelayActive)
-			{
-				
-				// Reset our time delay's parameters
-				if (bIsDelayActive)
-				{
-					SensorDelayElapsedTime = 0.f;
-					bIsDelayCompleted = true;
-				}
-
+												
 				LeftHandWeights.Empty();
 				LeftHandTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
@@ -1157,6 +1134,11 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<floa
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Normalized weight: %f"), (w_biprime[i] / sum_wbiprime)));
 	}
 	return vector;
+}
+
+bool AHands_Character::GetDelayState()
+{
+	return bIsDelayActive;
 }
 
 float AHands_Character::GetAlphaValue()
