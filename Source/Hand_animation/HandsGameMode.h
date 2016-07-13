@@ -54,6 +54,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	bool bIsExperimentSynchronous;
 
+	// Synchronous or asynchronous experiment
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bIsExperimentForDPAlgorithm;
+
 	// Activate/Deactivate the Descriptor Points algorithm for this experiment
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	bool bAreDPsActive;
@@ -62,9 +66,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	bool bIsMeshToChange;
 
-	// Life time (in seconds) that each mesh will have
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
-	float MeshLifeTime;
+	bool bIsSizeToChange;
+
+	// Time (in seconds) that has to elapse before the objects changes shape or size
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	float ObjectModificationLifeTime;
+
+
 
 private:
 	/** Keeps track of the current playing state */
@@ -78,7 +87,7 @@ private:
 
 	FTimerHandle SpawnedObjectTimerHandle;
 
-	FTimerHandle MeshChangeTimerHandle;
+	FTimerHandle ObjectModificationTimerHandle;
 	
 	void HasTimeRunOut();
 
@@ -88,4 +97,8 @@ private:
 	void HandleNewState(EExperimentPlayState NewState);
 
 	void ChangeMeshObject();
+
+	TArray<uint32> ObjectIndex;
+
+	uint32 ObjectCount;
 };
