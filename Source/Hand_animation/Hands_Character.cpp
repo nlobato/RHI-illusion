@@ -726,23 +726,23 @@ void AHands_Character::SpawnObject4()
 		bIsObject2Spawned = false;
 		bIsObject3Spawned = false;
 	}
-
-	// Check for a valid world
-	UWorld* const World = GetWorld();
-	if (World)
-	{
-		// Set the spawn parameters
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = Instigator;
-
-		// spawn the pickup
-		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn4, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
-		if (SpawnedObject)
+	
+		// Check for a valid world
+		UWorld* const World = GetWorld();
+		if (World)
 		{
-			bIsObject4Spawned = true;
+			// Set the spawn parameters
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+
+			// spawn the pickup
+			SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn4, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+			if (SpawnedObject)
+			{
+				bIsObject4Spawned = true;
+			}
 		}
-	}
 }
 
 // set the P & O of our interaction object

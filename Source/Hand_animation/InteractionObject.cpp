@@ -41,3 +41,19 @@ void AInteractionObject::SetupPlayerInputComponent(class UInputComponent* InputC
 
 }
 
+void AInteractionObject::ChangeMesh()
+{
+	//FString meshActorPath = TEXT("/Game/mano/Character/Basic/mesh_test.mesh_test");
+	FString meshActorPath = TEXT("/Game/mano/Character/Basic/pelican_ECA.pelican_ECA");
+	//AStaticMeshActor* jaja = Cast<AStaticMeshActor>(StaticLoadObject(AStaticMeshActor::StaticClass(), NULL, *meshActorPath));
+	UStaticMesh* jaja = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), NULL, *meshActorPath));
+	if (jaja == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Casting failed on AInteractionObject::ChangeMesh()")));
+	}
+	else
+	{
+		//OurVisibleComponent->SetStaticMesh(jaja->GetStaticMeshComponent()->StaticMesh);
+		OurVisibleComponent->SetStaticMesh(jaja);
+	}
+}

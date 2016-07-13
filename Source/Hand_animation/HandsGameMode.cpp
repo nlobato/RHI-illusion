@@ -152,11 +152,14 @@ void AHandsGameMode::ChangeMeshObject()
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 	if (MyCharacter)
 	{
-		static ConstructorHelpers::FObjectFinder<UStaticMesh> OsitoMesh(TEXT("/Game/mano/Character/Basic/mesh_test.mesh_test"));
-		if (OsitoMesh.Succeeded())
+		if (MyCharacter->SpawnedObject)
 		{
-
-			MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(OsitoMesh.Object);
+			MyCharacter->SpawnedObject->ChangeMesh();
+			MyCharacter->bAreDPset = false;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("No spawned object when casted frmo AHandsGameMode::ChangeMeshObject()")));
 		}
 	}
 	GetWorldTimerManager().ClearTimer(MeshChangeTimerHandle);

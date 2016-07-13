@@ -25,5 +25,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UStaticMeshComponent* OurVisibleComponent;
+
+	void ChangeMesh();
 	
 };

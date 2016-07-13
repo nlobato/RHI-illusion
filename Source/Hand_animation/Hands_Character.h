@@ -90,16 +90,7 @@ protected:
 
 
 	bool bHasObjectSizeChanged;
-
-	/** Object spawning */
-	//void SpawnObject1();
-
-	//void SpawnObject2();
-
-	//void SpawnObject3();
-
-	//void SpawnObject4();
-
+		
 	/** Object P & O*/
 	void Object1Movement(float Value);
 
@@ -181,7 +172,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Vertices")
 	bool bDrawLeftHandPoints;
 
-	bool bAreDPset;
+	//bool bAreDPset;
 	TArray<uint32>* pDPIndices;
 
 	/** Vertices indices for the descriptor points */
@@ -437,6 +428,8 @@ public:
 	
 	/** Object spawning */
 	void SpawnObject4();
+
+	bool bAreDPset;
 	
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
