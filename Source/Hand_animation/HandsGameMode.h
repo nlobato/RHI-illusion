@@ -108,4 +108,14 @@ private:
 	TArray<uint32> ObjectIndex;
 
 	uint32 TimesObjectHasSpawnedCounter;
+
+	TArray<FVector> ObjectSizeChangesArray;
+
+	bool bHasRealSizeObjectIndexBeenSet;
+
+	uint32 RealSizeObjectIndex;
+
+	uint32 RealSizeObjectIndexCounter;
+
+	FVector SetObjectNewScale();
 };
