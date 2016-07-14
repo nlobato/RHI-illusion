@@ -13,15 +13,16 @@ AHandsGameMode::AHandsGameMode()
 	ExperimentDurationTime = 5.f;
 	SpawnedObjectLifeTime = 10.f;
 	ObjectModificationLifeTime = 10.f;
-	bIsExperimentSynchronous = true;
-	bAreDPsActive = true;
-	bSpawnObjectsWithTimer = true;
+	bIsExperimentForRHIReplication = true;
+	bIsSynchronousActive = true;
+	bSpawnObjectsWithTimer = false;
+	AmountOfChangesInObject = 1;
 }
 
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	ObjectCount = 0;
+	TimesObjectHasSpawnedCounter = 0;
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
@@ -82,27 +83,35 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 		if (MyCharacter)
 		{
 			MyCharacter->CalibrateSystem(AxisTranslation);
-			MyCharacter->ExperimentSetup(bIsExperimentSynchronous, bAreDPsActive);
-		}
-		if (bSpawnObjectsWithTimer)
-		{
-			ObjectIndex.Empty();
-			MyCharacter->SpawnObject1();
-			bIsObject1Spawned = true;
-			GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-		}
-		else if(bIsMeshToChange)
-		{
-			MyCharacter->SpawnObject1();
-			GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ObjectModificationLifeTime, false);
-		}
-		
+			if (bIsExperimentForDPAlgorithm)
+			{
+				MyCharacter->ExperimentSetup(true, bAreDPsActive);
+				if (bIsMeshToChange)
+				{
+					MyCharacter->SpawnObject1();
+					GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ObjectModificationLifeTime, false);
+				}
+				else if (bIsSizeToChange)
+				{
+					MyCharacter->SpawnObject1();
+					ChangeSizeObject();
+				}
+			}
+			else if (bIsExperimentForRHIReplication)
+			{
+				MyCharacter->ExperimentSetup(bIsSynchronousActive, true);
+				ObjectIndex.Empty();
+				SpawnNewObject();				
+			}
+			
+		}	
 	}
 		break;
 	case EExperimentPlayState::EExperimentFinished:
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentFinished")));
 		GetWorldTimerManager().ClearTimer(SpawnedObjectTimerHandle);
+		GetWorldTimerManager().ClearTimer(ObjectModificationTimerHandle);
 		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 		if (MyCharacter)
 		{
@@ -130,10 +139,10 @@ void AHandsGameMode::HasTimeRunOut()
 
 void AHandsGameMode::SpawnNewObject()
 {	
-	if (ObjectCount > 3)
+	if (TimesObjectHasSpawnedCounter > 3)
 	{
 		ObjectIndex.Empty();
-		ObjectCount = 0;
+		TimesObjectHasSpawnedCounter = 0;
 	}
 	uint32 RandomObjectIndex = FMath::RandRange(1, 4);
 	bool bIsObjectIndexRepeated = ObjectIndex.Contains(RandomObjectIndex);
@@ -151,50 +160,44 @@ void AHandsGameMode::SpawnNewObject()
 		case 1:
 			
 				MyCharacter->SpawnObject1();
-				ObjectCount++;
-				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+				TimesObjectHasSpawnedCounter++;
+				if (bSpawnObjectsWithTimer)
+				{
+					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+				}
 			
 			break;
 		case 2:
 			
 				MyCharacter->SpawnObject2();
-				ObjectCount++;
-				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-			
+				TimesObjectHasSpawnedCounter++;
+				if (bSpawnObjectsWithTimer)
+				{
+					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+				}			
 			break;
 		case 3:
 			
 				MyCharacter->SpawnObject3();
-				ObjectCount++;
-				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-			
+				TimesObjectHasSpawnedCounter++;
+				if (bSpawnObjectsWithTimer)
+				{
+					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+				}			
 			break;
 		case 4:
 			
 				MyCharacter->SpawnObject4();
-				ObjectCount++;
-				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-			
+				TimesObjectHasSpawnedCounter++;
+				if (bSpawnObjectsWithTimer)
+				{
+					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+				}			
 			break;
 		default:
 			break;
 		}
-	}
-	
-	/*if (bIsObject1Spawned)
-	{
-		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
-		if (MyCharacter)
-		{
-			MyCharacter->SpawnObject2();
-			bIsObject1Spawned = false;
-			GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-		}
-	}
-	else
-	{
-		GetWorldTimerManager().ClearTimer(SpawnedObjectTimerHandle);
-	}*/
+	}	
 }
 
 void AHandsGameMode::ChangeMeshObject()
@@ -213,4 +216,20 @@ void AHandsGameMode::ChangeMeshObject()
 		}
 	}
 	GetWorldTimerManager().ClearTimer(ObjectModificationTimerHandle);
+}
+
+void AHandsGameMode::ChangeSizeObject()
+{
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		if (MyCharacter->SpawnedObject)
+		{
+			float RandomSize = FMath::FRandRange(0.5, 2.0);
+			FVector NewScale(RandomSize, RandomSize, RandomSize);
+			MyCharacter->SpawnedObject->OurVisibleComponent->SetRelativeScale3D(NewScale);
+			MyCharacter->bHasObjectSizeChanged = true;
+		}
+	}
+	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((ExperimentDurationTime * 60.f) / AmountOfChangesInObject), false);
 }

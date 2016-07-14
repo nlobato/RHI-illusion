@@ -42,38 +42,43 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	float ExperimentDurationTime;
 
+	// Rubber Hand Illusion replication experiment
+	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
+	bool bIsExperimentForRHIReplication;
+
+	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
+	bool bIsSynchronousActive;
+
 	// The objects will be spawn one at a time
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
 	bool bSpawnObjectsWithTimer;
 
 	// Life time (in seconds) that each spawned object will have
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
 	float SpawnedObjectLifeTime;
 
-	// Synchronous or asynchronous experiment
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
-	bool bIsExperimentSynchronous;
-
-	// Synchronous or asynchronous experiment
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	// Descriptor Points Algorithm experiment
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsExperimentForDPAlgorithm;
 
 	// Activate/Deactivate the Descriptor Points algorithm for this experiment
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bAreDPsActive;
 
 	// The mesh of the spawned object will be changing
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsMeshToChange;
 
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsSizeToChange;
 
 	// Time (in seconds) that has to elapse before the objects changes shape or size
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	float ObjectModificationLifeTime;
 
-
+	// Number of cases for the mesh/shape experiment
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
+	uint32 AmountOfChangesInObject;
 
 private:
 	/** Keeps track of the current playing state */
@@ -98,7 +103,9 @@ private:
 
 	void ChangeMeshObject();
 
+	void ChangeSizeObject();
+
 	TArray<uint32> ObjectIndex;
 
-	uint32 ObjectCount;
+	uint32 TimesObjectHasSpawnedCounter;
 };

@@ -89,7 +89,7 @@ protected:
 	bool bIsObject4Spawned;
 
 
-	bool bHasObjectSizeChanged;
+	//bool bHasObjectSizeChanged;
 		
 	/** Object P & O*/
 	void Object1Movement(float Value);
@@ -430,6 +430,8 @@ public:
 	void SpawnObject4();
 
 	bool bAreDPset;
+
+	bool bHasObjectSizeChanged;
 	
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
