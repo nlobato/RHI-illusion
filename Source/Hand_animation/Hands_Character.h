@@ -55,11 +55,17 @@ protected:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
-protected:
-	
+public:
+
 	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn1;
+
+protected:
+	
+	/* What object to spawn */
+	/*UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn1;*/
 
 	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
@@ -106,7 +112,7 @@ protected:
 
 protected:
 
-	USkeletalMeshComponent* MyMesh;
+	//USkeletalMeshComponent* MyMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector MeshScale;
@@ -400,17 +406,29 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timer", meta = (BlueprintProtected = "true"))
 	bool bIsDelayActive;
 
+	void Answer1();
+
+	void Answer2();
+	
+	void Answer3();
+
+	void Answer4();
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	USkeletalMeshComponent* MyMesh;
+
 	/* The spawned object */
 	AInteractionObject* SpawnedObject;
 
 	// Calibration completed
 	void CalibrateSystem(FVector AxisTranslation);
+
+	void SetAlphaValue(float AlphaValue);
 
 	void ExperimentSetup(bool bIsSynchronous, bool bIsExperimentForDP);
 
@@ -429,9 +447,17 @@ public:
 	/** Object spawning */
 	void SpawnObject4();
 
+	void CheckAnswer();
+
 	bool bAreDPset;
 
 	bool bHasObjectSizeChanged;
+
+	bool bIsExperimentFinished;
+
+	bool bIsDecisionMade;
+
+	int32 ObjectChosen;
 	
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")

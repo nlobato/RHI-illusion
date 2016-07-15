@@ -118,4 +118,14 @@ private:
 	uint32 RealSizeObjectIndexCounter;
 
 	FVector SetObjectNewScale();
+
+	void SpawnObjectsForDecision();
+
+	//AInteractionObject* DecisionObject;
+
+	TSubclassOf<class AInteractionObject>* PointerToObjectSpawnedByCharacter;
+
+	FVector RootLocation;
+
+	void DecisionEvaluation(int32 ObjectChosen);
 };

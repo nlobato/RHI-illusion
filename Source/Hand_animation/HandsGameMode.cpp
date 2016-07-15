@@ -50,6 +50,17 @@ void AHandsGameMode::Tick(float DeltaTime)
 				}
 			}
 		}
+		else if (CurrentState == EExperimentPlayState::EExperimentFinished)
+		{
+			AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+			if (MyCharacter)
+			{
+				if (MyCharacter->bIsDecisionMade)
+				{
+					DecisionEvaluation(MyCharacter->ObjectChosen);
+				}
+			}
+		}
 	}
 }
 
@@ -84,6 +95,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 		if (MyCharacter)
 		{
 			MyCharacter->CalibrateSystem(AxisTranslation);
+			MyCharacter->SetAlphaValue(1.f);
 			if (bIsExperimentForDPAlgorithm)
 			{
 				MyCharacter->ExperimentSetup(true, bAreDPsActive);
@@ -95,7 +107,9 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 				}
 				else if (bIsSizeToChange)
 				{			
-					SpawnNewObject();
+					//SpawnNewObject();
+					MyCharacter->SpawnObject1();
+					PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
 					ObjectSizeChangesArray.Empty();
 					ChangeSizeObject();
 				}
@@ -122,9 +136,13 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			{
 				MyCharacter->SpawnedObject->Destroy();
 			}
+			MyCharacter->SetAlphaValue(0.f);
+			MyCharacter->bIsExperimentFinished = true;
+			RootLocation = MyCharacter->MyMesh->GetSocketLocation(TEXT("spine_02"));
 		}
 		if (bIsExperimentForDPAlgorithm)
 		{
+			SpawnObjectsForDecision();
 			for (FVector i : ObjectSizeChangesArray)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Scale: %f"), i.X));
@@ -170,6 +188,7 @@ void AHandsGameMode::SpawnNewObject()
 		case 1:
 			
 				MyCharacter->SpawnObject1();
+				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
 				TimesObjectHasSpawnedCounter++;
 				if (bSpawnObjectsWithTimer)
 				{
@@ -281,5 +300,44 @@ FVector AHandsGameMode::SetObjectNewScale()
 		float RandomSize = FMath::FRandRange(0.7, 1.5);
 		FVector NewScale(RandomSize, RandomSize, RandomSize);
 		return NewScale;
+	}
+}
+
+void AHandsGameMode::SpawnObjectsForDecision()
+{
+	float Offset = 0;
+	for (FVector i : ObjectSizeChangesArray)
+	{
+		UWorld* const World = GetWorld();
+		if (World)
+		{
+			// Set the spawn parameters
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+
+			// spawn the pickup
+			FVector PositionForObject = FVector(100.f, Offset, 0.f) + RootLocation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
+
+			AInteractionObject* const DecisionObject = World->SpawnActor<AInteractionObject>(*PointerToObjectSpawnedByCharacter, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
+			if (DecisionObject)
+			{
+				DecisionObject->OurVisibleComponent->SetRelativeScale3D(i);
+			}
+		}
+		Offset += 15.f;
+	}
+}
+
+void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
+{
+	int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
+	if (CorrectAnswer == ObjectChosen)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
 	}
 }

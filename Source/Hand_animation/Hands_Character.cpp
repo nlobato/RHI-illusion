@@ -8,6 +8,7 @@
 #include "Public/StaticMeshResources.h"
 #include "Public/PackedNormal.h"
 #include "Public/GenericPlatform/GenericPlatformMath.h"
+#include "HandsGameMode.h"
 
 
 // Sets default values
@@ -75,6 +76,7 @@ void AHands_Character::BeginPlay()
 	bAreDPset = false;
 	SensorDelayTotalTime = 0;
 	bIsDelayCompleted = false;
+	bIsDecisionMade = false;
 }
 
 // Called every frame
@@ -233,10 +235,10 @@ void AHands_Character::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
 	// Object spawning
-	InputComponent->BindAction("SpawnObject1", IE_Pressed, this, &AHands_Character::SpawnObject1);
-	InputComponent->BindAction("SpawnObject2", IE_Pressed, this, &AHands_Character::SpawnObject2);
-	InputComponent->BindAction("SpawnObject3", IE_Pressed, this, &AHands_Character::SpawnObject3);
-	InputComponent->BindAction("SpawnObject4", IE_Pressed, this, &AHands_Character::SpawnObject4);
+	InputComponent->BindAction("SpawnObject1", IE_Pressed, this, &AHands_Character::Answer1);
+	InputComponent->BindAction("SpawnObject2", IE_Pressed, this, &AHands_Character::Answer2);
+	InputComponent->BindAction("SpawnObject3", IE_Pressed, this, &AHands_Character::Answer3);
+	InputComponent->BindAction("SpawnObject4", IE_Pressed, this, &AHands_Character::Answer4);
 
 	//Object movement and modification
 	InputComponent->BindAxis("ObjectSensor1", this, &AHands_Character::Object1Movement);
@@ -255,6 +257,11 @@ void AHands_Character::CalibrateSystem(FVector AxisTranslationFromGameMode)
 	AlphaValue = 1.f;
 	AxisTranslation = AxisTranslationFromGameMode;
 	bIsSystemCalibrated = true;
+}
+
+void AHands_Character::SetAlphaValue(float AlphaValueFromGM)
+{
+	AlphaValue = AlphaValueFromGM;
 }
 
 void AHands_Character::ExperimentSetup(bool bIsSync, bool IsDP)
@@ -777,6 +784,8 @@ void AHands_Character::Object1Movement(float ValueX)
 		RawOrientation.Pitch = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_13RotationPitch");
 		RawOrientation.Yaw = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_13RotationYaw");
 
+		//UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAxisKeyValue
+
 		// Set the position and orientation for the object
 		SpawnedObject->SetActorLocationAndRotation(ObjectPosition, RawOrientation, false, false);
 	}
@@ -1135,6 +1144,46 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<floa
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Normalized weight: %f"), (w_biprime[i] / sum_wbiprime)));
 	}
 	return vector;
+}
+
+void AHands_Character::Answer1()
+{
+	// if experiment has ended
+	if (bIsExperimentFinished)
+	{
+		ObjectChosen = 1;
+		bIsDecisionMade = true;
+	}
+}
+
+void AHands_Character::Answer2()
+{
+	// if experiment has ended
+	if (bIsExperimentFinished)
+	{
+		ObjectChosen = 2;
+		bIsDecisionMade = true;
+	}
+}
+
+void AHands_Character::Answer3()
+{
+	// if experiment has ended
+	if (bIsExperimentFinished)
+	{
+		ObjectChosen = 3;
+		bIsDecisionMade = true;
+	}
+}
+
+void AHands_Character::Answer4()
+{
+	// if experiment has ended
+	if (bIsExperimentFinished)
+	{
+		ObjectChosen = 4;
+		bIsDecisionMade = true;
+	}
 }
 
 bool AHands_Character::GetDelayState()
