@@ -27,5 +27,12 @@ public:
 	UStaticMeshComponent* OurVisibleComponent;
 
 	void ChangeMesh();
+
+	void ChangeColor(int32 ColorIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ColorChangeEffect();
 	
+	UPROPERTY(BlueprintReadOnly)
+	int32 ColorIndex;
 };

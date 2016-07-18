@@ -119,6 +119,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 				MyCharacter->ExperimentSetup(bIsSynchronousActive, true);
 				ObjectIndex.Empty();
 				SpawnNewObject();				
+				//MyCharacter->SpawnObject1();
 			}
 			
 		}	
@@ -167,16 +168,16 @@ void AHandsGameMode::HasTimeRunOut()
 
 void AHandsGameMode::SpawnNewObject()
 {	
-	if (TimesObjectHasSpawnedCounter > 3)
+	if (TimesObjectHasSpawnedCounter > 1)
 	{
 		ObjectIndex.Empty();
 		TimesObjectHasSpawnedCounter = 0;
 	}
-	uint32 RandomObjectIndex = FMath::RandRange(1, 4);
+	uint32 RandomObjectIndex = FMath::RandRange(1, 2);
 	bool bIsObjectIndexRepeated = ObjectIndex.Contains(RandomObjectIndex);
 	while (bIsObjectIndexRepeated)
 	{
-		RandomObjectIndex = FMath::RandRange(1, 4);
+		RandomObjectIndex = FMath::RandRange(1, 2);
 		bIsObjectIndexRepeated = ObjectIndex.Contains(RandomObjectIndex);
 	}
 	ObjectIndex.Emplace(RandomObjectIndex);
@@ -198,7 +199,8 @@ void AHandsGameMode::SpawnNewObject()
 			break;
 		case 2:
 			
-				MyCharacter->SpawnObject2();
+				MyCharacter->SpawnObject4();
+				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn2);
 				TimesObjectHasSpawnedCounter++;
 				if (bSpawnObjectsWithTimer)
 				{
@@ -208,6 +210,7 @@ void AHandsGameMode::SpawnNewObject()
 		case 3:
 			
 				MyCharacter->SpawnObject3();
+				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn3);
 				TimesObjectHasSpawnedCounter++;
 				if (bSpawnObjectsWithTimer)
 				{
@@ -217,6 +220,7 @@ void AHandsGameMode::SpawnNewObject()
 		case 4:
 			
 				MyCharacter->SpawnObject4();
+				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
 				TimesObjectHasSpawnedCounter++;
 				if (bSpawnObjectsWithTimer)
 				{
@@ -251,7 +255,7 @@ void AHandsGameMode::ChangeSizeObject()
 {
 	if (!bHasRealSizeObjectIndexBeenSet)
 	{
-		RealSizeObjectIndex = FMath::RandRange(1, AmountOfChangesInObject);
+		RealSizeObjectIndex = FMath::RandRange(0, AmountOfChangesInObject - 1);
 		bHasRealSizeObjectIndexBeenSet = true;
 	}
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -277,6 +281,7 @@ void AHandsGameMode::ChangeSizeObject()
 				RealSizeObjectIndexCounter++;
 			}
 		}
+		MyCharacter->SpawnedObject->ChangeColor(RealSizeObjectIndexCounter - 1);
 	}
 	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((ExperimentDurationTime * 60.f) / AmountOfChangesInObject), false);
 }
@@ -305,7 +310,8 @@ FVector AHandsGameMode::SetObjectNewScale()
 
 void AHandsGameMode::SpawnObjectsForDecision()
 {
-	float Offset = 0;
+	float Offset = -30;
+	int32 contador = 0;
 	for (FVector i : ObjectSizeChangesArray)
 	{
 		UWorld* const World = GetWorld();
@@ -317,15 +323,18 @@ void AHandsGameMode::SpawnObjectsForDecision()
 			SpawnParams.Instigator = Instigator;
 
 			// spawn the pickup
-			FVector PositionForObject = FVector(100.f, Offset, 0.f) + RootLocation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
+			//FVector PositionForObject = FVector(100.f, Offset, 0.f) + RootLocation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
+			FVector PositionForObject = FVector(45.f, Offset, -15.f) + RootLocation;
 
 			AInteractionObject* const DecisionObject = World->SpawnActor<AInteractionObject>(*PointerToObjectSpawnedByCharacter, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
 			if (DecisionObject)
 			{
 				DecisionObject->OurVisibleComponent->SetRelativeScale3D(i);
+				DecisionObject->ChangeColor(contador);
 			}
 		}
-		Offset += 15.f;
+		Offset += 20.f;
+		contador++;
 	}
 }
 

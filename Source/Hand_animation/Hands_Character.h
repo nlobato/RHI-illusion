@@ -61,12 +61,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn1;
 
-protected:
-	
-	/* What object to spawn */
-	/*UPROPERTY(EditAnywhere, Category = "Spawning")
-	TSubclassOf<class AInteractionObject> ObjectToSpawn1;*/
-
 	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn2;
@@ -78,6 +72,24 @@ protected:
 	/* What object to spawn */
 	UPROPERTY(EditAnywhere, Category = "Spawning")
 	TSubclassOf<class AInteractionObject> ObjectToSpawn4;
+
+protected:
+	
+	/* What object to spawn */
+	/*UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn1;*/
+
+	/* What object to spawn */
+	/*UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn2;*/
+
+	/* What object to spawn */
+	/*UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn3;*/
+
+	/* What object to spawn */
+	/*UPROPERTY(EditAnywhere, Category = "Spawning")
+	TSubclassOf<class AInteractionObject> ObjectToSpawn4;*/
 
 	/* The spawned object */
 	//AInteractionObject* SpawnedObject;

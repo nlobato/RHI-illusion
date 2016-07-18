@@ -57,3 +57,9 @@ void AInteractionObject::ChangeMesh()
 		OurVisibleComponent->SetStaticMesh(jaja);
 	}
 }
+
+void AInteractionObject::ChangeColor(int32 Color)
+{
+	ColorIndex = Color;
+	ColorChangeEffect();
+}
