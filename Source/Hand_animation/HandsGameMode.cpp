@@ -7,6 +7,7 @@
 #include "CalibrationBox.h"
 #include "Engine.h"
 #include "InteractionObject.h"
+#include "Blueprint/UserWidget.h"
 
 AHandsGameMode::AHandsGameMode()
 {
@@ -22,6 +23,16 @@ AHandsGameMode::AHandsGameMode()
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (HUDWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
+		if (CurrentWidget != nullptr)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
+
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
 	RealSizeObjectIndexCounter = 0;

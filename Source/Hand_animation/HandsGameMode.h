@@ -80,6 +80,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	uint32 AmountOfChangesInObject;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Categoy = "Experiment", Meta = (BlueprintProtected = "true"))
+	TSubclassOf<class UUserWidget> HUDWidgetClass;
+
+	UPROPERTY()
+	class UUserWidget* CurrentWidget;
+
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
