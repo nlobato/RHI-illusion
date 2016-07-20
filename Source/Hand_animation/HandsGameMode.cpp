@@ -25,6 +25,7 @@ void AHandsGameMode::BeginPlay()
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
 	RealSizeObjectIndexCounter = 0;
+	SetObjectNewScale();
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
@@ -107,10 +108,9 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 				}
 				else if (bIsSizeToChange)
 				{			
-					//SpawnNewObject();
-					MyCharacter->SpawnObject1();
+					SpawnNewObject();
+					//MyCharacter->SpawnObject1();
 					PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
-					ObjectSizeChangesArray.Empty();
 					ChangeSizeObject();
 				}
 			}
@@ -253,66 +253,60 @@ void AHandsGameMode::ChangeMeshObject()
 
 void AHandsGameMode::ChangeSizeObject()
 {
-	if (!bHasRealSizeObjectIndexBeenSet)
-	{
-		RealSizeObjectIndex = FMath::RandRange(0, AmountOfChangesInObject - 1);
-		bHasRealSizeObjectIndexBeenSet = true;
-	}
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 	if (MyCharacter)
 	{
 		if (MyCharacter->SpawnedObject)
 		{
-			if (!(RealSizeObjectIndex == RealSizeObjectIndexCounter))
-			{
-				//float RandomSize = FMath::FRandRange(0.5, 2.0);
-				//FVector NewScale(RandomSize, RandomSize, RandomSize);
-				FVector NewScale = SetObjectNewScale();
-				MyCharacter->SpawnedObject->OurVisibleComponent->SetRelativeScale3D(NewScale);
-				MyCharacter->bHasObjectSizeChanged = true;
-				ObjectSizeChangesArray.Emplace(NewScale);
-				RealSizeObjectIndexCounter++;
-			}
-			else
-			{
-				FVector NewScale(1.f, 1.f, 1.f);
-				MyCharacter->SpawnedObject->OurVisibleComponent->SetRelativeScale3D(NewScale);
-				ObjectSizeChangesArray.Emplace(NewScale);
-				RealSizeObjectIndexCounter++;
-			}
+			FVector NewScale = ObjectSizeChangesArray[RealSizeObjectIndexCounter];
+			MyCharacter->SpawnedObject->OurVisibleComponent->SetRelativeScale3D(NewScale);
+			MyCharacter->bHasObjectSizeChanged = true;			
 		}
-		MyCharacter->SpawnedObject->ChangeColor(RealSizeObjectIndexCounter - 1);
+		MyCharacter->SpawnedObject->ChangeColor(RealSizeObjectIndexCounter);
+		RealSizeObjectIndexCounter++;
 	}
-	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((ExperimentDurationTime * 60.f) / AmountOfChangesInObject), false);
+	if (RealSizeObjectIndexCounter > 3)
+	{
+		RealSizeObjectIndexCounter = 0;
+	}
+	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((ExperimentDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
 }
 
-FVector AHandsGameMode::SetObjectNewScale()
+void AHandsGameMode::SetObjectNewScale()
 {
-	if (RealSizeObjectIndexCounter > 0)
+	ObjectSizeChangesArray.Empty();
+	float RandomSizeLow = FMath::FRandRange(0.6, 0.9);
+	float RandomSizeHigh = FMath::FRandRange(1.1, 1.4);
+	float Decision = FMath::RandRange(1, 2);
+	if(Decision == 1)
 	{
-		float RandomSize = FMath::FRandRange(0.7, 1.5);
-		float PercentageDifference = (100 * RandomSize) / ObjectSizeChangesArray[RealSizeObjectIndexCounter - 1].X;
-		while (PercentageDifference > 80 && PercentageDifference < 120)
-		{
-			RandomSize = FMath::FRandRange(0.7, 1.5);
-			PercentageDifference = (100 * RandomSize) / ObjectSizeChangesArray[RealSizeObjectIndexCounter - 1].X;
-		}
-		FVector NewScale(RandomSize, RandomSize, RandomSize);
-		return NewScale;
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeLow, RandomSizeLow, RandomSizeLow));
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeHigh, RandomSizeHigh, RandomSizeHigh));
 	}
 	else
 	{
-		float RandomSize = FMath::FRandRange(0.7, 1.5);
-		FVector NewScale(RandomSize, RandomSize, RandomSize);
-		return NewScale;
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeHigh, RandomSizeHigh, RandomSizeHigh));
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeLow, RandomSizeLow, RandomSizeLow));
 	}
+	RandomSizeLow = FMath::FRandRange(0.6, 0.9);
+	RandomSizeHigh = FMath::FRandRange(1.1, 1.4);
+	if (Decision == 1)
+	{
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeLow, RandomSizeLow, RandomSizeLow));		
+	}
+	else
+	{
+		ObjectSizeChangesArray.Emplace(FVector(RandomSizeHigh, RandomSizeHigh, RandomSizeHigh));
+	}
+	RealSizeObjectIndex = FMath::RandRange(0, AmountOfChangesInObject - 1);
+	ObjectSizeChangesArray.Insert(FVector(1.f, 1.f, 1.f), RealSizeObjectIndex);
 }
 
 void AHandsGameMode::SpawnObjectsForDecision()
 {
 	float Offset = -30;
 	int32 contador = 0;
-	for (FVector i : ObjectSizeChangesArray)
+	for (uint32 i = 0; i <= (AmountOfChangesInObject - 1); i++)
 	{
 		UWorld* const World = GetWorld();
 		if (World)
@@ -323,14 +317,20 @@ void AHandsGameMode::SpawnObjectsForDecision()
 			SpawnParams.Instigator = Instigator;
 
 			// spawn the pickup
-			//FVector PositionForObject = FVector(100.f, Offset, 0.f) + RootLocation.RotateAngleAxis(-90.f, FVector(0.f, 0.f, 1.f));
 			FVector PositionForObject = FVector(45.f, Offset, -15.f) + RootLocation;
 
 			AInteractionObject* const DecisionObject = World->SpawnActor<AInteractionObject>(*PointerToObjectSpawnedByCharacter, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
 			if (DecisionObject)
 			{
-				DecisionObject->OurVisibleComponent->SetRelativeScale3D(i);
-				DecisionObject->ChangeColor(contador);
+				if (i != RealSizeObjectIndex)
+				{
+					DecisionObject->OurVisibleComponent->SetRelativeScale3D(ObjectSizeChangesArray[i]);
+					DecisionObject->ChangeColor(i);
+				}
+				else
+				{
+					DecisionObject->ChangeColor(i);
+				}
 			}
 		}
 		Offset += 20.f;

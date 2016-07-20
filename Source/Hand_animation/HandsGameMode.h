@@ -116,8 +116,8 @@ private:
 	uint32 RealSizeObjectIndex;
 
 	uint32 RealSizeObjectIndexCounter;
-
-	FVector SetObjectNewScale();
+		
+	void SetObjectNewScale();
 
 	void SpawnObjectsForDecision();
 
