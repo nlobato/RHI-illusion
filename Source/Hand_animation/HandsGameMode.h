@@ -27,11 +27,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	/** Returns the current playing state */
-	UFUNCTION(BlueprintPure, Category = "Power")
+	UFUNCTION(BlueprintPure, Category = "Experiment setup")
 	EExperimentPlayState GetCurrentState() const;
-
+	
 	/** Sets a new playing state */
 	void SetCurrentState(EExperimentPlayState NewState);
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bDisplayMessage;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool bDisplayQuestion;
 
 	/*UFUNCTION(BlueprintCallable, Category = "Timer")
 	void StartExperiment(bool bShouldExperimentStart);*/
@@ -89,7 +95,7 @@ protected:
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
-	
+		
 	FVector AxisTranslation;
 
 	bool bIsObject1Spawned;

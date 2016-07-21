@@ -18,12 +18,16 @@ AHandsGameMode::AHandsGameMode()
 	bIsSynchronousActive = true;
 	bSpawnObjectsWithTimer = false;
 	AmountOfChangesInObject = 1;
+	bDisplayQuestion = false;
+	bDisplayMessage = false;
 }
 
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
+	
 	if (HUDWidgetClass != nullptr)
 	{
 		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
@@ -37,7 +41,7 @@ void AHandsGameMode::BeginPlay()
 	bHasRealSizeObjectIndexBeenSet = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
-	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
+	
 }
 
 void AHandsGameMode::Tick(float DeltaTime)
@@ -61,6 +65,13 @@ void AHandsGameMode::Tick(float DeltaTime)
 					}
 				}
 			}
+		}
+		else if (CurrentState == EExperimentPlayState::EExperimentInProgress && bSpawnObjectsWithTimer)
+		{
+			if (GetWorldTimerManager().GetTimerRemaining(SpawnedObjectTimerHandle) < 5.f)
+			{
+				bDisplayMessage = true;
+			}			
 		}
 		else if (CurrentState == EExperimentPlayState::EExperimentFinished)
 		{
@@ -155,6 +166,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 		if (bIsExperimentForDPAlgorithm)
 		{
 			SpawnObjectsForDecision();
+			bDisplayQuestion = true;
 			for (FVector i : ObjectSizeChangesArray)
 			{
 				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Scale: %f"), i.X));
@@ -199,24 +211,25 @@ void AHandsGameMode::SpawnNewObject()
 		{
 		case 1:
 			
-				MyCharacter->SpawnObject1();
-				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
-				TimesObjectHasSpawnedCounter++;
-				if (bSpawnObjectsWithTimer)
-				{
-					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-				}
-			
+			bDisplayMessage = false;
+			MyCharacter->SpawnObject1();
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
+			TimesObjectHasSpawnedCounter++;
+			if (bSpawnObjectsWithTimer)
+			{
+				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+			}			
 			break;
+		
 		case 2:
-			
-				MyCharacter->SpawnObject4();
-				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn2);
-				TimesObjectHasSpawnedCounter++;
-				if (bSpawnObjectsWithTimer)
-				{
-					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-				}			
+			bDisplayMessage = false;
+			MyCharacter->SpawnObject4();
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn2);
+			TimesObjectHasSpawnedCounter++;
+			if (bSpawnObjectsWithTimer)
+			{
+				GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
+			}	
 			break;
 		case 3:
 			
@@ -286,8 +299,8 @@ void AHandsGameMode::ChangeSizeObject()
 void AHandsGameMode::SetObjectNewScale()
 {
 	ObjectSizeChangesArray.Empty();
-	float RandomSizeLow = FMath::FRandRange(0.6, 0.9);
-	float RandomSizeHigh = FMath::FRandRange(1.1, 1.4);
+	float RandomSizeLow = FMath::FRandRange(0.6, 0.85);
+	float RandomSizeHigh = FMath::FRandRange(1.15, 1.4);
 	float Decision = FMath::RandRange(1, 2);
 	if(Decision == 1)
 	{
