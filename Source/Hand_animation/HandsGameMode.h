@@ -80,7 +80,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	uint32 AmountOfChangesInObject;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Categoy = "Experiment", Meta = (BlueprintProtected = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Experiment", Meta = (BlueprintProtected = "true"))
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
 
 	UPROPERTY()
