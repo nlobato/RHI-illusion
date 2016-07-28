@@ -107,6 +107,10 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	case EExperimentPlayState::EExperimentInitiated:
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
+		// Display welcome message
+
+		// Enter calibration mode
+		CalibrateSystem();
 	}
 		break;
 	case EExperimentPlayState::EExperimentInProgress:
@@ -373,4 +377,15 @@ void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
 	}
+}
+
+void AHandsGameMode::CalibrateSystem()
+{
+	// T-pose
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		FVector LeftHandTPose = MyCharacter->GetLeftHandPosition();
+	}
+	// Hand on 
 }

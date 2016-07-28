@@ -39,8 +39,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bDisplayQuestion;
 
-	/*UFUNCTION(BlueprintCallable, Category = "Timer")
-	void StartExperiment(bool bShouldExperimentStart);*/
+	UFUNCTION(BlueprintCallable, Category = "Calibration")
+	void CalibrateSystem();
+
+
 
 protected:
 
