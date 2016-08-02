@@ -42,7 +42,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Calibration")
 	void CalibrateSystem();
 
-
+	UPROPERTY(BlueprintReadOnly)
+	int32 MessageToDisplay;
 
 protected:
 
@@ -94,6 +95,10 @@ protected:
 	UPROPERTY()
 	class UUserWidget* CurrentWidget;
 
+	// Length of the experiment in minutes
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	float SensorsSourceHeight;
+
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
@@ -107,6 +112,8 @@ private:
 	FTimerHandle SpawnedObjectTimerHandle;
 
 	FTimerHandle ObjectModificationTimerHandle;
+
+	FTimerHandle CalibrationTimerHandle;
 	
 	void HasTimeRunOut();
 
@@ -142,4 +149,6 @@ private:
 	FVector RootLocation;
 
 	void DecisionEvaluation(int32 ObjectChosen);
+
+	bool bIsShoulderCalibrated;
 };

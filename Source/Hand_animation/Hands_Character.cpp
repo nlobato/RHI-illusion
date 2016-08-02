@@ -451,6 +451,7 @@ void AHands_Character::LeftHandMovement(float ValueX)
 	RawPosition.X = ValueX;
 	RawPosition.Y = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_7MotionY");
 	RawPosition.Z = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetInputAnalogKeyState("Sensor_7MotionZ");
+	GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("LeftHand X: %f, Lefthand Y: %f, Lefthand Z: %f"), RawPosition.X, RawPosition.Y, RawPosition.Z));
 	FVector RectifiedLeftHandPosition = RectifyHandPosition(RawPosition);
 	LeftHandPosition = RectifiedLeftHandPosition;
 	if (bIsSystemCalibrated)

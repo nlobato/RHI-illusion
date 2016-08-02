@@ -14,19 +14,19 @@ AHandsGameMode::AHandsGameMode()
 	ExperimentDurationTime = 5.f;
 	SpawnedObjectLifeTime = 10.f;
 	ObjectModificationLifeTime = 10.f;
+	MessageToDisplay = 0;
 	bIsExperimentForRHIReplication = true;
 	bIsSynchronousActive = true;
 	bSpawnObjectsWithTimer = false;
 	AmountOfChangesInObject = 1;
 	bDisplayQuestion = false;
 	bDisplayMessage = false;
+	SensorsSourceHeight = 123.270798;
 }
 
 void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 	
 	if (HUDWidgetClass != nullptr)
 	{
@@ -36,19 +36,18 @@ void AHandsGameMode::BeginPlay()
 			CurrentWidget->AddToViewport();
 		}
 	}
-
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
-	
+	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
 void AHandsGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	{
-		if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		/*if (CurrentState == EExperimentPlayState::EExperimentInitiated)
 		{
 			TArray<AActor*> FoundActors;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACalibrationBox::StaticClass(), FoundActors);
@@ -65,8 +64,8 @@ void AHandsGameMode::Tick(float DeltaTime)
 					}
 				}
 			}
-		}
-		else if (CurrentState == EExperimentPlayState::EExperimentInProgress && bSpawnObjectsWithTimer)
+		}*/
+		if (CurrentState == EExperimentPlayState::EExperimentInProgress && bSpawnObjectsWithTimer)
 		{
 			if (GetWorldTimerManager().GetTimerRemaining(SpawnedObjectTimerHandle) < 5.f)
 			{
@@ -108,9 +107,9 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
 		// Display welcome message
-
+		MessageToDisplay = 1;
 		// Enter calibration mode
-		CalibrateSystem();
+		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
 	}
 		break;
 	case EExperimentPlayState::EExperimentInProgress:
@@ -380,12 +379,26 @@ void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 }
 
 void AHandsGameMode::CalibrateSystem()
-{
-	// T-pose
+{	
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 	if (MyCharacter)
 	{
-		FVector LeftHandTPose = MyCharacter->GetLeftHandPosition();
-	}
-	// Hand on 
+		if (bIsShoulderCalibrated)
+		{
+			FVector LeftHandNavel = MyCharacter->GetLeftHandPosition();		
+			AxisTranslation.X = LeftHandNavel.X;
+			AxisTranslation.Z = -(SensorsSourceHeight - LeftHandNavel.Z);
+			MessageToDisplay = 3;
+			GetWorldTimerManager().ClearTimer(CalibrationTimerHandle);
+			SetCurrentState(EExperimentPlayState::EExperimentInProgress);
+		}
+		else
+		{
+			FVector LeftHandTPose = MyCharacter->GetLeftHandPosition();
+			AxisTranslation.Y = LeftHandTPose.Y;
+			bIsShoulderCalibrated = true;
+			MessageToDisplay = 2;
+			GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
+		}
+	}	
 }
