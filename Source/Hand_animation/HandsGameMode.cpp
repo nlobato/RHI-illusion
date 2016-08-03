@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "InteractionObject.h"
 #include "Blueprint/UserWidget.h"
+#include "Misc/CoreMisc.h"
 
 AHandsGameMode::AHandsGameMode()
 {
@@ -368,13 +369,34 @@ void AHandsGameMode::SpawnObjectsForDecision()
 void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 {
 	int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
+	FString Answer = FString::Printf(TEXT("Object chosen: %d"), ObjectChosen);
+	FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d"), CorrectAnswer);
+	FString ParticipantNumber = FString::Printf(TEXT("Participant No. %d"), ParticipantCounter);
+
+	FString TextToSave = ParticipantNumber + " " + Answer + " " + CorrectAnswerString;
+
 	if (CorrectAnswer == ObjectChosen)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));		
 	}
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
+	}
+	
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	
+	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+	{
+		FString AbsoluteFilePath = SaveDirectory + "/" + FileName;
+		if (AllowOverwriting || !PlatformFile.FileExists(*AbsoluteFilePath))
+		{
+			FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
 	}
 }
 
