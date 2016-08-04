@@ -13,6 +13,21 @@ enum class EExperimentPlayState
 	EUnknown
 };
 
+// Enum of the messages to display
+UENUM(BlueprintType)
+enum class EMessages
+{
+	EWelcomeMessage,
+	ECalibrationInstructions1,
+	ECalibrationInstructions2,
+	ECalibrationReady,
+	ERHIExperimentInstructions,
+	ERHINewObject,
+	EDPAlgorithmInstructions,
+	EDPAlgorithmQuestion,
+	EUnknown
+};
+
 UCLASS()
 class HAND_ANIMATION_API AHandsGameMode : public AGameMode
 {
@@ -33,6 +48,10 @@ public:
 	/** Sets a new playing state */
 	void SetCurrentState(EExperimentPlayState NewState);
 
+	/** Returns the current message to be displayed */
+	UFUNCTION(BlueprintPure, Category = "Experiment setup")
+	EMessages GetCurrentMessage() const;
+	
 	UPROPERTY(BlueprintReadOnly)
 	bool bDisplayMessage;
 
@@ -41,10 +60,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Calibration")
 	void CalibrateSystem();
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 MessageToDisplay;
-
+	
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
@@ -114,6 +130,8 @@ protected:
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
+
+	EMessages MessageToDisplay;
 		
 	FVector AxisTranslation;
 
@@ -126,8 +144,12 @@ private:
 	FTimerHandle ObjectModificationTimerHandle;
 
 	FTimerHandle CalibrationTimerHandle;
+
+	FTimerHandle MessagesTimerHandle;
 	
 	void HasTimeRunOut();
+
+	void ToggleMessage();
 
 	void SpawnNewObject();
 
@@ -163,6 +185,8 @@ private:
 	void DecisionEvaluation(int32 ObjectChosen);
 
 	bool bHasAnswerBeenGiven;
+
+	bool bIsSystemCalibrated;
 
 	bool bIsShoulderCalibrated;
 };
