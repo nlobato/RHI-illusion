@@ -8,6 +8,7 @@
 #include "Engine.h"
 #include "InteractionObject.h"
 #include "Blueprint/UserWidget.h"
+#include "Misc/CoreMisc.h"
 
 AHandsGameMode::AHandsGameMode()
 {
@@ -21,6 +22,7 @@ AHandsGameMode::AHandsGameMode()
 	AmountOfChangesInObject = 1;
 	bDisplayQuestion = false;
 	bDisplayMessage = false;
+	bHasAnswerBeenGiven = false;
 	SensorsSourceHeight = 123.270798;
 }
 
@@ -367,14 +369,50 @@ void AHandsGameMode::SpawnObjectsForDecision()
 
 void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 {
-	int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
-	if (CorrectAnswer == ObjectChosen)
+	if (!bHasAnswerBeenGiven)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
+
+		int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
+		FString ParticipantNumber = FString::Printf(TEXT("Participant No. %d"), ParticipantCounter);
+		FString Answer = FString::Printf(TEXT("Object chosen: %d"), (ObjectChosen + 1));
+		FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d\r\n"), (CorrectAnswer + 1));
+		
+
+		FString TextToSave = ParticipantNumber + " " + Answer + " " + CorrectAnswerString;
+
+		if (CorrectAnswer == ObjectChosen)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
+		}
+
+		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+		if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+		{
+			FString AbsoluteFilePath = SaveDirectory + "/" + FileName;
+			if (!PlatformFile.FileExists(*AbsoluteFilePath))
+			{
+				FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath);
+			}
+			else
+			{
+				IFileHandle* handle = PlatformFile.OpenWrite(*AbsoluteFilePath, true);
+				if (handle)
+				{
+					handle->Write((const uint8*)TCHAR_TO_ANSI(*TextToSave), TextToSave.Len());					
+				}
+				delete handle;
+			}			
+			bHasAnswerBeenGiven = true;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+		}
 	}
 }
 
