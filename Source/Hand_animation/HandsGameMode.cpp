@@ -133,8 +133,8 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 				}
 				else if (bIsSizeToChange)
 				{			
-					SpawnNewObject();
-					//MyCharacter->SpawnObject1();
+					//SpawnNewObject();
+					MyCharacter->SpawnObject1();
 					PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
 					ChangeSizeObject();
 				}
@@ -227,7 +227,7 @@ void AHandsGameMode::SpawnNewObject()
 		case 2:
 			bDisplayMessage = false;
 			MyCharacter->SpawnObject4();
-			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn2);
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
 			TimesObjectHasSpawnedCounter++;
 			if (bSpawnObjectsWithTimer)
 			{

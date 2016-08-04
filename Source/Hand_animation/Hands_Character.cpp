@@ -662,7 +662,7 @@ void AHands_Character::SpawnObject1()
 		SpawnParams.Instigator = Instigator;
 
 		// spawn the pickup
-		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn1, FVector(0.f,0.f,50.f), FRotator(0.f,0.f,0.f), SpawnParams);
+		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn1, FVector(500.f,500.f,50.f), FRotator(0.f,0.f,0.f), SpawnParams);
 		if (SpawnedObject)
 		{
 			bIsObject1Spawned = true;
@@ -690,7 +690,7 @@ void AHands_Character::SpawnObject2()
 		SpawnParams.Instigator = Instigator;
 
 		// spawn the pickup
-		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn2, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn2, FVector(500.f, 500.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
 		if (SpawnedObject)
 		{
 			bIsObject2Spawned = true;
@@ -718,7 +718,7 @@ void AHands_Character::SpawnObject3()
 		SpawnParams.Instigator = Instigator;
 
 		// spawn the pickup
-		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn3, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+		SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn3, FVector(500.f, 500.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
 		if (SpawnedObject)
 		{
 			bIsObject3Spawned = true;
@@ -746,7 +746,7 @@ void AHands_Character::SpawnObject4()
 			SpawnParams.Instigator = Instigator;
 
 			// spawn the pickup
-			SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn4, FVector(0.f, 0.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
+			SpawnedObject = World->SpawnActor<AInteractionObject>(ObjectToSpawn4, FVector(500.f, 500.f, 50.f), FRotator(0.f, 0.f, 0.f), SpawnParams);
 			if (SpawnedObject)
 			{
 				bIsObject4Spawned = true;
