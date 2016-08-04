@@ -56,8 +56,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString FileName;
 
-	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	bool AllowOverwriting;
+	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
+	bool AllowOverwriting;*/
 
 	// Length of the experiment in minutes
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
@@ -161,6 +161,8 @@ private:
 	FVector RootLocation;
 
 	void DecisionEvaluation(int32 ObjectChosen);
+
+	bool bHasAnswerBeenGiven;
 
 	bool bIsShoulderCalibrated;
 };
