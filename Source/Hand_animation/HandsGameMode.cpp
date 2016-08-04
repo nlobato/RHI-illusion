@@ -41,6 +41,7 @@ void AHandsGameMode::BeginPlay()
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
 	bIsSystemCalibrated = false;
+	bIsShoulderCalibrated = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
@@ -366,7 +367,7 @@ void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 		int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
 		FString ParticipantNumber = FString::Printf(TEXT("Participant No. %d"), ParticipantCounter);
 		FString Answer = FString::Printf(TEXT("Object chosen: %d"), (ObjectChosen + 1));
-		FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d\r\n"), (CorrectAnswer + 1));
+		FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d\n"), (CorrectAnswer + 1));
 		
 
 		FString TextToSave = ParticipantNumber + " " + Answer + " " + CorrectAnswerString;
