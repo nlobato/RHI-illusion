@@ -56,6 +56,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString FileName;
 
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString LoadDirectory;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString VerticesFileName;
+
 	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool AllowOverwriting;*/
 
@@ -165,4 +171,8 @@ private:
 	bool bHasAnswerBeenGiven;
 
 	bool bIsShoulderCalibrated;
+
+	void ReadTextFile();
+
+	TArray<FString> Vertices;
 };

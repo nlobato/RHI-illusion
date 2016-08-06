@@ -42,6 +42,7 @@ void AHandsGameMode::BeginPlay()
 	bHasRealSizeObjectIndexBeenSet = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
+	ReadTextFile();
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
@@ -439,4 +440,29 @@ void AHandsGameMode::CalibrateSystem()
 			GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
 		}
 	}	
+}
+
+void AHandsGameMode::ReadTextFile()
+{
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	if (PlatformFile.CreateDirectoryTree(*LoadDirectory))
+	{
+		FString AbsoluteVerticesFilePath = LoadDirectory + "/" + VerticesFileName;
+		if (PlatformFile.FileExists(*AbsoluteVerticesFilePath))
+		{
+			FFileHelper::LoadANSITextFileToStrings(*AbsoluteVerticesFilePath, NULL, Vertices);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find file"));
+		}		
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+	}
+	int32 One_Index = FCString::Atoi(*Vertices[1]);
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), One_Index));
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), Vertices.Num()));
 }
