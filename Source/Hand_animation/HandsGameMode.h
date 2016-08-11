@@ -139,14 +139,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Meshes path")
 	UStaticMesh* MyMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	/*UPROPERTY(EditAnywhere, Category = "Meshes path")
 	FString Mesh2Path;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes path")
 	FString Mesh3Path;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes path")
-	FString Mesh4Path;
+	FString Mesh4Path;*/
 
 private:
 	/** Keeps track of the current playing state */
