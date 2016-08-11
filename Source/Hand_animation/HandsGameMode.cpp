@@ -25,6 +25,7 @@ AHandsGameMode::AHandsGameMode()
 	bDisplayMessage = false;
 	bHasAnswerBeenGiven = false;
 	SensorsSourceHeight = 123.270798;
+	bIsOriginalMesh = true;
 }
 
 void AHandsGameMode::BeginPlay()
@@ -284,8 +285,20 @@ void AHandsGameMode::ChangeMeshObject()
 	{
 		if (MyCharacter->SpawnedObject)
 		{
-			MyCharacter->SpawnedObject->ChangeMesh();
-			MyCharacter->bAreDPset = false;
+			if (bIsOriginalMesh)
+			{
+				//MyCharacter->SpawnedObject->ChangeMesh();
+				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->StaticMesh;
+				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(MyMesh);
+				MyCharacter->bAreDPset = false;
+				bIsOriginalMesh = false;
+			}
+			else
+			{
+				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
+				MyCharacter->bAreDPset = false;
+				bIsOriginalMesh = true;
+			}
 		}
 		else
 		{
@@ -465,7 +478,7 @@ void AHandsGameMode::ReadTextFile()
 		FString AbsoluteVerticesFilePath = LoadDirectory + "/" + VerticesFileName;
 		if (PlatformFile.FileExists(*AbsoluteVerticesFilePath))
 		{
-			FFileHelper::LoadANSITextFileToStrings(*AbsoluteVerticesFilePath, NULL, Vertices);
+			FFileHelper::LoadANSITextFileToStrings(*AbsoluteVerticesFilePath, NULL, DenseCorrespondenceIndices);
 		}
 		else
 		{
@@ -476,9 +489,18 @@ void AHandsGameMode::ReadTextFile()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
 	}
-	int32 One_Index = FCString::Atoi(*Vertices[1]);
+	int32 One_Index = FCString::Atoi(*DenseCorrespondenceIndices[123]);
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), One_Index));
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), Vertices.Num()));
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceIndices.Num()));
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		TArray<int32> ReturnIndices;
+		for (int32 i = 0; i < DenseCorrespondenceIndices.Num(); i++)
+		{
+			MyCharacter->DenseCorrespondenceIndices.Emplace(FCString::Atoi(*DenseCorrespondenceIndices[i]));
+		}
+	}
 }
 
 void AHandsGameMode::ToggleMessage()

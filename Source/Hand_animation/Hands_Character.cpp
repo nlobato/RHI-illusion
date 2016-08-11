@@ -73,6 +73,7 @@ void AHands_Character::BeginPlay()
 	bIsObject1Spawned = false;
 	bIsObject2Spawned = false;
 	bHasObjectSizeChanged = false;
+	bHasObjectMeshChanged = false;
 	bAreDPset = false;
 	SensorDelayTotalTime = 0;
 	bIsDelayCompleted = false;
@@ -85,7 +86,8 @@ void AHands_Character::Tick( float DeltaTime )
 	Super::Tick(DeltaTime);
 
 	{
-		
+		/*GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), DenseCorrespondenceIndices[123]));
+		GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceIndices.Num()));*/
 		// If a virtual object is active, use DP algorithm to calculate the fingers position
 		if (SpawnedObject)
 		{
@@ -1060,6 +1062,10 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 		//AHands_Character::DrawDescriptionPoints(DPOriginalObject);
 		DescriptorPointsPointer = &DPOriginalObject;
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(ObjectScale);
+	}
+	else if (bHasObjectMeshChanged)
+	{
+		FTransform ObjectTransform = SpawnedObject->GetTransform();
 	}
 	else
 	{

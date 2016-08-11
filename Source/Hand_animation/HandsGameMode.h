@@ -62,7 +62,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Calibration")
 	void CalibrateSystem();
-	
+		
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
@@ -73,6 +73,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString FileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bIsExperimentForDPAlgorithm;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bIsExperimentForRHIReplication;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString LoadDirectory;
@@ -129,6 +135,18 @@ protected:
 
 	UPROPERTY()
 	class UUserWidget* CurrentWidget;	
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	UStaticMesh* MyMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh2Path;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh3Path;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh4Path;
 
 private:
 	/** Keeps track of the current playing state */
@@ -195,7 +213,11 @@ private:
 
 	void ReadTextFile();
 
-	TArray<FString> Vertices;
+	TArray<FString> DenseCorrespondenceIndices;
 
 	void DPExperimentFirstPartOver();
+
+	bool bIsOriginalMesh;
+
+	UStaticMesh* OriginalMesh;
 };

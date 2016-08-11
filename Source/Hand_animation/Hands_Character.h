@@ -465,12 +465,16 @@ public:
 
 	bool bHasObjectSizeChanged;
 
+	bool bHasObjectMeshChanged;
+
 	bool bIsExperimentFinished;
 
 	bool bIsDecisionMade;
 
 	int32 ObjectChosen;
 	
+	TArray<int32> DenseCorrespondenceIndices;
+
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
 	float GetAlphaValue();
