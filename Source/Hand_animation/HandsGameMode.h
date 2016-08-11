@@ -8,8 +8,25 @@ UENUM(BlueprintType)
 enum class EExperimentPlayState
 {
 	EExperimentInitiated,
-	EExperimentInProgress,
+	ERHIExperimentInProgress,
+	EDPExperimentInProgress,
 	EExperimentFinished,
+	EUnknown
+};
+
+// Enum of the messages to display
+UENUM(BlueprintType)
+enum class EMessages
+{
+	EWelcomeMessage,
+	ECalibrationInstructions1,
+	ECalibrationInstructions2,
+	ECalibrationReady,
+	ERHIExperimentInstructions,
+	ERHINewObject,
+	EDPAlgorithmInstructions,
+	EDPAlgorithmQuestion,
+	EExperimentFinishedMessage,
 	EUnknown
 };
 
@@ -33,6 +50,10 @@ public:
 	/** Sets a new playing state */
 	void SetCurrentState(EExperimentPlayState NewState);
 
+	/** Returns the current message to be displayed */
+	UFUNCTION(BlueprintPure, Category = "Experiment setup")
+	EMessages GetCurrentMessage() const;
+	
 	UPROPERTY(BlueprintReadOnly)
 	bool bDisplayMessage;
 
@@ -41,10 +62,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Calibration")
 	void CalibrateSystem();
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 MessageToDisplay;
-
+	
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
@@ -65,14 +83,15 @@ protected:
 	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool AllowOverwriting;*/
 
-	// Length of the experiment in minutes
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
-	float ExperimentDurationTime;
+	float SensorsSourceHeight;
+
+	// Length of the experiment in minutes
+	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
+	float RHIExperimentDurationTime;
 
 	// Rubber Hand Illusion replication experiment
-	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
-	bool bIsExperimentForRHIReplication;
-
+	
 	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
 	bool bIsSynchronousActive;
 
@@ -84,9 +103,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "RHI Replication Experiment")
 	float SpawnedObjectLifeTime;
 
-	// Descriptor Points Algorithm experiment
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
-	bool bIsExperimentForDPAlgorithm;
+	float IllusionExperimentDurationTime;
+
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
+	float VirtualObjectChangesDurationTime;	
 
 	// Activate/Deactivate the Descriptor Points algorithm for this experiment
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
@@ -98,11 +119,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsSizeToChange;
-
-	// Time (in seconds) that has to elapse before the objects changes shape or size
-	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
-	float ObjectModificationLifeTime;
-
+	
 	// Number of cases for the mesh/shape experiment
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	uint32 AmountOfChangesInObject;
@@ -111,15 +128,13 @@ protected:
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
 
 	UPROPERTY()
-	class UUserWidget* CurrentWidget;
-
-	// Length of the experiment in minutes
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
-	float SensorsSourceHeight;
+	class UUserWidget* CurrentWidget;	
 
 private:
 	/** Keeps track of the current playing state */
 	EExperimentPlayState CurrentState;
+
+	EMessages MessageToDisplay;
 		
 	FVector AxisTranslation;
 
@@ -132,8 +147,12 @@ private:
 	FTimerHandle ObjectModificationTimerHandle;
 
 	FTimerHandle CalibrationTimerHandle;
+
+	FTimerHandle MessagesTimerHandle;
 	
 	void HasTimeRunOut();
+
+	void ToggleMessage();
 
 	void SpawnNewObject();
 
@@ -170,9 +189,13 @@ private:
 
 	bool bHasAnswerBeenGiven;
 
+	bool bIsSystemCalibrated;
+
 	bool bIsShoulderCalibrated;
 
 	void ReadTextFile();
 
 	TArray<FString> Vertices;
+
+	void DPExperimentFirstPartOver();
 };

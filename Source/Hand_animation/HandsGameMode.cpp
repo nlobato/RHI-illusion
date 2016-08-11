@@ -12,10 +12,11 @@
 
 AHandsGameMode::AHandsGameMode()
 {
-	ExperimentDurationTime = 5.f;
+	RHIExperimentDurationTime = 5.f;
+	IllusionExperimentDurationTime = 5.f;
+	VirtualObjectChangesDurationTime = 2.f;
 	SpawnedObjectLifeTime = 10.f;
-	ObjectModificationLifeTime = 10.f;
-	MessageToDisplay = 0;
+	//MessageToDisplay = 0;
 	bIsExperimentForRHIReplication = true;
 	bIsSynchronousActive = true;
 	bSpawnObjectsWithTimer = false;
@@ -40,6 +41,8 @@ void AHandsGameMode::BeginPlay()
 	}
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
+	bIsSystemCalibrated = false;
+	bIsShoulderCalibrated = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
 	ReadTextFile();
@@ -50,31 +53,25 @@ void AHandsGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	{
-		/*if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		if (CurrentState == EExperimentPlayState::ERHIExperimentInProgress && bSpawnObjectsWithTimer)
 		{
-			TArray<AActor*> FoundActors;
-			UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACalibrationBox::StaticClass(), FoundActors);
-			for (auto Actor : FoundActors)
+			if (GetWorldTimerManager().GetTimerRemaining(SpawnedObjectTimerHandle) <= 5.f)
 			{
-				ACalibrationBox* CalibrationBox = Cast<ACalibrationBox>(Actor);
-				if (CalibrationBox)
+				if (!MessagesTimerHandle.IsValid())
 				{
-					if (CalibrationBox->GetSystemCalibrationState())
-					{
-						AxisTranslation = CalibrationBox->GetAxisTranslation();
-						SetCurrentState(EExperimentPlayState::EExperimentInProgress);
-
-					}
+					MessageToDisplay = EMessages::ERHINewObject;
+					GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
 				}
-			}
-		}*/
-		if (CurrentState == EExperimentPlayState::EExperimentInProgress && bSpawnObjectsWithTimer)
-		{
-			if (GetWorldTimerManager().GetTimerRemaining(SpawnedObjectTimerHandle) < 5.f)
-			{
-				bDisplayMessage = true;
 			}			
 		}
+		else if (CurrentState == EExperimentPlayState::EDPExperimentInProgress && !ObjectModificationTimerHandle.IsValid())
+		{
+			if (GetWorldTimerManager().GetTimerRemaining(ExperimentDurationTimerHandle) < 5.f)
+			{
+				MessageToDisplay = EMessages::ERHINewObject;
+				GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
+			}
+		}		
 		else if (CurrentState == EExperimentPlayState::EExperimentFinished)
 		{
 			AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -83,6 +80,8 @@ void AHandsGameMode::Tick(float DeltaTime)
 				if (MyCharacter->bIsDecisionMade)
 				{
 					DecisionEvaluation(MyCharacter->ObjectChosen);
+					MessageToDisplay = EMessages::EExperimentFinishedMessage;
+					GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
 				}
 			}
 		}
@@ -102,55 +101,57 @@ EExperimentPlayState AHandsGameMode::GetCurrentState() const
 	return CurrentState;
 }
 
+EMessages AHandsGameMode::GetCurrentMessage() const
+{
+	return MessageToDisplay;
+}
+
 void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 {
 	switch (NewState)
 	{
 	case EExperimentPlayState::EExperimentInitiated:
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInitiated")));
 		// Display welcome message
-		MessageToDisplay = 1;
-		// Enter calibration mode
-		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
+		MessageToDisplay = EMessages::EWelcomeMessage;
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
 	}
 		break;
-	case EExperimentPlayState::EExperimentInProgress:
+	case EExperimentPlayState::ERHIExperimentInProgress:
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Game state is ExperimentInProgress")));
-		float TimeInSeconds = ExperimentDurationTime * 60.f;
+		float TimeInSeconds = RHIExperimentDurationTime * 60.f;
 		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::HasTimeRunOut, TimeInSeconds, false);
 		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 		if (MyCharacter)
 		{
 			MyCharacter->CalibrateSystem(AxisTranslation);
 			MyCharacter->SetAlphaValue(1.f);
-			if (bIsExperimentForDPAlgorithm)
-			{
-				MyCharacter->ExperimentSetup(true, bAreDPsActive);
-				bSpawnObjectsWithTimer = false;
-				if (bIsMeshToChange)
-				{
-					MyCharacter->SpawnObject1();
-					GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ObjectModificationLifeTime, false);
-				}
-				else if (bIsSizeToChange)
-				{			
-					//SpawnNewObject();
-					MyCharacter->SpawnObject1();
-					PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn1);
-					ChangeSizeObject();
-				}
-			}
-			else if (bIsExperimentForRHIReplication)
-			{
-				MyCharacter->ExperimentSetup(bIsSynchronousActive, true);
-				ObjectIndex.Empty();
-				SpawnNewObject();				
-				//MyCharacter->SpawnObject1();
-			}
-			
+			MessageToDisplay = EMessages::ERHIExperimentInstructions;
+			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 7.0, false);
+			MyCharacter->ExperimentSetup(bIsSynchronousActive, true);
+			ObjectIndex.Empty();
+			SpawnNewObject();				
+			//MyCharacter->SpawnObject4();					
 		}	
+	}
+		break;
+
+	case EExperimentPlayState::EDPExperimentInProgress:
+	{
+		float TimeInSeconds = IllusionExperimentDurationTime * 60.f;
+		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::DPExperimentFirstPartOver, TimeInSeconds, false);
+		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+		if (MyCharacter)
+		{
+			MyCharacter->CalibrateSystem(AxisTranslation);
+			MyCharacter->SetAlphaValue(1.f);
+			MessageToDisplay = EMessages::EDPAlgorithmInstructions;
+			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 7.0, false);
+			MyCharacter->ExperimentSetup(true, bAreDPsActive);
+			bSpawnObjectsWithTimer = false;		
+			//SpawnNewObject();
+			MyCharacter->SpawnObject1();	
+		}
 	}
 		break;
 	case EExperimentPlayState::EExperimentFinished:
@@ -172,11 +173,13 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 		if (bIsExperimentForDPAlgorithm)
 		{
 			SpawnObjectsForDecision();
-			bDisplayQuestion = true;
-			for (FVector i : ObjectSizeChangesArray)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Scale: %f"), i.X));
-			}			
+			MessageToDisplay = EMessages::EDPAlgorithmQuestion;
+			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);					
+		}
+		else
+		{
+			MessageToDisplay = EMessages::EExperimentFinishedMessage;
+			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
 		}
 	}
 		break;
@@ -193,6 +196,27 @@ void AHandsGameMode::HasTimeRunOut()
 {
 	GetWorldTimerManager().ClearTimer(ExperimentDurationTimerHandle);
 	SetCurrentState(EExperimentPlayState::EExperimentFinished);
+}
+
+void AHandsGameMode::DPExperimentFirstPartOver()
+{
+	float TimeInSeconds = VirtualObjectChangesDurationTime * 60.f;
+	GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::HasTimeRunOut, TimeInSeconds, false);
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		// Object 4 is the default for DP algorithm
+		MyCharacter->SpawnObject4();
+		if (bIsMeshToChange)
+		{	
+			ChangeMeshObject();
+		}
+		else if (bIsSizeToChange)
+		{
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
+			ChangeSizeObject();
+		}
+	}
 }
 
 void AHandsGameMode::SpawnNewObject()
@@ -247,16 +271,6 @@ void AHandsGameMode::SpawnNewObject()
 					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
 				}			
 			break;
-		case 4:
-			
-				MyCharacter->SpawnObject4();
-				PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
-				TimesObjectHasSpawnedCounter++;
-				if (bSpawnObjectsWithTimer)
-				{
-					GetWorldTimerManager().SetTimer(SpawnedObjectTimerHandle, this, &AHandsGameMode::SpawnNewObject, SpawnedObjectLifeTime, false);
-				}			
-			break;
 		default:
 			break;
 		}
@@ -278,7 +292,7 @@ void AHandsGameMode::ChangeMeshObject()
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("No spawned object when casted frmo AHandsGameMode::ChangeMeshObject()")));
 		}
 	}
-	GetWorldTimerManager().ClearTimer(ObjectModificationTimerHandle);
+	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ((VirtualObjectChangesDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
 }
 
 void AHandsGameMode::ChangeSizeObject()
@@ -299,7 +313,7 @@ void AHandsGameMode::ChangeSizeObject()
 	{
 		RealSizeObjectIndexCounter = 0;
 	}
-	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((ExperimentDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
+	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeSizeObject, ((VirtualObjectChangesDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
 }
 
 void AHandsGameMode::SetObjectNewScale()
@@ -376,19 +390,11 @@ void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 		int32 CorrectAnswer = ObjectSizeChangesArray.Find(FVector(1.f, 1.f, 1.f));
 		FString ParticipantNumber = FString::Printf(TEXT("Participant No. %d"), ParticipantCounter);
 		FString Answer = FString::Printf(TEXT("Object chosen: %d"), (ObjectChosen + 1));
-		FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d\r\n"), (CorrectAnswer + 1));
+		FString CorrectAnswerString = FString::Printf(TEXT("Correct answer: %d"), (CorrectAnswer + 1));
+		FString Scale = FString::Printf(TEXT("Scale of object selected: %f\n"), ObjectSizeChangesArray[ObjectChosen].X);
 		
 
-		FString TextToSave = ParticipantNumber + " " + Answer + " " + CorrectAnswerString;
-
-		if (CorrectAnswer == ObjectChosen)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Congrats! Correct answer")));
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Too bad! You missed :(")));
-		}
+		FString TextToSave = ParticipantNumber + " " + Answer + " " + CorrectAnswerString + " " + Scale;
 
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -427,16 +433,24 @@ void AHandsGameMode::CalibrateSystem()
 			FVector LeftHandNavel = MyCharacter->GetLeftHandPosition();		
 			AxisTranslation.X = LeftHandNavel.X;
 			AxisTranslation.Z = -(SensorsSourceHeight - LeftHandNavel.Z);
-			MessageToDisplay = 3;
-			GetWorldTimerManager().ClearTimer(CalibrationTimerHandle);
-			SetCurrentState(EExperimentPlayState::EExperimentInProgress);
+			MessageToDisplay = EMessages::ECalibrationReady;
+			bIsSystemCalibrated = true;
+			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 2.0f, false);
+			if (bIsExperimentForDPAlgorithm)
+			{
+				SetCurrentState(EExperimentPlayState::EDPExperimentInProgress);
+			}
+			else
+			{
+				SetCurrentState(EExperimentPlayState::ERHIExperimentInProgress);
+			}
 		}
 		else
 		{
 			FVector LeftHandTPose = MyCharacter->GetLeftHandPosition();
 			AxisTranslation.Y = LeftHandTPose.Y;
 			bIsShoulderCalibrated = true;
-			MessageToDisplay = 2;
+			MessageToDisplay = EMessages::ECalibrationInstructions2;
 			GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
 		}
 	}	
@@ -465,4 +479,19 @@ void AHandsGameMode::ReadTextFile()
 	int32 One_Index = FCString::Atoi(*Vertices[1]);
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), One_Index));
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), Vertices.Num()));
+}
+
+void AHandsGameMode::ToggleMessage()
+{
+	if (bIsSystemCalibrated)
+	{
+		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
+		MessageToDisplay = EMessages::EUnknown;		
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
+		MessageToDisplay = EMessages::ECalibrationInstructions1;
+		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
+	}
 }
