@@ -84,7 +84,13 @@ protected:
 	FString LoadDirectory;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString VerticesFileName;
+	FString VerticesCorrespondanceFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString MeshOneVerticesCoordinatesFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString MeshTwoVerticesCoordinatesFileName;
 
 	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool AllowOverwriting;*/
@@ -211,13 +217,17 @@ private:
 
 	bool bIsShoulderCalibrated;
 
-	void ReadTextFile();
-
-	TArray<FString> DenseCorrespondenceIndices;
-
+	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
+	
 	void DPExperimentFirstPartOver();
 
 	bool bIsOriginalMesh;
 
 	UStaticMesh* OriginalMesh;
+
+	TArray<FVector> DenseCorrespondenceCoordinates;
+
+	TArray<FVector> MeshOneVerticesCoodinates;
+
+	TArray<FVector> MeshTwoVerticesCoordinates;
 };

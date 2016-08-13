@@ -9,6 +9,8 @@
 #include "InteractionObject.h"
 #include "Blueprint/UserWidget.h"
 #include "Misc/CoreMisc.h"
+#include "Misc/Char.h"
+#include "Public/StaticMeshResources.h"
 
 AHandsGameMode::AHandsGameMode()
 {
@@ -46,7 +48,18 @@ void AHandsGameMode::BeginPlay()
 	bIsShoulderCalibrated = false;
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
-	ReadTextFile();
+	
+	FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + VerticesCorrespondanceFileName;
+	ReadTextFile(VerticesCorrespondaceFilePath, DenseCorrespondenceCoordinates);
+	/*GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), DenseCorrespondenceCoordinates[154].X, DenseCorrespondenceCoordinates[154].Y, DenseCorrespondenceCoordinates[154].Z));
+	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceCoordinates.Num()));*/
+	
+	FString MeshOneFilePath = LoadDirectory + "/" + MeshOneVerticesCoordinatesFileName;
+	ReadTextFile(MeshOneFilePath, MeshOneVerticesCoodinates);
+	
+	FString MeshTwoFilePath = LoadDirectory + "/" + MeshTwoVerticesCoordinatesFileName;
+	ReadTextFile(MeshTwoFilePath, MeshTwoVerticesCoordinates);
+	
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
 
@@ -469,16 +482,17 @@ void AHandsGameMode::CalibrateSystem()
 	}	
 }
 
-void AHandsGameMode::ReadTextFile()
+void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
+	TArray<FString> ArrayForTextFile;
+
 	if (PlatformFile.CreateDirectoryTree(*LoadDirectory))
 	{
-		FString AbsoluteVerticesFilePath = LoadDirectory + "/" + VerticesFileName;
-		if (PlatformFile.FileExists(*AbsoluteVerticesFilePath))
+		if (PlatformFile.FileExists(*AbsolutePathToFile))
 		{
-			FFileHelper::LoadANSITextFileToStrings(*AbsoluteVerticesFilePath, NULL, DenseCorrespondenceIndices);
+			FFileHelper::LoadANSITextFileToStrings(*AbsolutePathToFile, NULL, ArrayForTextFile);
 		}
 		else
 		{
@@ -489,7 +503,49 @@ void AHandsGameMode::ReadTextFile()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
 	}
-	int32 One_Index = FCString::Atoi(*DenseCorrespondenceIndices[123]);
+
+	TargetCoordinatesArray.Empty();
+	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num());
+	for (FString& EachString : ArrayForTextFile)
+	{
+		FString StringVector;
+		float ComponentX;
+		float ComponentY;
+		float ComponentZ;
+		int32 WhitespaceCounter = 0;
+		for (int32 i = 0; i < EachString.Len(); i++)
+		{
+			if (!EachString.IsValidIndex(i))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index while creating coordinates array"));
+			}
+			if (!FChar::IsWhitespace(EachString[i]))
+			{
+				StringVector += EachString[i];
+			}
+			else
+			{
+				switch (WhitespaceCounter)
+				{
+				case 0:
+					ComponentX = FCString::Atof(*StringVector);
+					StringVector.Empty();
+					WhitespaceCounter++;
+					break;
+				case 1:
+					ComponentY = FCString::Atof(*StringVector);
+					StringVector.Empty();
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		ComponentZ = FCString::Atof(*StringVector);
+		TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
+	}
+	
+	/*int32 One_Index = FCString::Atoi(*DenseCorrespondenceIndices[123]);
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), One_Index));
 	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceIndices.Num()));
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -500,7 +556,7 @@ void AHandsGameMode::ReadTextFile()
 		{
 			MyCharacter->DenseCorrespondenceIndices.Emplace(FCString::Atoi(*DenseCorrespondenceIndices[i]));
 		}
-	}
+	}*/
 }
 
 void AHandsGameMode::ToggleMessage()
