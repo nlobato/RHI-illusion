@@ -122,6 +122,22 @@ protected:
 
 	void ResetObjectSize();
 
+public:
+
+	TArray<FVector> DenseCorrespondenceCoordinates;
+	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
+	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
+	
+	TArray<FVector> OriginalMeshVerticesCoordinatesFromUE4Asset;
+	TArray<FVector> OriginalMeshVerticesNormalsFromUE4Asset;
+	TArray<FVector> OriginalMeshVerticesTangentsFromUE4Asset;
+	TArray<FVector> OriginalMeshVerticesBinormalsFromUE4Asset;
+
+	TArray<FVector> SecondMeshVerticesCoordinatesFromUE4Asset;
+	TArray<FVector> SecondMeshVerticesNormalsFromUE4Asset;
+	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
+	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
+
 protected:
 
 	//USkeletalMeshComponent* MyMesh;

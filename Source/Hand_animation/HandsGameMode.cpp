@@ -34,14 +34,6 @@ void AHandsGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (HUDWidgetClass != nullptr)
-	{
-		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
-		if (CurrentWidget != nullptr)
-		{
-			CurrentWidget->AddToViewport();
-		}
-	}
 	TimesObjectHasSpawnedCounter = 0;
 	bHasRealSizeObjectIndexBeenSet = false;
 	bIsSystemCalibrated = false;
@@ -49,19 +41,12 @@ void AHandsGameMode::BeginPlay()
 	RealSizeObjectIndexCounter = 0;
 	SetObjectNewScale();
 	
-	FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + VerticesCorrespondanceFileName;
-	ReadTextFile(VerticesCorrespondaceFilePath, DenseCorrespondenceCoordinates);
-	/*GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), DenseCorrespondenceCoordinates[154].X, DenseCorrespondenceCoordinates[154].Y, DenseCorrespondenceCoordinates[154].Z));
-	GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceCoordinates.Num()));*/
-	
-	FString MeshOneFilePath = LoadDirectory + "/" + MeshOneVerticesCoordinatesFileName;
-	ReadTextFile(MeshOneFilePath, MeshOneVerticesCoodinates);
-	
-	FString MeshTwoFilePath = LoadDirectory + "/" + MeshTwoVerticesCoordinatesFileName;
-	ReadTextFile(MeshTwoFilePath, MeshTwoVerticesCoordinates);
-	
+	InitializeArrays();
+
 	SetCurrentState(EExperimentPlayState::EExperimentInitiated);
 }
+
+
 
 void AHandsGameMode::Tick(float DeltaTime)
 {
@@ -302,7 +287,7 @@ void AHandsGameMode::ChangeMeshObject()
 			{
 				//MyCharacter->SpawnedObject->ChangeMesh();
 				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->StaticMesh;
-				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(MyMesh);
+				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
 				MyCharacter->bAreDPset = false;
 				bIsOriginalMesh = false;
 			}
@@ -571,5 +556,82 @@ void AHandsGameMode::ToggleMessage()
 		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
 		MessageToDisplay = EMessages::ECalibrationInstructions1;
 		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
+	}
+}
+
+void AHandsGameMode::InitializeArrays()
+{
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		PtrDenseCorrespondenceCoordinates = &MyCharacter->DenseCorrespondenceCoordinates;
+		PtrOriginalMeshVerticesCoordinatesFromObjFile = &MyCharacter->OriginalMeshVerticesCoordinatesFromObjFile;
+		PtrSecondMeshVerticesCoordinatesFromObjFile = &MyCharacter->SecondMeshVerticesCoordinatesFromObjFile;
+
+		PtrOriginalMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->OriginalMeshVerticesCoordinatesFromUE4Asset;
+		PtrOriginalMeshVerticesNormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesNormalsFromUE4Asset;
+		PtrOriginalMeshVerticesTangentsFromUE4Asset = &MyCharacter->OriginalMeshVerticesTangentsFromUE4Asset;
+		PtrOriginalMeshVerticesBinormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesBinormalsFromUE4Asset;
+
+		PtrSecondMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->SecondMeshVerticesCoordinatesFromUE4Asset;
+		PtrSecondMeshVerticesNormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesNormalsFromUE4Asset;
+		PtrSecondMeshVerticesTangentsFromUE4Asset = &MyCharacter->SecondMeshVerticesTangentsFromUE4Asset;
+		PtrSecondMeshVerticesBinormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesBinormalsFromUE4Asset;
+
+		FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + VerticesCorrespondanceFileName;
+		ReadTextFile(VerticesCorrespondaceFilePath, *PtrDenseCorrespondenceCoordinates);
+		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), (*PtrDenseCorrespondenceCoordinates)[154].X, (*PtrDenseCorrespondenceCoordinates)[154].Y, (*PtrDenseCorrespondenceCoordinates)[154].Z));
+		//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceCoordinates.Num()));
+
+		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
+		ReadTextFile(OriginalMeshFilePath, *PtrOriginalMeshVerticesCoordinatesFromObjFile);
+
+		FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
+		ReadTextFile(SecondMeshFilePath, *PtrSecondMeshVerticesCoordinatesFromObjFile);
+
+		AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+		if (InteractionObjectForMeshChange)
+		{
+			AccessMeshVertices(InteractionObjectForMeshChange->OurVisibleComponent->StaticMesh, *PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshVerticesTangentsFromUE4Asset, *PtrOriginalMeshVerticesBinormalsFromUE4Asset);
+			//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), Array_Prueba[5].X, Array_Prueba[5].Y, Array_Prueba[5].Z));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Error while casting to interaction object"));
+		}
+
+		AccessMeshVertices(SecondMesh, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, *PtrSecondMeshVerticesTangentsFromUE4Asset, *PtrSecondMeshVerticesBinormalsFromUE4Asset);
+	}
+}
+
+void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& TargetArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray)
+{
+	TargetArray.Empty();
+	NormalsArray.Empty();
+	TangentsArray.Empty();
+	BinormalsArray.Empty();
+
+	if (MyMesh == nullptr || MyMesh->RenderData == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Error while accesing the static mesh")));
+		return;
+	}
+	FStaticMeshLODResources& LODModel = MyMesh->RenderData->LODResources[0];
+	FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
+	if (PositionVertexBuffer.GetNumVertices() == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Error with the number of vertices")));
+		return;
+	}
+	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
+	uint32 NumIndices = Indices.Num();
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
+	for (uint32 i = 0; i < NumIndices; i++)
+	{
+		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
+		TargetArray.Emplace(Coordinates);
+		NormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
+		TangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+		BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
 	}
 }

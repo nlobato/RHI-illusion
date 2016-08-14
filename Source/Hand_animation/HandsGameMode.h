@@ -87,10 +87,10 @@ protected:
 	FString VerticesCorrespondanceFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString MeshOneVerticesCoordinatesFileName;
+	FString OriginalMeshVerticesCoordinatesFromObjFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString MeshTwoVerticesCoordinatesFileName;
+	FString SecondMeshVerticesCoordinatesFromObjFileName;
 
 	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool AllowOverwriting;*/
@@ -143,7 +143,7 @@ protected:
 	class UUserWidget* CurrentWidget;	
 
 	UPROPERTY(EditAnywhere, Category = "Meshes path")
-	UStaticMesh* MyMesh;
+	UStaticMesh* SecondMesh;
 
 	/*UPROPERTY(EditAnywhere, Category = "Meshes path")
 	FString Mesh2Path;
@@ -223,11 +223,31 @@ private:
 
 	bool bIsOriginalMesh;
 
+	void InitializeArrays();
+
 	UStaticMesh* OriginalMesh;
+	
+	TArray<FVector>* PtrDenseCorrespondenceCoordinates;
 
-	TArray<FVector> DenseCorrespondenceCoordinates;
+	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromObjFile;
 
-	TArray<FVector> MeshOneVerticesCoodinates;
+	TArray<FVector>* PtrSecondMeshVerticesCoordinatesFromObjFile;
 
-	TArray<FVector> MeshTwoVerticesCoordinates;
+	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromUE4Asset;
+
+	TArray<FVector>* PtrOriginalMeshVerticesNormalsFromUE4Asset;
+
+	TArray<FVector>* PtrOriginalMeshVerticesTangentsFromUE4Asset;
+
+	TArray<FVector>* PtrOriginalMeshVerticesBinormalsFromUE4Asset;
+
+	TArray<FVector>* PtrSecondMeshVerticesCoordinatesFromUE4Asset;
+
+	TArray<FVector>* PtrSecondMeshVerticesNormalsFromUE4Asset;
+
+	TArray<FVector>* PtrSecondMeshVerticesTangentsFromUE4Asset;
+
+	TArray<FVector>* PtrSecondMeshVerticesBinormalsFromUE4Asset;
+
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
 };
