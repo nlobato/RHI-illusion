@@ -249,5 +249,9 @@ private:
 
 	TArray<FVector>* PtrSecondMeshVerticesBinormalsFromUE4Asset;
 
+	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
+
 	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
+
+	void MapIndicesFromObjToUE4Asset(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile);
 };

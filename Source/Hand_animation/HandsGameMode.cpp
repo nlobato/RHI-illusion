@@ -580,7 +580,7 @@ void AHandsGameMode::InitializeArrays()
 
 		FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + VerticesCorrespondanceFileName;
 		ReadTextFile(VerticesCorrespondaceFilePath, *PtrDenseCorrespondenceCoordinates);
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), (*PtrDenseCorrespondenceCoordinates)[154].X, (*PtrDenseCorrespondenceCoordinates)[154].Y, (*PtrDenseCorrespondenceCoordinates)[154].Z));
+		//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), (*PtrDenseCorrespondenceCoordinates)[154].X, (*PtrDenseCorrespondenceCoordinates)[154].Y, (*PtrDenseCorrespondenceCoordinates)[154].Z));
 		//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceCoordinates.Num()));
 
 		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
@@ -600,7 +600,16 @@ void AHandsGameMode::InitializeArrays()
 			UE_LOG(LogTemp, Warning, TEXT("Error while casting to interaction object"));
 		}
 
-		AccessMeshVertices(SecondMesh, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, *PtrSecondMeshVerticesTangentsFromUE4Asset, *PtrSecondMeshVerticesBinormalsFromUE4Asset);
+		if (SecondMesh != nullptr || SecondMesh->RenderData != nullptr)
+		{
+			AccessMeshVertices(SecondMesh, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, *PtrSecondMeshVerticesTangentsFromUE4Asset, *PtrSecondMeshVerticesBinormalsFromUE4Asset);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess second mesh"));
+		}
+
+		MapIndicesFromObjToUE4Asset(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesCoordinatesFromObjFile);
 	}
 }
 
@@ -625,7 +634,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ta
 	}
 	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
 	uint32 NumIndices = Indices.Num();
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
 	for (uint32 i = 0; i < NumIndices; i++)
 	{
 		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
@@ -633,5 +642,66 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ta
 		NormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 		TangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
 		BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+	}
+}
+
+void AHandsGameMode::MapIndicesFromObjToUE4Asset(TArray<FVector>& ArrayFromAsset, TArray<FVector>& ArrayFromObj)
+{
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		TArray<FArrayForStoringIndices>& MyHugeArray = MyCharacter->MappingBetweenMeshes;
+		MyHugeArray.Empty();
+		MyHugeArray.Reserve(ArrayFromObj.Num());
+		for (int32 i = 0; i < ArrayFromObj.Num(); i++)
+		{
+			MyHugeArray.Add(FArrayForStoringIndices());
+			if (MyHugeArray.IsValidIndex(i))
+			{
+				MyHugeArray[i].IndicesArray.Empty();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Error while trying to initialize array values"));
+			}
+		}
+		/*PtrMappingBetweenMeshes->EmptyIndicesArray();
+		PtrMappingBetweenMeshes->ReserveMemory(ArrayFromObj.Num());*/
+		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices: %d"), ArrayFromAsset.Num()));
+		for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
+		{
+			if (ArrayFromAsset.IsValidIndex(i))
+			{
+				int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
+				if (MyHugeArray.IsValidIndex(index_one))
+				{
+					MyHugeArray[index_one].IndicesArray.Emplace(i);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess the int32 array"));
+				}
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess the indices"));
+			}
+			//IndicesResult.Emplace(ArrayFromAsset.Find(ArrayFromObj[i]));
+			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Indices: %d"), ArrayFromAsset.Find(ArrayFromObj[i])));
+		}
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices in super array: %d"), MyHugeArray.Num()));
+		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices in index 0 of super array: %d"), MyHugeArray[0].IndicesArray.Num()));
+		for (int32 i = 0; i < MyHugeArray[0].IndicesArray.Num(); i++)
+		{
+			if (MyHugeArray[0].IndicesArray.IsValidIndex(i))
+			{
+				if ((*PtrOriginalMeshVerticesCoordinatesFromUE4Asset).IsValidIndex(MyHugeArray[0].IndicesArray[i]))
+				{
+					FVector Coordinates = (*PtrOriginalMeshVerticesCoordinatesFromUE4Asset)[MyHugeArray[0].IndicesArray[i]];
+					GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Coordinates x: %f y: %f z: %f"), Coordinates.X, Coordinates.Y, Coordinates.Z));
+				}
+				//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices in index 0 of super array: %d"), MyHugeArray[0].IndicesArray[i]));
+			}
+		}
 	}
 }

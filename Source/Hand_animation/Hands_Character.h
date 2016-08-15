@@ -5,6 +5,25 @@
 #include "GameFramework/Character.h"
 #include "Hands_Character.generated.h"
 
+USTRUCT()
+struct FArrayForStoringIndices
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	TArray<int32> IndicesArray;
+
+	/*void AddIndexValue()
+	{
+		IndicesArray.Add(NULL);
+	}*/
+
+	FArrayForStoringIndices()
+	{
+	}
+
+};
+
 UCLASS()
 class HAND_ANIMATION_API AHands_Character : public ACharacter
 {
@@ -137,6 +156,8 @@ public:
 	TArray<FVector> SecondMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
+
+	TArray<FArrayForStoringIndices> MappingBetweenMeshes;
 
 protected:
 
