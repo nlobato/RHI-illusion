@@ -97,6 +97,11 @@ void AHands_Character::Tick( float DeltaTime )
 			// Access the vertices from hte object's mesh, stored them in our TArray
 			AHands_Character::AccessTriVertices(SpawnedObject->OurVisibleComponent, DPVirtualObject);				
 			
+
+			AHands_Character::GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, CurrentMeshLocalToWorldMatrix, CurrentMeshComponentToWorldTransform, CurrentVerticesNum);
+			AHands_Character::AssignPointers();
+			//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Original Vert Coord x: %f y: %f z: %f"), OriginalMeshVerticesCoordinatesFromUE4Asset[0].X, OriginalMeshVerticesCoordinatesFromUE4Asset[0].Y, OriginalMeshVerticesCoordinatesFromUE4Asset[0].Z));
+			//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Original Vert Coord x: %f y: %f z: %f"), (*PointerToCurrentMeshVertices)[0].X, (*PointerToCurrentMeshVertices)[0].Y, (*PointerToCurrentMeshVertices)[0].Z));
 			// Draw the position, normal, tangent and binormal of our DPs
 			if (bDrawPoints)
 			{				
@@ -111,6 +116,10 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftHandWeights.Empty();
 				LeftHandTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
+				GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Weights old method: %d"), LeftHandWeights[0]));
+				TArray<float> TestWeights;
+				AHands_Character::WeightsComputation(LeftHandPosition, LeftHandTransformationArray, TestWeights);
+				GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Weights new method: %d"), TestWeights[0]));
 				DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
 				//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("DPleftHand X: %f, DPlefthand Y: %f, DPlefthand Z: %f"), DPLeftHandPosition.X, DPLeftHandPosition.Y, DPLeftHandPosition.Z));
 
@@ -668,6 +677,7 @@ void AHands_Character::SpawnObject1()
 		if (SpawnedObject)
 		{
 			bIsObject1Spawned = true;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
 		}
 	}
 }
@@ -696,6 +706,7 @@ void AHands_Character::SpawnObject2()
 		if (SpawnedObject)
 		{
 			bIsObject2Spawned = true;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
 		}
 	}
 }
@@ -724,6 +735,7 @@ void AHands_Character::SpawnObject3()
 		if (SpawnedObject)
 		{
 			bIsObject3Spawned = true;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
 		}
 	}
 }
@@ -752,6 +764,7 @@ void AHands_Character::SpawnObject4()
 			if (SpawnedObject)
 			{
 				bIsObject4Spawned = true;
+				OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
 			}
 		}
 }
@@ -920,6 +933,51 @@ void AHands_Character::ResetObjectSize()
 	}
 }
 
+void AHands_Character::AssignPointers()
+{
+	switch (CurrentMeshIdentificator)
+	{
+	case 1:
+		PointerToCurrentMeshVertices = &OriginalMeshVerticesCoordinatesFromUE4Asset;
+		PointerToCurrentMeshNormals = &OriginalMeshVerticesNormalsFromUE4Asset;
+		PointerToCurrentMeshTangents = &OriginalMeshVerticesTangentsFromUE4Asset;
+		PointerToCurrentMeshBinormals = &OriginalMeshVerticesBinormalsFromUE4Asset;
+		break;
+	case 2:
+		PointerToCurrentMeshVertices = &SecondMeshVerticesCoordinatesFromUE4Asset;
+		PointerToCurrentMeshNormals = &SecondMeshVerticesNormalsFromUE4Asset;
+		PointerToCurrentMeshTangents = &SecondMeshVerticesTangentsFromUE4Asset;
+		PointerToCurrentMeshBinormals = &SecondMeshVerticesBinormalsFromUE4Asset;
+		break;
+	default:
+		PointerToCurrentMeshVertices = &OriginalMeshVerticesCoordinatesFromUE4Asset;
+		PointerToCurrentMeshNormals = &OriginalMeshVerticesNormalsFromUE4Asset;
+		PointerToCurrentMeshTangents = &OriginalMeshVerticesTangentsFromUE4Asset;
+		PointerToCurrentMeshBinormals = &OriginalMeshVerticesBinormalsFromUE4Asset;
+	}
+}
+
+void AHands_Character::GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMesh, FMatrix& CurrentMatrix, FTransform& CurrentTransform, int32& VerticesNum)
+{
+	UStaticMesh* StaticMesh = InStaticMesh->StaticMesh;
+	if (StaticMesh == nullptr || StaticMesh->RenderData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Error while accesing 'StaticMesh' on GetMeshCurrentTransform()"));
+		return;
+	}
+	FStaticMeshLODResources& LODModel = StaticMesh->RenderData->LODResources[0];
+	FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
+	if (PositionVertexBuffer.GetNumVertices() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NumVertices == 0 on GetMeshCurrentTransform()"));
+		return;
+	}
+	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
+	VerticesNum = Indices.Num();
+	CurrentMatrix = InStaticMesh->ComponentToWorld.ToMatrixWithScale().InverseFast().GetTransposed();
+	CurrentTransform = InStaticMesh->ComponentToWorld;
+}
+
 // Randomly set the descriptor points
 void AHands_Character::InitDescriptionPoints(uint32 NumDP, uint32 NumVertices)
 {
@@ -983,7 +1041,7 @@ void AHands_Character::AccessTriVertices(const UStaticMeshComponent* InStaticMes
 			}
 		}
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("%i"), VertexIndices.Num()));
-		if (!(NumDescriptorPoints >= uint32(VertexIndices.Num())))
+		if (NumDescriptorPoints <= uint32(VertexIndices.Num()))
 		{
 			DPIndices.Empty();
 			AHands_Character::InitDescriptionPoints(NumDescriptorPoints, VertexIndices.Num());
@@ -1130,6 +1188,132 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 		w_biprime.Emplace(w_biprime_val);
 	}
 	return;
+}
+
+void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& w_biprime)
+{
+	int32 limit;
+	if (bHasObjectSizeChanged)
+	{
+		FVector ObjectScale = SpawnedObject->OurVisibleComponent->RelativeScale3D;
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+		
+		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(ObjectScale);
+
+		// The object is just changing sizes, so the vertices num doesn't change
+		limit = CurrentVerticesNum;
+	} 
+	else if (bHasObjectMeshChanged)
+	{
+		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
+
+		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
+
+		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
+
+		limit = OriginalVerticesNum;
+	}
+	else
+	{
+		limit = CurrentVerticesNum;
+	}
+	
+	w_biprime.Empty();
+	w_biprime.Reserve(limit);
+	TransformationComponents.Empty();
+	TransformationComponents.Reserve(limit);
+	TArray<float> Distance;
+	Distance.Reserve(limit);
+	TArray<float> w_prime;
+	w_prime.Reserve(limit);
+	TArray<FVector>& Vertices = OriginalMeshVerticesCoordinatesFromUE4Asset;
+	TArray<FVector>& Normals = OriginalMeshVerticesNormalsFromUE4Asset;
+	TArray<FVector>& Tangents = OriginalMeshVerticesTangentsFromUE4Asset;
+	TArray<FVector>& Binormals = OriginalMeshVerticesBinormalsFromUE4Asset;
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Limit %d"), limit));
+	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
+	for (int32 i = 0; i < limit; i++)
+	{
+		FVector TransformedVertices;
+		FVector TransformedNormals;
+		FVector TransformedTangents;
+		FVector TransformedBinormals;
+		FVector AlphaBetaGamma(0.f, 0.f, 0.f);
+
+		if (Vertices.IsValidIndex(i))
+		{
+			TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+			Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating index %d on 'TransformedVertices' on WeightComputation()"), i);
+			return;
+		}
+		
+		if (Normals.IsValidIndex(i))
+		{
+			TransformedNormals = OriginalMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+			float w_prime_val = (FVector::DotProduct(TransformedNormals, p_j - TransformedVertices)) / Distance[i];
+			w_prime.Emplace(w_prime_val);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedNormals' on WeightComputation()"));
+			return;
+		}
+		
+		AlphaBetaGamma.X = FVector::DotProduct(p_j - TransformedVertices, TransformedNormals);
+		
+		if (Tangents.IsValidIndex(i))
+		{
+			TransformedTangents = OriginalMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+			AlphaBetaGamma.Y = FVector::DotProduct(p_j - TransformedVertices, TransformedTangents);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedTangents' on WeightComputation()"));
+			return;
+		}
+
+		if (Binormals.IsValidIndex(i))
+		{
+			TransformedBinormals = OriginalMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+			AlphaBetaGamma.Z = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedBinormals' on WeightComputation()"));
+			return;
+		}
+	}
+
+	float r_j_1 = FMath::Min<float>(Distance);
+	float r_j_2 = r_j_1 + (0.25 * 200);
+	sum_w_biprime = 0;
+	float valor = 0;
+	for (int32 i = 0; i < limit; i++)
+	{
+
+		if (r_j_2 <= Distance[i])
+		{
+			valor = 0;
+		}
+		else if (r_j_1 < Distance[i] && r_j_2 > Distance[i])
+		{
+			valor = 1 - (Distance[i] - r_j_1) / (r_j_2 - r_j_1);
+		}
+		else if (Distance[i] <= r_j_1)
+		{
+			valor = 1;
+		}
+		float w_biprime_val = w_prime[i] * valor;
+		sum_w_biprime += w_biprime_val;
+		w_biprime.Emplace(w_biprime_val);
+	}
+
 }
 
 FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<float>& transformation, TArray<FVector>& DPInfo)

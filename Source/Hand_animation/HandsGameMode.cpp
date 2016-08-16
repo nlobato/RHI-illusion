@@ -127,7 +127,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			MyCharacter->SetAlphaValue(1.f);
 			MessageToDisplay = EMessages::ERHIExperimentInstructions;
 			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 7.0, false);
-			MyCharacter->ExperimentSetup(bIsSynchronousActive, true);
+			MyCharacter->ExperimentSetup(bIsSynchronousActive, false);
 			ObjectIndex.Empty();
 			SpawnNewObject();				
 			//MyCharacter->SpawnObject4();					
@@ -289,18 +289,20 @@ void AHandsGameMode::ChangeMeshObject()
 				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->StaticMesh;
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
 				MyCharacter->bAreDPset = false;
+				MyCharacter->CurrentMeshIdentificator = 2;
 				bIsOriginalMesh = false;
 			}
 			else
 			{
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 				MyCharacter->bAreDPset = false;
+				MyCharacter->CurrentMeshIdentificator = 1;
 				bIsOriginalMesh = true;
 			}
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("No spawned object when casted frmo AHandsGameMode::ChangeMeshObject()")));
+			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("No spawned object when casted from AHandsGameMode::ChangeMeshObject()")));
 		}
 	}
 	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ((VirtualObjectChangesDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
@@ -663,11 +665,16 @@ void AHandsGameMode::MapIndicesFromObjToUE4Asset(TArray<FVector>& ArrayFromAsset
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Error while trying to initialize array values"));
+				return;
 			}
 		}
 		/*PtrMappingBetweenMeshes->EmptyIndicesArray();
 		PtrMappingBetweenMeshes->ReserveMemory(ArrayFromObj.Num());*/
-		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices: %d"), ArrayFromAsset.Num()));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num Indices: %d"), ArrayFromAsset.Num()));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index 186 x: %f y: %f z: %f"), ArrayFromAsset[186].X, ArrayFromAsset[186].Y, ArrayFromAsset[186].Z));
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index 187 x: %f y: %f z: %f"), ArrayFromAsset[187].X, ArrayFromAsset[187].Y, ArrayFromAsset[187].Z));
+		int32 index_one_one = ArrayFromObj.Find(ArrayFromAsset[187]);
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Index: %d"), index_one_one));
 		for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
 		{
 			if (ArrayFromAsset.IsValidIndex(i))
@@ -679,12 +686,14 @@ void AHandsGameMode::MapIndicesFromObjToUE4Asset(TArray<FVector>& ArrayFromAsset
 				}
 				else
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess the int32 array"));
+					UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess index %d at iteration %d of the int32 array"), index_one, i);
+					return;
 				}
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess the indices"));
+				return;
 			}
 			//IndicesResult.Emplace(ArrayFromAsset.Find(ArrayFromObj[i]));
 			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Indices: %d"), ArrayFromAsset.Find(ArrayFromObj[i])));

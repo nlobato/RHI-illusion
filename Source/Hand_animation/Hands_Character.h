@@ -13,16 +13,26 @@ struct FArrayForStoringIndices
 	UPROPERTY()
 	TArray<int32> IndicesArray;
 
-	/*void AddIndexValue()
-	{
-		IndicesArray.Add(NULL);
-	}*/
-
 	FArrayForStoringIndices()
 	{
 	}
 
 };
+
+//USTRUCT()
+//struct FArrayForStoringAlphaBetaGammaValues
+//{
+//	GENERATED_USTRUCT_BODY()
+//
+//	UPROPERTY()
+//	TArray<float> ComponentsArray;
+//
+//	FArrayForStoringAlphaBetaGammaValues()
+//	{
+//
+//	}
+//
+//};
 
 UCLASS()
 class HAND_ANIMATION_API AHands_Character : public ACharacter
@@ -141,6 +151,8 @@ protected:
 
 	void ResetObjectSize();
 
+	UStaticMesh* OriginalMesh;
+
 public:
 
 	TArray<FVector> DenseCorrespondenceCoordinates;
@@ -171,7 +183,17 @@ protected:
 	TArray<FVector> DPOriginalObject;
 	TArray<FVector> DPVirtualObject;
 	TArray<uint32> VertexIndices;
-		
+	
+	TArray<FVector>* PointerToOriginalMeshVertices;
+	TArray<FVector>* PointerToOriginalMeshNormals;
+	TArray<FVector>* PointerToOriginalMeshTangents;
+	TArray<FVector>* PointerToOriginalMeshBinormals;
+
+	TArray<FVector>* PointerToCurrentMeshVertices;
+	TArray<FVector>* PointerToCurrentMeshNormals;
+	TArray<FVector>* PointerToCurrentMeshTangents;
+	TArray<FVector>* PointerToCurrentMeshBinormals;
+
 	TArray<float>* WeightsPointer;
 	TArray<float>* TransformationPointer;
 	TArray<FVector>* DescriptorPointsPointer;
@@ -212,6 +234,40 @@ protected:
 
 	TArray<float> RightMiddleKnuckleTransformation;
 
+	TArray<FVector> LeftHandTransformationArray;
+	TArray<FVector> LeftIndexFingerTransformationArray;
+	TArray<FVector> LeftMiddleFingerTransformationArray;
+	TArray<FVector> LeftRingFingerTransformationArray;
+	TArray<FVector> LeftPinkyFingerTransformationArray;
+	TArray<FVector> LeftThumbTransformationArray;
+
+	TArray<FVector> LeftMiddleKnuckleTransformationArray;
+
+	TArray<FVector> RightHandTransformationArray;
+	TArray<FVector> RightIndexFingerTransformationArray;
+	TArray<FVector> RightMiddleFingerTransformationArray;
+	TArray<FVector> RightRingFingerTransformationArray;
+	TArray<FVector> RightPinkyFingerTransformationArray;
+	TArray<FVector> RightThumbTransformationArray;
+
+	TArray<FVector> RightMiddleKnuckleTransformationArray;
+
+	/*TArray<FArrayForStoringAlphaBetaGammaValues> LeftHandTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftIndexFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftMiddleFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftRingFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftPinkyFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftThumbTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> LeftMiddleKnuckleTransformationComponentsValues;
+
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightHandTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightIndexFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightMiddleFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightRingFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightPinkyFingerTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightThumbTransformationComponentsValues;
+	TArray<FArrayForStoringAlphaBetaGammaValues> RightMiddleKnuckleTransformationComponentsValues;*/
+
 	//TArray<float> w_biprime;
 	
 	/** Number of descriptor points */
@@ -237,6 +293,8 @@ protected:
 
 protected:
 
+	void GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMeshComponent, FMatrix& TransformationMatrix, FTransform& CurrentTranform, int32& VerticesNum);
+	
 	//Function for accesing the triangles information
 	void AccessTriVertices(const UStaticMeshComponent* InStaticMeshComponent, TArray<FVector>& DescriptorPointsArray);
 
@@ -249,12 +307,23 @@ protected:
 	//Weights calculation
 	void WeightsComputation(TArray<float>& WeightsArray, TArray<float>& TransformationArray, FVector p_j);
 
-	//TArray<float> WeightsComputation(FVector p_j);
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray);
+
+	void AssignPointers();
 
 	/** Calculate a new joint position with the descriptor points weights */
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<float>& TransformationArray, TArray<FVector>& DescriptorPointsArray);
 
 protected:
+
+	FMatrix CurrentMeshLocalToWorldMatrix;
+	FTransform CurrentMeshComponentToWorldTransform;
+
+	FMatrix OriginalMeshLocalToWorldMatrix;
+	FTransform OriginalMeshComponentToWorldTransform;
+
+	int32 CurrentVerticesNum;
+	int32 OriginalVerticesNum;
 
 	UPROPERTY(EditAnywhere, Category = "Hand", meta = (BlueprintProtected = "true"))
 	bool bAreDPsActive;
@@ -509,6 +578,8 @@ public:
 	bool bIsDecisionMade;
 
 	int32 ObjectChosen;
+
+	int32 CurrentMeshIdentificator;
 	
 	TArray<int32> DenseCorrespondenceIndices;
 
