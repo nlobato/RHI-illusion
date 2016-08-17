@@ -89,14 +89,14 @@ void AHands_Character::Tick( float DeltaTime )
 		/*GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), DenseCorrespondenceIndices[123]));
 		GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceIndices.Num()));*/
 		// If a virtual object is active, use DP algorithm to calculate the fingers position
-		if (SpawnedObject)
+		if (SpawnedObject && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 		{
 			// Empty the array where the descriptor points will be stored
 			DPVirtualObject.Empty();
 
 			// Access the vertices from hte object's mesh, stored them in our TArray
 			AHands_Character::AccessTriVertices(SpawnedObject->OurVisibleComponent, DPVirtualObject);				
-			
+			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("DPVirtual Object Num: %d"), DPVirtualObject.Num()));
 
 			AHands_Character::GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, CurrentMeshLocalToWorldMatrix, CurrentMeshComponentToWorldTransform, CurrentVerticesNum);
 			AHands_Character::AssignPointers();
@@ -116,10 +116,10 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftHandWeights.Empty();
 				LeftHandTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
-				GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Weights old method: %d"), LeftHandWeights[0]));
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights old method: %f"), LeftHandWeights[459]));
 				TArray<float> TestWeights;
 				AHands_Character::WeightsComputation(LeftHandPosition, LeftHandTransformationArray, TestWeights);
-				GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("Weights new method: %d"), TestWeights[0]));
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights new method: %f"), TestWeights[459]));
 				DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
 				//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("DPleftHand X: %f, DPlefthand Y: %f, DPlefthand Z: %f"), DPLeftHandPosition.X, DPLeftHandPosition.Y, DPLeftHandPosition.Z));
 
@@ -1023,45 +1023,46 @@ void AHands_Character::AccessTriVertices(const UStaticMeshComponent* InStaticMes
 	FMatrix LocalToWorldInverseTranspose = InStaticMesh->ComponentToWorld.ToMatrixWithScale().InverseFast().GetTransposed();
 	uint32 NumIndices = Indices.Num();
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("%i"), NumIndices));
-	if (!bAreDPset)
-	{
-		TArray<FVector> VertexPositions;
-		VertexPositions.Empty();
-		VertexIndices.Empty();
-		
-		for (uint32 Index = 0; Index < NumIndices; Index++)
-		{
-			FVector WorldVert0 = InStaticMesh->ComponentToWorld.TransformPosition(PositionVertexBuffer.VertexPosition(Indices[Index]));
-			bool bIsPointAlreadyUsed = VertexPositions.Contains(WorldVert0);
-			if (!bIsPointAlreadyUsed)
-			{
-				VertexPositions.Emplace(WorldVert0);
-				VertexIndices.Emplace(Index);
+	//if (!bAreDPset)
+	//{
+	//	TArray<FVector> VertexPositions;
+	//	VertexPositions.Empty();
+	//	VertexIndices.Empty();
+	//	
+	//	for (uint32 Index = 0; Index < NumIndices; Index++)
+	//	{
+	//		FVector WorldVert0 = InStaticMesh->ComponentToWorld.TransformPosition(PositionVertexBuffer.VertexPosition(Indices[Index]));
+	//		bool bIsPointAlreadyUsed = VertexPositions.Contains(WorldVert0);
+	//		if (!bIsPointAlreadyUsed)
+	//		{
+	//			VertexPositions.Emplace(WorldVert0);
+	//			VertexIndices.Emplace(Index);
 
-			}
-		}
-		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("%i"), VertexIndices.Num()));
-		if (NumDescriptorPoints <= uint32(VertexIndices.Num()))
-		{
-			DPIndices.Empty();
-			AHands_Character::InitDescriptionPoints(NumDescriptorPoints, VertexIndices.Num());
-			pDPIndices = &DPIndices;
-			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("if")));
-		}
-		else
-		{
-			pDPIndices = &VertexIndices;
-			//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("else")));
-		}
-		bAreDPset = true;
-		//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("%i"), NumIndices));
-	}
+	//		}
+	//	}
+	//	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("%i"), VertexIndices.Num()));
+	//	if (NumDescriptorPoints <= uint32(VertexIndices.Num()))
+	//	{
+	//		DPIndices.Empty();
+	//		AHands_Character::InitDescriptionPoints(NumDescriptorPoints, VertexIndices.Num());
+	//		pDPIndices = &DPIndices;
+	//		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("if")));
+	//	}
+	//	else
+	//	{
+	//		pDPIndices = &VertexIndices;
+	//		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("else")));
+	//	}
+	//	bAreDPset = true;
+	//	//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("%i"), NumIndices));
+	//}
 	//TArray<FVector>& DPInfo = *DescriptorPointsArray;
-	TArray<uint32>& RpDPIndices = *pDPIndices;
-	uint32 limit = RpDPIndices.Num();
+	//TArray<uint32>& RpDPIndices = *pDPIndices;
+	//uint32 limit = RpDPIndices.Num();
+	uint32 limit = NumIndices;
 	for (uint32 Index = 0; Index < limit; Index++)
 	{
-		uint32 I = RpDPIndices[Index];
+		//uint32 I = RpDPIndices[Index];
 		
 		/*FVector WorldVert0 = InStaticMesh->ComponentToWorld.TransformPosition(PositionVertexBuffer.VertexPosition(Indices[I]));
 		DescriptorPointInfo.Emplace(WorldVert0);
@@ -1071,15 +1072,16 @@ void AHands_Character::AccessTriVertices(const UStaticMeshComponent* InStaticMes
 		DescriptorPointInfo.Emplace(Tangent);
 		const FVector& Binormal = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentY(Indices[I])).GetSafeNormal();
 		DescriptorPointInfo.Emplace(Binormal);*/
-		FVector WorldVert0 = InStaticMesh->ComponentToWorld.TransformPosition(PositionVertexBuffer.VertexPosition(Indices[I]));
+		FVector WorldVert0 = InStaticMesh->ComponentToWorld.TransformPosition(PositionVertexBuffer.VertexPosition(Indices[Index]));
 		DPInfo.Emplace(WorldVert0);
-		const FVector& Normal = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentZ(Indices[I])).GetSafeNormal();
+		const FVector& Normal = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentZ(Indices[Index])).GetSafeNormal();
 		DPInfo.Emplace(Normal);
-		const FVector& Tangent = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentX(Indices[I])).GetSafeNormal();
+		const FVector& Tangent = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentX(Indices[Index])).GetSafeNormal();
 		DPInfo.Emplace(Tangent);
-		const FVector& Binormal = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentY(Indices[I])).GetSafeNormal();
+		const FVector& Binormal = LocalToWorldInverseTranspose.TransformVector(LODModel.VertexBuffer.VertexTangentY(Indices[Index])).GetSafeNormal();
 		DPInfo.Emplace(Binormal);
 	}
+	//UE_LOG(LogTemp, Warning, TEXT("Array final size: %d"), DPInfo.Num()/4);
 	return;
 }
 
@@ -1124,6 +1126,7 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 	else if (bHasObjectMeshChanged)
 	{
 		FTransform ObjectTransform = SpawnedObject->GetTransform();
+		DescriptorPointsPointer = &DPVirtualObject;
 	}
 	else
 	{
@@ -1132,7 +1135,9 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 	
 	TArray<FVector>& DPInfo = *DescriptorPointsPointer;
 
-	uint32 limit = pDPIndices->Num();
+	//uint32 limit = pDPIndices->Num();
+	uint32 limit = DPInfo.Num()/4;
+	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("weights computation %d"), limit));
 	for (uint32 i = 0; i < limit; i++)
 	{
@@ -1140,17 +1145,24 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 		//Normal = DescriptorPointInfo [(i * 4) + 1]
 		//Tangent = DescriptorPointInfo [(i * 4) + 2]
 		//Binormal = DescriptorPointInfo[(i * 4) + 3]
-		distance.Emplace(FVector::Dist(p_j, DPInfo[i * 4]));
+		if (DPInfo.IsValidIndex(i * 4))
+		{
+			distance.Emplace(FVector::Dist(p_j, DPInfo[i * 4]));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Index i * 4: %d of DPInfo is invalid at AHands_Character::WeightsComputation"), limit);
+		}
 		//if (false)
-		if (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4]) < 0)
+		/*if (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4]) < 0)
 		{
 			w_prime.Emplace(0.f);
 		}
 		else
-		{			
+		{*/			
 			float w_prime_val = (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4])) / distance[i];
 			w_prime.Emplace(w_prime_val);
-		}
+		//}
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("weights computation %f"), w_prime_val));
 		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 1]));
 		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 2]));
@@ -1202,7 +1214,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(ObjectScale);
 
 		// The object is just changing sizes, so the vertices num doesn't change
-		limit = CurrentVerticesNum;
+		limit = OriginalVerticesNum;
 	} 
 	else if (bHasObjectMeshChanged)
 	{
@@ -1214,10 +1226,6 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
 
 		limit = OriginalVerticesNum;
-	}
-	else
-	{
-		limit = CurrentVerticesNum;
 	}
 	
 	w_biprime.Empty();
@@ -1232,8 +1240,8 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Normals = OriginalMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector>& Tangents = OriginalMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector>& Binormals = OriginalMeshVerticesBinormalsFromUE4Asset;
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Limit %d"), limit));
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
+	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
+	//Engine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
 	for (int32 i = 0; i < limit; i++)
 	{
 		FVector TransformedVertices;
@@ -1324,7 +1332,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<floa
 	FVector vector(0.f, 0.f, 0.f);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("New joint position %d"), limit));
 	float sum_wbiprime = 0;
-	uint32 limit = pDPIndices->Num();
+	uint32 limit = DPInfo.Num()/4;
 	for (uint32 i = 0; i < limit; i++)
 	{
 		sum_wbiprime += w_biprime[i];
