@@ -84,7 +84,10 @@ protected:
 	FString LoadDirectory;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString VerticesCorrespondanceFileName;
+	FString DenseCorrespondanceIndicesFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString DenseCorrespondanceVerticesFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString OriginalMeshVerticesCoordinatesFromObjFileName;
@@ -218,6 +221,8 @@ private:
 	bool bIsShoulderCalibrated;
 
 	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray);
 	
 	void DPExperimentFirstPartOver();
 
@@ -227,6 +232,8 @@ private:
 
 	UStaticMesh* OriginalMesh;
 	
+	TArray<int32>* PtrDenseCorrespondenceIndices;
+
 	TArray<FVector>* PtrDenseCorrespondenceCoordinates;
 
 	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromObjFile;

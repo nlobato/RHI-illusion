@@ -116,13 +116,15 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftHandWeights.Empty();
 				LeftHandTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights old method: %f"), LeftHandWeights[459]));
-				TArray<float> TestWeights;
-				AHands_Character::WeightsComputation(LeftHandPosition, LeftHandTransformationArray, TestWeights);
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights new method: %f"), TestWeights[459]));
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights old method: %f"), LeftHandWeights[795]));
+				//TArray<float> TestWeights;
+				//AHands_Character::WeightsComputation(LeftHandPosition, LeftHandTransformationArray, TestWeights);
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Weights new method: %f"), TestWeights[795]));
 				DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
-				//GEngine->AddOnScreenDebugMessage(-1, 0.1f, FColor::Red, FString::Printf(TEXT("DPleftHand X: %f, DPlefthand Y: %f, DPlefthand Z: %f"), DPLeftHandPosition.X, DPLeftHandPosition.Y, DPLeftHandPosition.Z));
-
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("New joint pos  x: %f y: %f z: %f"), DPLeftHandPosition.X, DPLeftHandPosition.Y, DPLeftHandPosition.Z));
+				//FVector TestLeftHandPosition = AHands_Character::NewJointPosition(TestWeights, LeftHandTransformationArray);
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("New joint pos  x: %f y: %f z: %f"), TestLeftHandPosition.X, TestLeftHandPosition.Y, TestLeftHandPosition.Z));
+				
 				LeftMiddleKnuckleWeights.Empty();
 				LeftMiddleKnuckleTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
@@ -1134,7 +1136,7 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 	}
 	
 	TArray<FVector>& DPInfo = *DescriptorPointsPointer;
-
+	TArray<FVector>& DPInfo2 = DPVirtualObject;
 	//uint32 limit = pDPIndices->Num();
 	uint32 limit = DPInfo.Num()/4;
 	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
@@ -1154,19 +1156,19 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 			UE_LOG(LogTemp, Warning, TEXT("Index i * 4: %d of DPInfo is invalid at AHands_Character::WeightsComputation"), limit);
 		}
 		//if (false)
-		/*if (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4]) < 0)
+		if (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4]) < 0)
 		{
 			w_prime.Emplace(0.f);
 		}
 		else
-		{*/			
+		{			
 			float w_prime_val = (FVector::DotProduct(DPInfo[(i * 4) + 1], p_j - DPInfo[i * 4])) / distance[i];
 			w_prime.Emplace(w_prime_val);
-		//}
+		}
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("weights computation %f"), w_prime_val));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 1]));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 2]));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 3]));		
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 1]));
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 2]));
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 3]));		
 	}
 	//FVector puntito(transformation[60], transformation[61], transformation[62]);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Transformation x: %f y: %f z: %f"), puntito.X, puntito.Y, puntito.Z));
@@ -1248,7 +1250,9 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		FVector TransformedNormals;
 		FVector TransformedTangents;
 		FVector TransformedBinormals;
-		FVector AlphaBetaGamma(0.f, 0.f, 0.f);
+		float Alpha;
+		float Beta;
+		float Gamma;
 
 		if (Vertices.IsValidIndex(i))
 		{
@@ -1273,12 +1277,12 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			return;
 		}
 		
-		AlphaBetaGamma.X = FVector::DotProduct(p_j - TransformedVertices, TransformedNormals);
+		Alpha = FVector::DotProduct(p_j - TransformedVertices, TransformedNormals);
 		
 		if (Tangents.IsValidIndex(i))
 		{
 			TransformedTangents = OriginalMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-			AlphaBetaGamma.Y = FVector::DotProduct(p_j - TransformedVertices, TransformedTangents);
+			Beta = FVector::DotProduct(p_j - TransformedVertices, TransformedTangents);
 		}
 		else
 		{
@@ -1289,13 +1293,14 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		if (Binormals.IsValidIndex(i))
 		{
 			TransformedBinormals = OriginalMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-			AlphaBetaGamma.Z = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
+			Gamma = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedBinormals' on WeightComputation()"));
 			return;
 		}
+		TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 	}
 
 	float r_j_1 = FMath::Min<float>(Distance);
@@ -1346,6 +1351,46 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<floa
 	}
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("Normalized weight: %f"), (w_biprime[i] / sum_wbiprime)));
 	return vector;
+}
+
+FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVector>& TransformationComponents)
+{
+	FVector NewJointPosition(0.f, 0.f, 0.f);
+	
+	float sum_wbiprime = 0;
+	int32 limit = CurrentVerticesNum;
+	for (int32 i = 0; i < limit; i++)
+	{
+		if (w_biprime.IsValidIndex(i))
+		{
+			sum_wbiprime += w_biprime[i];
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
+			return FVector(0.f, 0.f, 0.f);
+		}
+	}
+
+	TArray<FVector>& Vertices = *PointerToCurrentMeshVertices;
+	TArray<FVector>& Normals = *PointerToCurrentMeshNormals;
+	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
+	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
+	
+	for (int32 i = 0; i < limit; i++)
+	{
+		float& Alpha = TransformationComponents[i].X;
+		float& Beta = TransformationComponents[i].Y;
+		float& Gamma = TransformationComponents[i].Z;
+		FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+		FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+		FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+		FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+		NewJointPosition += (w_biprime[i] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+	}
+	
+	return NewJointPosition;
 }
 
 void AHands_Character::Answer1()

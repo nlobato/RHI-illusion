@@ -485,12 +485,12 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Could not find file"));
+			UE_LOG(LogTemp, Warning, TEXT("Could not find file at AHandsGameMode::ReadTextFile(TargetCoordinatessArray)"));
 		}		
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+		UE_LOG(LogTemp, Warning, TEXT("Could not find directory at AHandsGameMode::ReadTextFile(TargetCoordinatessArray)"));
 	}
 
 	TargetCoordinatesArray.Empty();
@@ -533,19 +533,36 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 		ComponentZ = FCString::Atof(*StringVector);
 		TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
 	}
-	
-	/*int32 One_Index = FCString::Atoi(*DenseCorrespondenceIndices[123]);
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("One vertex index: %d"), One_Index));
-	GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceIndices.Num()));
-	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
-	if (MyCharacter)
+}
+
+void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray)
+{
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	TArray<FString> ArrayForTextFile;
+
+	if (PlatformFile.CreateDirectoryTree(*LoadDirectory))
 	{
-		TArray<int32> ReturnIndices;
-		for (int32 i = 0; i < DenseCorrespondenceIndices.Num(); i++)
+		if (PlatformFile.FileExists(*AbsolutePathToFile))
 		{
-			MyCharacter->DenseCorrespondenceIndices.Emplace(FCString::Atoi(*DenseCorrespondenceIndices[i]));
+			FFileHelper::LoadANSITextFileToStrings(*AbsolutePathToFile, NULL, ArrayForTextFile);
 		}
-	}*/
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find file at AHandsGameMode::ReadTextFile(TargetIndicesArray)"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not find directory at  AHandsGameMode::ReadTextFile(TargetIndicesArray)"));
+	}
+
+	TargetIndicesArray.Empty();
+	TargetIndicesArray.Reserve(ArrayForTextFile.Num());
+	for (FString& EachString : ArrayForTextFile)
+	{
+		TargetIndicesArray.Emplace(FCString::Atod(*EachString));
+	}
 }
 
 void AHandsGameMode::ToggleMessage()
@@ -568,6 +585,7 @@ void AHandsGameMode::InitializeArrays()
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 	if (MyCharacter)
 	{
+		PtrDenseCorrespondenceIndices = &MyCharacter->DenseCorrespondenceIndices;
 		PtrDenseCorrespondenceCoordinates = &MyCharacter->DenseCorrespondenceCoordinates;
 		PtrOriginalMeshVerticesCoordinatesFromObjFile = &MyCharacter->OriginalMeshVerticesCoordinatesFromObjFile;
 		PtrSecondMeshVerticesCoordinatesFromObjFile = &MyCharacter->SecondMeshVerticesCoordinatesFromObjFile;
@@ -582,14 +600,21 @@ void AHandsGameMode::InitializeArrays()
 		PtrSecondMeshVerticesTangentsFromUE4Asset = &MyCharacter->SecondMeshVerticesTangentsFromUE4Asset;
 		PtrSecondMeshVerticesBinormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesBinormalsFromUE4Asset;
 
-		FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + VerticesCorrespondanceFileName;
+		// Read the text file with the dense correspondence indices
+		FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
+		ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+
+		//Read the text file with the dense correspondence coordinates
+		FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + DenseCorrespondanceVerticesFileName;
 		ReadTextFile(VerticesCorrespondaceFilePath, *PtrDenseCorrespondenceCoordinates);
 		//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), (*PtrDenseCorrespondenceCoordinates)[154].X, (*PtrDenseCorrespondenceCoordinates)[154].Y, (*PtrDenseCorrespondenceCoordinates)[154].Z));
 		//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("Array size: %d"), DenseCorrespondenceCoordinates.Num()));
 
+		// Read the text file with the OBJ coordinates for the first mesh
 		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
 		ReadTextFile(OriginalMeshFilePath, *PtrOriginalMeshVerticesCoordinatesFromObjFile);
 
+		// Read the text file with the OBJ coordinates for the first mesh
 		FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
 		ReadTextFile(SecondMeshFilePath, *PtrSecondMeshVerticesCoordinatesFromObjFile);
 

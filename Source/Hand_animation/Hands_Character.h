@@ -104,40 +104,18 @@ public:
 
 protected:
 	
-	/* What object to spawn */
-	/*UPROPERTY(EditAnywhere, Category = "Spawning")
-	TSubclassOf<class AInteractionObject> ObjectToSpawn1;*/
-
-	/* What object to spawn */
-	/*UPROPERTY(EditAnywhere, Category = "Spawning")
-	TSubclassOf<class AInteractionObject> ObjectToSpawn2;*/
-
-	/* What object to spawn */
-	/*UPROPERTY(EditAnywhere, Category = "Spawning")
-	TSubclassOf<class AInteractionObject> ObjectToSpawn3;*/
-
-	/* What object to spawn */
-	/*UPROPERTY(EditAnywhere, Category = "Spawning")
-	TSubclassOf<class AInteractionObject> ObjectToSpawn4;*/
-
-	/* The spawned object */
-	//AInteractionObject* SpawnedObject;
-
-	/** Has the object been spawned? */
+	/** Has object 1 been spawned? */
 	bool bIsObject1Spawned;
 
-	/** Has the object been spawned? */
+	/** Has object 2 been spawned? */
 	bool bIsObject2Spawned;
 
-	/** Has the object been spawned? */
+	/** Has object 3 been spawned? */
 	bool bIsObject3Spawned;
 
-	/** Has the object been spawned? */
+	/** Has object 4 been spawned? */
 	bool bIsObject4Spawned;
-
-
-	//bool bHasObjectSizeChanged;
-		
+			
 	/** Object P & O*/
 	void Object1Movement(float Value);
 
@@ -156,6 +134,7 @@ protected:
 public:
 
 	TArray<FVector> DenseCorrespondenceCoordinates;
+	TArray<int32> DenseCorrespondenceIndices;
 	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
 	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
 	
@@ -251,24 +230,6 @@ protected:
 	TArray<FVector> RightThumbTransformationArray;
 
 	TArray<FVector> RightMiddleKnuckleTransformationArray;
-
-	/*TArray<FArrayForStoringAlphaBetaGammaValues> LeftHandTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftIndexFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftMiddleFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftRingFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftPinkyFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftThumbTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> LeftMiddleKnuckleTransformationComponentsValues;
-
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightHandTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightIndexFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightMiddleFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightRingFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightPinkyFingerTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightThumbTransformationComponentsValues;
-	TArray<FArrayForStoringAlphaBetaGammaValues> RightMiddleKnuckleTransformationComponentsValues;*/
-
-	//TArray<float> w_biprime;
 	
 	/** Number of descriptor points */
 	UPROPERTY(EditAnywhere, Category = "Vertices")
@@ -313,6 +274,8 @@ protected:
 
 	/** Calculate a new joint position with the descriptor points weights */
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<float>& TransformationArray, TArray<FVector>& DescriptorPointsArray);
+
+	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray);
 
 protected:
 
@@ -581,8 +544,6 @@ public:
 
 	int32 CurrentMeshIdentificator;
 	
-	TArray<int32> DenseCorrespondenceIndices;
-
 	// 
 	UFUNCTION(BlueprintPure, Category = "Hand")
 	float GetAlphaValue();
