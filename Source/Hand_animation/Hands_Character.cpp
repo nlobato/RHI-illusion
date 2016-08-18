@@ -1166,9 +1166,9 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 			w_prime.Emplace(w_prime_val);
 		}
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("weights computation %f"), w_prime_val));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 1]));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 2]));
-		transformation.Emplace(FVector::DotProduct(p_j - DPInfo2[i * 4], DPInfo[(i * 4) + 3]));		
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 1]));
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 2]));
+		transformation.Emplace(FVector::DotProduct(p_j - DPInfo[i * 4], DPInfo[(i * 4) + 3]));		
 	}
 	//FVector puntito(transformation[60], transformation[61], transformation[62]);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Transformation x: %f y: %f z: %f"), puntito.X, puntito.Y, puntito.Z));
@@ -1228,6 +1228,10 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
 
 		limit = OriginalVerticesNum;
+	}
+	else
+	{
+		limit = CurrentVerticesNum;
 	}
 	
 	w_biprime.Empty();
@@ -1356,41 +1360,74 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<floa
 FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVector>& TransformationComponents)
 {
 	FVector NewJointPosition(0.f, 0.f, 0.f);
-	
-	float sum_wbiprime = 0;
-	int32 limit = CurrentVerticesNum;
-	for (int32 i = 0; i < limit; i++)
-	{
-		if (w_biprime.IsValidIndex(i))
-		{
-			sum_wbiprime += w_biprime[i];
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
-			return FVector(0.f, 0.f, 0.f);
-		}
-	}
-
 	TArray<FVector>& Vertices = *PointerToCurrentMeshVertices;
 	TArray<FVector>& Normals = *PointerToCurrentMeshNormals;
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
+	float sum_wbiprime = 0;
 	
-	for (int32 i = 0; i < limit; i++)
+	if (bHasObjectSizeChanged)
 	{
-		float& Alpha = TransformationComponents[i].X;
-		float& Beta = TransformationComponents[i].Y;
-		float& Gamma = TransformationComponents[i].Z;
-		FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-		FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-		FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-		FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
 
-		NewJointPosition += (w_biprime[i] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+		int32 limit = CurrentVerticesNum;
+		for (int32 i = 0; i < limit; i++)
+		{
+			if (w_biprime.IsValidIndex(i))
+			{
+				sum_wbiprime += w_biprime[i];
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
+				return FVector(0.f, 0.f, 0.f);
+			}
+		}
+
+		for (int32 i = 0; i < limit; i++)
+		{
+			float& Alpha = TransformationComponents[i].X;
+			float& Beta = TransformationComponents[i].Y;
+			float& Gamma = TransformationComponents[i].Z;
+			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+			NewJointPosition += (w_biprime[i] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+
+
+		}
+		return NewJointPosition;
 	}
-	
-	return NewJointPosition;
+	else
+	{
+		int32 limit = OriginalVerticesNum;
+		for (int32 i = 0; i < limit; i++)
+		{
+			if (w_biprime.IsValidIndex(i))
+			{
+				sum_wbiprime += w_biprime[i];
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
+				return FVector(0.f, 0.f, 0.f);
+			}
+		}
+		
+		/*TArray<int32> MatchingIndices;
+		for (int32 i = 0; i < Vertices.Num(); i++)
+		{
+			for (int32 j = 0; j < Mapping1stAssetToObj.Num(); j++)
+			{
+				if (Mapping1stAssetToObj[j].IndicesArray.Contains(i))
+				{ 
+					Mapping1stAssetToObj.Find()
+				}
+			}
+		}*/
+		return NewJointPosition;
+	}
 }
 
 void AHands_Character::Answer1()

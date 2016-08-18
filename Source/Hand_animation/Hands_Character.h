@@ -148,7 +148,8 @@ public:
 	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
 
-	TArray<FArrayForStoringIndices> MappingBetweenMeshes;
+	TArray<FArrayForStoringIndices> Mapping1stAssetToObj;
+	TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
 
 protected:
 

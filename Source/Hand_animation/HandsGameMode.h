@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "GameFramework/GameMode.h"
+#include "Hands_Character.h"
 #include "HandsGameMode.generated.h"
 
 // Enum to store the current state of gameplay
@@ -236,9 +237,9 @@ private:
 
 	TArray<FVector>* PtrDenseCorrespondenceCoordinates;
 
-	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromObjFile;
+	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
 
-	TArray<FVector>* PtrSecondMeshVerticesCoordinatesFromObjFile;
+	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
 
 	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromUE4Asset;
 
@@ -256,9 +257,19 @@ private:
 
 	TArray<FVector>* PtrSecondMeshVerticesBinormalsFromUE4Asset;
 
+	//TArray<FArrayForStoringIndices> Mapping1stAssetToObj;
+
+	//TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
+
+	TArray<int32> Mapping1stAssetToObj;
+
+	TArray<int32> Mapping2ndAssetToObj;
+
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
 	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
 
-	void MapIndicesFromObjToUE4Asset(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile);
+	void MapIndicesFromObjToUE4Asset(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
+
+	//void MappingBetweenMeshes(TArray<FArrayForStoringIndices>& Mapped1stAssetToObj, TArray<FArrayForStoringIndices>& Mapped2ndAssetToObj, TArray<int32>& DenseCorrespondenceIndices);
 };
