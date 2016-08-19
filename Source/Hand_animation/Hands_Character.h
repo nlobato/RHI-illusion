@@ -133,11 +133,6 @@ protected:
 
 public:
 
-	TArray<FVector> DenseCorrespondenceCoordinates;
-	TArray<int32> DenseCorrespondenceIndices;
-	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
-	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
-	
 	TArray<FVector> OriginalMeshVerticesCoordinatesFromUE4Asset;
 	TArray<FVector> OriginalMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector> OriginalMeshVerticesTangentsFromUE4Asset;
@@ -148,8 +143,8 @@ public:
 	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
 
-	TArray<FArrayForStoringIndices> Mapping1stAssetToObj;
-	TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
+	TArray<int32> Mapped1stMeshCorrespondences;
+	TArray<int32> Mapped2ndMeshCorrespondences;
 
 protected:
 
