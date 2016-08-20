@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "GameFramework/GameMode.h"
+#include "Hands_Character.h"
 #include "HandsGameMode.generated.h"
 
 // Enum to store the current state of gameplay
@@ -256,13 +257,13 @@ private:
 
 	TArray<FVector>* PtrSecondMeshVerticesBinormalsFromUE4Asset;
 
-	//TArray<FArrayForStoringIndices> Mapping1stAssetToObj;
+	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
 
 	//TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
 
-	TArray<int32>* PtrMapped1stMeshCorrespondences;
+	TArray<int32> Mapped1stMeshCorrespondences;
 
-	TArray<int32>* PtrMapped2ndMeshCorrespondences;
+	TArray<int32> Mapped2ndMeshCorrespondences;
 
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
@@ -270,5 +271,5 @@ private:
 
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
-	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<int32>& MappedCorrespondences);
+	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
 };

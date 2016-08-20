@@ -2,7 +2,6 @@
 
 #include "Hand_animation.h"
 #include "HandsGameMode.h"
-#include "Hands_Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "CalibrationBox.h"
 #include "Engine.h"
@@ -289,7 +288,7 @@ void AHandsGameMode::ChangeMeshObject()
 				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->StaticMesh;
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
 				MyCharacter->bAreDPset = false;
-				MyCharacter->CurrentMeshIdentificator = 2;
+				MyCharacter->CurrentMeshIdentificator = 1;
 				MyCharacter->bHasObjectMeshChanged = true;
 				bIsOriginalMesh = false;
 			}
@@ -297,7 +296,7 @@ void AHandsGameMode::ChangeMeshObject()
 			{
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 				MyCharacter->bAreDPset = false;
-				MyCharacter->CurrentMeshIdentificator = 1;
+				MyCharacter->CurrentMeshIdentificator = 2;
 				MyCharacter->bHasObjectMeshChanged = false;
 				bIsOriginalMesh = true;
 			}
@@ -603,8 +602,9 @@ void AHandsGameMode::InitializeArrays()
 		//PtrOriginalMeshVerticesCoordinatesFromObjFile = &MyCharacter->OriginalMeshVerticesCoordinatesFromObjFile;
 		//PtrSecondMeshVerticesCoordinatesFromObjFile = &MyCharacter->SecondMeshVerticesCoordinatesFromObjFile;
 
-		PtrMapped1stMeshCorrespondences = &MyCharacter->Mapped1stMeshCorrespondences;
-		PtrMapped2ndMeshCorrespondences = &MyCharacter->Mapped2ndMeshCorrespondences;
+		//PtrMapped1stMeshCorrespondences = &MyCharacter->Mapped1stMeshCorrespondences;
+		//PtrMapped2ndMeshCorrespondences = &MyCharacter->Mapped2ndMeshCorrespondences;
+		PtrMesh2Mesh1Correspondences = &MyCharacter->Mesh2Mesh1Correspondences;
 
 		PtrOriginalMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->OriginalMeshVerticesCoordinatesFromUE4Asset;
 		PtrOriginalMeshVerticesNormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesNormalsFromUE4Asset;
@@ -667,11 +667,11 @@ void AHandsGameMode::InitializeArrays()
 			UE_LOG(LogTemp, Warning, TEXT("SecondMesh or SecondMesh->RenderData are invalid. Located at AHandsGameMode::InitializeArrays()"));
 		}
 
-		Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, *PtrMapped2ndMeshCorrespondences);
+		Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 		
 		UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped the correspondances of second mesh"));
 
-		MappingBetweenMeshes(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, OriginalMeshVerticesCoordinatesFromObjFile, *PtrMapped1stMeshCorrespondences);
+		MappingBetweenMeshes(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, OriginalMeshVerticesCoordinatesFromObjFile, *PtrMesh2Mesh1Correspondences);
 	}
 }
 
@@ -732,15 +732,15 @@ void AHandsGameMode::Map2ndMeshCorrespondences(TArray<FVector>& ArrayFromAsset, 
 		int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
 		int32 CorrespondenceIndex = DenseCorrespondenceIndices[index_one];
 		MappingAssetToObj.Emplace(CorrespondenceIndex);
-		if (CorrespondenceIndex == 948)
+		/*if (CorrespondenceIndex == 948)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Coordinates on Asset[%d] were found on Obj[%d], dense correspondence index is %d"), i, index_one, CorrespondenceIndex);
-		}
+		}*/
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Non-valid indices %d"), contador);		
 }
 
-void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArray<FVector>& ArrayFromObj, TArray<int32>& MappingAssetToObject)
+void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArray<FVector>& ArrayFromObj, TArray<FArrayForStoringIndices>& MappedCorrespondences)
 {
 	int32 contador = 0;
 	for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
@@ -758,7 +758,8 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Coordinates not found %d on 1st pass"), contador);
-
+	
+	TArray<int32> MappingAssetToObject;
 	MappingAssetToObject.Empty();
 	MappingAssetToObject.Reserve(ArrayFromAsset.Num());
 	contador = 0;
@@ -776,16 +777,29 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 		}
 		int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
 		MappingAssetToObject.Emplace(index_one);
-		if (index_one == 948)
+		/*if (index_one == 948)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Coordinates on OriginalAsset[%d] were found on OriginalObj[%d]"), i, index_one);
-		}
+		}*/
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Coordinates not found %d on 2nd pass"), contador);	
 
-	contador = 0;
-	for (int32 i = 0; i < PtrMapped2ndMeshCorrespondences->Num(); i++)
+	MappedCorrespondences.Empty();
+	for (int32 i = 0; i < Mapped2ndMeshCorrespondences.Num(); i++)
 	{
+		FArrayForStoringIndices Empty_array;
+		Empty_array.IndicesArray.Empty();
+		MappedCorrespondences.Add(Empty_array);
+	}
+
+	contador = 0;
+	for (int32 i = 0; i < Mapped2ndMeshCorrespondences.Num(); i++)
+	{
+		if (!Mapped2ndMeshCorrespondences.IsValidIndex(i) || !MappedCorrespondences.IsValidIndex(i))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid index &d at MappedCorrespondences or PtrMapped2ndMeshCorrespondences. At AHandsGameMode::MappingBetweenMeshes()"), i);
+			return;
+		}
 		for (int32 j = 0; j < MappingAssetToObject.Num(); j++)
 		{
 			if (!MappingAssetToObject.IsValidIndex(j))
@@ -793,14 +807,33 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index &d on MappingAssetToObject. At AHandsGameMode::MappingBetweenMeshes()"), j);
 				return;
 			}
+			
 			int32 CorrespondenceIndex = MappingAssetToObject[j];
-			if (CorrespondenceIndex == 948 && CorrespondenceIndex == (*PtrMapped2ndMeshCorrespondences)[i])
+			
+			/*if (CorrespondenceIndex == 948 && CorrespondenceIndex == Mapped2ndMeshCorrespondences[i])
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Coordinates on SecondAsset[%d] correspond to OriginalAsset[%d]"), i, j);
 				contador++;
+			}*/
+			
+			if (CorrespondenceIndex == Mapped2ndMeshCorrespondences[i])
+			{
+				MappedCorrespondences[i].IndicesArray.Add(j);
 			}
 		}
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("Contador %d"), contador);
+	UE_LOG(LogTemp, Warning, TEXT("Contador %d"), contador);
+	
+	/*for (int32 i = 0; i < Mapped2ndMeshCorrespondences.Num(); i++)
+	{
+		if (948 == Mapped2ndMeshCorrespondences[i])
+		{
+			for (int32 j = 0; j < MappedCorrespondences[i].IndicesArray.Num(); j++)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Coordinates on SecondAsset[%d] correspond to OriginalAsset[%d]"), i, MappedCorrespondences[i].IndicesArray[j]);
+			}
+		}
+	}*/
+
 }
 

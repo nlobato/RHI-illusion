@@ -13,6 +13,11 @@ struct FArrayForStoringIndices
 	UPROPERTY()
 	TArray<int32> IndicesArray;
 
+	/*void AddNewArray()
+	{
+		IndicesArray.Add(NULL);
+	}*/
+
 	FArrayForStoringIndices()
 	{
 	}
@@ -142,9 +147,8 @@ public:
 	TArray<FVector> SecondMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
-
-	TArray<int32> Mapped1stMeshCorrespondences;
-	TArray<int32> Mapped2ndMeshCorrespondences;
+	
+	TArray<FArrayForStoringIndices> Mesh2Mesh1Correspondences;
 
 protected:
 

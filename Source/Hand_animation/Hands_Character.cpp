@@ -1415,26 +1415,32 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		
 		for (int32 i = 0; i < CurrentVerticesNum; i++)
 		{
-			for (int32 j = 0; j < OriginalVerticesNum; j++)
+			for (int32 j = 0; j < Mesh2Mesh1Correspondences[i].IndicesArray.Num(); j++)
 			{
-				if (!Mapped1stMeshCorrespondences.IsValidIndex(j) || !Mapped2ndMeshCorrespondences.IsValidIndex(i))
+				if (!TransformationComponents.IsValidIndex(j))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index &d on MappingAssetToObject. At AHandsGameMode::MappingBetweenMeshes()"), j);
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents at AHands_Character::NewJointPosition()"), j);
 					return FVector(0.f, 0.f, 0.f);
 				}
-				int32 CorrespondenceIndex = Mapped1stMeshCorrespondences[j];
-				if (CorrespondenceIndex == (Mapped2ndMeshCorrespondences)[i])
-				{
-					float& Alpha = TransformationComponents[j].X;
-					float& Beta = TransformationComponents[j].Y;
-					float& Gamma = TransformationComponents[j].Z;
-					FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-					FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-					FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-					FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+				float& Alpha = TransformationComponents[j].X;
+				float& Beta = TransformationComponents[j].Y;
+				float& Gamma = TransformationComponents[j].Z;
 
-					NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+				UE_LOG(LogTemp, Warning, TEXT("CurrentverticesNum %d"), CurrentVerticesNum);
+				if (!Vertices.IsValidIndex(i))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices/Normals/Tangents/Binormals at AHands_Character::NewJointPosition()"), i);
+					return FVector(0.f, 0.f, 0.f);
 				}
+				FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+				FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+				FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+				
+				//UE_LOG(LogTemp, Warning, TEXT("Coordinates on SecondAsset[%d] correspond to OriginalAsset[%d]"), i, MappedCorrespondences[i].IndicesArray[j]);
+				
 			}
 		}
 
