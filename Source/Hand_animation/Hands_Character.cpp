@@ -113,47 +113,54 @@ void AHands_Character::Tick( float DeltaTime )
 			if (bAreDPsActive)
 			{
 												
-				LeftHandWeights.Empty();
-				LeftHandTransformation.Empty();
-				AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weights old method: %f"), LeftHandWeights[795]));
-				//TArray<float> TestWeights;
-				//AHands_Character::WeightsComputation(LeftHandPosition, LeftHandTransformationArray, TestWeights);
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Weights new method: %f"), TestWeights[795]));
-				DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("New joint pos  x: %f y: %f z: %f"), DPLeftHandPosition.X, DPLeftHandPosition.Y, DPLeftHandPosition.Z));
-				//FVector TestLeftHandPosition = AHands_Character::NewJointPosition(TestWeights, LeftHandTransformationArray);
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("New joint pos  x: %f y: %f z: %f"), TestLeftHandPosition.X, TestLeftHandPosition.Y, TestLeftHandPosition.Z));
+				//LeftHandWeights.Empty();
+				//LeftHandTransformation.Empty();
+				//AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
+				//DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
+				WeightsComputation(LeftHandPosition, LeftHandTransformationArray, LeftHandWeights);
+				DPLeftHandPosition = NewJointPosition(LeftHandWeights, LeftHandTransformationArray);
 				
-				LeftMiddleKnuckleWeights.Empty();
+				/*LeftMiddleKnuckleWeights.Empty();
 				LeftMiddleKnuckleTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
-				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);
+				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights);
+				DPLeftMiddleKnucklePosition = NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformationArray);
 
-				LeftIndexFingerWeights.Empty();
+				/*LeftIndexFingerWeights.Empty();
 				LeftIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
-				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);
+				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights);
+				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray);
 
-				LeftMiddleFingerWeights.Empty();
+				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, LeftMiddleFingerPosition);
-				DPLeftMiddleFingerPosition = AHands_Character::NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, DPVirtualObject);
+				DPLeftMiddleFingerPosition = AHands_Character::NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights);
+				DPLeftMiddleFingerPosition = NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray);
 
-				LeftRingFingerWeights.Empty();
+				/*LeftRingFingerWeights.Empty();
 				LeftRingFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftRingFingerWeights, LeftRingFingerTransformation, LeftRingFingerPosition);
-				DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);
+				DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights);
+				DPLeftRingFingerPosition = NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformationArray);
 
-				LeftPinkyFingerWeights.Empty();
+				/*LeftPinkyFingerWeights.Empty();
 				LeftPinkyFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, LeftPinkyFingerPosition);
-				DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);
+				DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights);
+				DPLeftPinkyFingerPosition = NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformationArray);
 
-				LeftThumbWeights.Empty();
+				/*LeftThumbWeights.Empty();
 				LeftThumbTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftThumbWeights, LeftThumbTransformation, LeftThumbPosition);
-				DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);
+				DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);*/
+				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights);
+				DPLeftThumbPosition = NewJointPosition(LeftThumbWeights, LeftThumbTransformationArray);
 
 				RightHandWeights.Empty();
 				RightHandTransformation.Empty();
@@ -1258,52 +1265,49 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Beta;
 		float Gamma;
 
-		if (Vertices.IsValidIndex(i))
-		{
-			TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-			Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
-		}
-		else
+		if (!Vertices.IsValidIndex(i))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating index %d on 'TransformedVertices' on WeightComputation()"), i);
 			return;
 		}
+		TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+		Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
 		
-		if (Normals.IsValidIndex(i))
-		{
-			TransformedNormals = OriginalMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-			float w_prime_val = (FVector::DotProduct(TransformedNormals, p_j - TransformedVertices)) / Distance[i];
-			w_prime.Emplace(w_prime_val);
-		}
-		else
+		if (!Normals.IsValidIndex(i))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedNormals' on WeightComputation()"));
 			return;
 		}
+		TransformedNormals = OriginalMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+		
+		if (FVector::DotProduct(TransformedNormals, p_j - TransformedVertices) < 0)
+		{
+			w_prime.Emplace(0);
+		}
+		else
+		{
+			float w_prime_val = (FVector::DotProduct(TransformedNormals, p_j - TransformedVertices)) / Distance[i];
+			w_prime.Emplace(w_prime_val);
+		}
 		
 		Alpha = FVector::DotProduct(p_j - TransformedVertices, TransformedNormals);
 		
-		if (Tangents.IsValidIndex(i))
-		{
-			TransformedTangents = OriginalMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-			Beta = FVector::DotProduct(p_j - TransformedVertices, TransformedTangents);
-		}
-		else
+		if (!Tangents.IsValidIndex(i))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedTangents' on WeightComputation()"));
 			return;
 		}
+		TransformedTangents = OriginalMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+		Beta = FVector::DotProduct(p_j - TransformedVertices, TransformedTangents);
 
-		if (Binormals.IsValidIndex(i))
-		{
-			TransformedBinormals = OriginalMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-			Gamma = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
-		}
-		else
+		if (!Binormals.IsValidIndex(i))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedBinormals' on WeightComputation()"));
 			return;
 		}
+		TransformedBinormals = OriginalMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+		Gamma = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
+		
 		TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 	}
 
@@ -1372,15 +1376,12 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		int32 limit = CurrentVerticesNum;
 		for (int32 i = 0; i < limit; i++)
 		{
-			if (w_biprime.IsValidIndex(i))
-			{
-				sum_wbiprime += w_biprime[i];
-			}
-			else
+			if (!w_biprime.IsValidIndex(i))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
 				return FVector(0.f, 0.f, 0.f);
 			}
+			sum_wbiprime += w_biprime[i];
 		}
 
 		for (int32 i = 0; i < limit; i++)
@@ -1404,28 +1405,39 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		int32 limit = OriginalVerticesNum;
 		for (int32 i = 0; i < limit; i++)
 		{
-			if (w_biprime.IsValidIndex(i))
-			{
-				sum_wbiprime += w_biprime[i];
-			}
-			else
+			if (!w_biprime.IsValidIndex(i))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
 				return FVector(0.f, 0.f, 0.f);
 			}
-		}
+			sum_wbiprime += w_biprime[i];
+		}				
 		
-		/*TArray<int32> MatchingIndices;
-		for (int32 i = 0; i < Vertices.Num(); i++)
+		for (int32 i = 0; i < CurrentVerticesNum; i++)
 		{
-			for (int32 j = 0; j < Mapping1stAssetToObj.Num(); j++)
+			for (int32 j = 0; j < OriginalVerticesNum; j++)
 			{
-				if (Mapping1stAssetToObj[j].IndicesArray.Contains(i))
-				{ 
-					Mapping1stAssetToObj.Find()
+				if (!Mapped1stMeshCorrespondences.IsValidIndex(j) || !Mapped2ndMeshCorrespondences.IsValidIndex(i))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index &d on MappingAssetToObject. At AHandsGameMode::MappingBetweenMeshes()"), j);
+					return FVector(0.f, 0.f, 0.f);
+				}
+				int32 CorrespondenceIndex = Mapped1stMeshCorrespondences[j];
+				if (CorrespondenceIndex == (Mapped2ndMeshCorrespondences)[i])
+				{
+					float& Alpha = TransformationComponents[j].X;
+					float& Beta = TransformationComponents[j].Y;
+					float& Gamma = TransformationComponents[j].Z;
+					FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+					FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+					FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+					FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+					NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
 				}
 			}
-		}*/
+		}
+
 		return NewJointPosition;
 	}
 }

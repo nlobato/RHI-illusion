@@ -648,12 +648,9 @@ void AHandsGameMode::InitializeArrays()
 		//if (PointerToObjectSpawnedByCharacter)
 		if (InteractionObjectForMeshChange)
 		{
-			//AccessMeshVertices(InteractionObjectForMeshChange->OurVisibleComponent->StaticMesh, *PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshVerticesTangentsFromUE4Asset, *PtrOriginalMeshVerticesBinormalsFromUE4Asset);
 			AccessMeshVertices(OneMesh, *PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshVerticesTangentsFromUE4Asset, *PtrOriginalMeshVerticesBinormalsFromUE4Asset);
 			
-			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));
-
-			//GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Red, FString::Printf(TEXT("One vector x: %f y: %f z: %f"), Array_Prueba[5].X, Array_Prueba[5].Y, Array_Prueba[5].Z));
+			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));			
 		}
 		else
 		{
@@ -716,65 +713,31 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ta
 
 void AHandsGameMode::Map2ndMeshCorrespondences(TArray<FVector>& ArrayFromAsset, TArray<FVector>& ArrayFromObj, TArray<int32>& MappingAssetToObj)
 {
-	int32 contador1 = 0;
-	for (int32 i = 0; i < ArrayFromObj.Num(); i++)
-	{
-		if (!ArrayFromAsset.Contains(ArrayFromObj[i]))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Missing coordinates at index %d, x: %f y: %f z: %f"), i, ArrayFromObj[i].X, ArrayFromObj[i].Y, ArrayFromObj[i].Z	);
-			contador1++;
-		}
-	}
-	UE_LOG(LogTemp, Warning, TEXT("Indices not found %d"), contador1);
-
-
-		/*MappingAssetToObj.Empty();
-		MappingAssetToObj.Reserve(ArrayFromObj.Num());
-		for (int32 i = 0; i < ArrayFromObj.Num(); i++)
-		{
-			MappingAssetToObj.Add(FArrayForStoringIndices());
-			if (MappingAssetToObj.IsValidIndex(i))
-			{
-				MappingAssetToObj[i].IndicesArray.Empty();
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Index %d of MappingAssetToObj is invalid. Located at AHandsGameMode::MapIndicesFromObjToUE4Asset()"), i);
-				return;
-			}
-		}*/
-
 	MappingAssetToObj.Empty();
 	MappingAssetToObj.Reserve(ArrayFromAsset.Num());
 	int32 contador = 0;
 	for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
 	{
 		
-		if (ArrayFromAsset.IsValidIndex(i))
+		if (!ArrayFromAsset.IsValidIndex(i))
 		{				
-			if (ArrayFromObj.Find(ArrayFromAsset[i]) != INDEX_NONE)
-			{
-				int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
-				int32 CorrespondenceIndex = DenseCorrespondenceIndices[index_one];
-				MappingAssetToObj.Emplace(CorrespondenceIndex);
-				if (i < 3300 && i > 3290)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Coordinates on Asset[%d] were found on Obj[%d], dense correspondence index is %d"), i, index_one, CorrespondenceIndex);
-				}
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::MapIndicesFromObjToUE4Asset()"), i, ArrayFromAsset[i].X, ArrayFromAsset[i].Y, ArrayFromAsset[i].Z);
-			}				
-		}			
-		else
-		{
 			UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess index %d of ArrayFromAsset at AHandsGameMode::MapIndicesFromObjToUE4Asset()"), i);
-			return;
+			return;				
+		}
+		if (ArrayFromObj.Find(ArrayFromAsset[i]) == INDEX_NONE)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::MapIndicesFromObjToUE4Asset()"), i, ArrayFromAsset[i].X, ArrayFromAsset[i].Y, ArrayFromAsset[i].Z);
+			contador++;
+		}
+		int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
+		int32 CorrespondenceIndex = DenseCorrespondenceIndices[index_one];
+		MappingAssetToObj.Emplace(CorrespondenceIndex);
+		if (CorrespondenceIndex == 948)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Coordinates on Asset[%d] were found on Obj[%d], dense correspondence index is %d"), i, index_one, CorrespondenceIndex);
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Non-valid indices %d"), contador);	
-	
+	UE_LOG(LogTemp, Warning, TEXT("Non-valid indices %d"), contador);		
 }
 
 void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArray<FVector>& ArrayFromObj, TArray<int32>& MappingAssetToObject)
@@ -782,6 +745,11 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 	int32 contador = 0;
 	for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
 	{
+		if (!ArrayFromAsset.IsValidIndex(i))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess index %d of ArrayFromAsset at AHandsGameMode::MappingBetweenMeshes()"), i);
+			return;
+		}
 		if (ArrayFromObj.Find(ArrayFromAsset[i]) == INDEX_NONE)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::MappingBetweenMeshes()"), i, ArrayFromAsset[i].X, ArrayFromAsset[i].Y, ArrayFromAsset[i].Z);
@@ -791,68 +759,48 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Coordinates not found %d on 1st pass"), contador);
 
-
-	/*TArray<int32> AssetToObjIndices;
-	AssetToObjIndices.Reserve(ArrayFromAsset.Num());*/
 	MappingAssetToObject.Empty();
 	MappingAssetToObject.Reserve(ArrayFromAsset.Num());
 	contador = 0;
 	for (int32 i = 0; i < ArrayFromAsset.Num(); i++)
 	{
-		if (ArrayFromObj.Find(ArrayFromAsset[i]) != INDEX_NONE)
+		if (!ArrayFromAsset.IsValidIndex(i))
 		{
-			int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
-			MappingAssetToObject.Emplace(index_one);
-			if (index_one == 948)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Coordinates on OriginalAsset[%d] were found on OriginalObj[%d]"), i, index_one);
-			}
-			//UE_LOG(LogTemp, Warning, TEXT("Coordinates on OriginalAsset[%d] were found on OriginalObj[%d]"), i, index_one);
+			UE_LOG(LogTemp, Warning, TEXT("Error while trying to acceess index %d of ArrayFromAsset at AHandsGameMode::MappingBetweenMeshes()"), i);
+			return;
 		}
-		else
+		if (ArrayFromObj.Find(ArrayFromAsset[i]) == INDEX_NONE)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj on 2nd pass. At AHandsGameMode::MappingBetweenMeshes()"), i, ArrayFromAsset[i].X, ArrayFromAsset[i].Y, ArrayFromAsset[i].Z);
 			contador++;
 		}
+		int32 index_one = ArrayFromObj.Find(ArrayFromAsset[i]);
+		MappingAssetToObject.Emplace(index_one);
+		if (index_one == 948)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Coordinates on OriginalAsset[%d] were found on OriginalObj[%d]"), i, index_one);
+		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Coordinates not found %d on 2nd pass"), contador);
+	UE_LOG(LogTemp, Warning, TEXT("Coordinates not found %d on 2nd pass"), contador);	
 
-	//contador = 0;
-	//TArray<int32> FinalCorrespondences;
-	//FinalCorrespondences.Reserve(MappedCorrespondences.Num());
-
-	//for (int32 i = 0; i < AssetToObjIndices.Num(); i++)
-	//{
-	//	for (int32 j = 0; j < MappedCorrespondences.Num(); j++)
-	//	{
-	//		if (MappedCorrespondences[j] == AssetToObjIndices[i])
-	//		{
-	//			FinalCorrespondences.Emplace(j);
-	//		}
-	//	}
-	//}
-
-
-	//for (int32 i = 0; i < MappedCorrespondences.Num(); i++)
-	//{
-	//	if (AssetToObjIndices.Find(MappedCorrespondences[i]) != INDEX_NONE)
-	//	{
-	//		int32 index_one = AssetToObjIndices.Find(MappedCorrespondences[i]);
-	//		FinalCorrespondences.Emplace(index_one);
-	//		if (index_one == 156)
-	//		{
-	//			UE_LOG(LogTemp, Warning, TEXT("Iteration %d"), i);
-	//		}
-	//		//UE_LOG(LogTemp, Warning, TEXT("SecondMesh[%d] corresponds to OriginalMesh[%d]"), i, index_one);
-	//	}
-	//	else
-	//	{
-	//		UE_LOG(LogTemp, Warning, TEXT("Couldn't find index %d of MappedCorrespondances on AssetToObjIndices. At AHandsGameMode::MappingBetweenMeshes()"), i);
-	//		contador++;
-	//	}
-	//}
-	//UE_LOG(LogTemp, Warning, TEXT("Indices of MappedCorrespondances not found %d"), contador);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%d"), FinalCorrespondences.Find(2135));
+	contador = 0;
+	for (int32 i = 0; i < PtrMapped2ndMeshCorrespondences->Num(); i++)
+	{
+		for (int32 j = 0; j < MappingAssetToObject.Num(); j++)
+		{
+			if (!MappingAssetToObject.IsValidIndex(j))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index &d on MappingAssetToObject. At AHandsGameMode::MappingBetweenMeshes()"), j);
+				return;
+			}
+			int32 CorrespondenceIndex = MappingAssetToObject[j];
+			if (CorrespondenceIndex == 948 && CorrespondenceIndex == (*PtrMapped2ndMeshCorrespondences)[i])
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Coordinates on SecondAsset[%d] correspond to OriginalAsset[%d]"), i, j);
+				contador++;
+			}
+		}
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Contador %d"), contador);
 }
 
