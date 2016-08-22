@@ -233,7 +233,7 @@ private:
 
 	UStaticMesh* OriginalMesh;
 	
-	TArray<int32> DenseCorrespondenceIndices;
+	TArray<int32>* PtrDenseCorrespondenceIndices;
 
 	TArray<FVector> DenseCorrespondenceCoordinates;
 
@@ -265,9 +265,13 @@ private:
 
 	TArray<int32> Mapped2ndMeshCorrespondences;
 
+	TArray<int32>* PtrOriginalMeshIndices;
+
+	TArray<int32>* PtrSecondMeshIndices;
+
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
-	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
 
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 

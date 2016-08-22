@@ -142,11 +142,15 @@ public:
 	TArray<FVector> OriginalMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector> OriginalMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> OriginalMeshVerticesBinormalsFromUE4Asset;
+	TArray<int32> OriginalMeshIndices;
 
 	TArray<FVector> SecondMeshVerticesCoordinatesFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesNormalsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesTangentsFromUE4Asset;
 	TArray<FVector> SecondMeshVerticesBinormalsFromUE4Asset;
+	TArray<int32> SecondMeshIndices;
+
+	TArray<int32> DenseCorrespondenceIndices;
 	
 	TArray<FArrayForStoringIndices> Mesh2Mesh1Correspondences;
 

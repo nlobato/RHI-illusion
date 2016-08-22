@@ -1234,7 +1234,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
 
-		limit = OriginalVerticesNum;
+		limit = OriginalMeshIndices.Num();
 	}
 	else
 	{
@@ -1402,7 +1402,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	}
 	else
 	{
-		int32 limit = OriginalVerticesNum;
+		int32 limit = w_biprime.Num();
 		for (int32 i = 0; i < limit; i++)
 		{
 			if (!w_biprime.IsValidIndex(i))
@@ -1413,37 +1413,57 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 			sum_wbiprime += w_biprime[i];
 		}				
 		
-		for (int32 i = 0; i < CurrentVerticesNum; i++)
+		//UE_LOG(LogTemp, Warning, TEXT("sum_wbiprime %f"), sum_wbiprime);
+		//UE_LOG(LogTemp, Warning, TEXT("Vertices Num on CurrentVertices %d"), Vertices.Num());
+		//UE_LOG(LogTemp, Warning, TEXT("Alpha: %f Beta: %f Gamma: %f"), TransformationComponents[0].X, TransformationComponents[0].Y, TransformationComponents[0].Z);
+		limit = SecondMeshIndices.Num();
+		for (int32 i = 0; i < limit; i++)
 		{
-			for (int32 j = 0; j < Mesh2Mesh1Correspondences[i].IndicesArray.Num(); j++)
+			if (!SecondMeshIndices.IsValidIndex(i))
 			{
-				if (!TransformationComponents.IsValidIndex(j))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents at AHands_Character::NewJointPosition()"), j);
-					return FVector(0.f, 0.f, 0.f);
-				}
-				float& Alpha = TransformationComponents[j].X;
-				float& Beta = TransformationComponents[j].Y;
-				float& Gamma = TransformationComponents[j].Z;
-
-				UE_LOG(LogTemp, Warning, TEXT("CurrentverticesNum %d"), CurrentVerticesNum);
-				if (!Vertices.IsValidIndex(i))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices/Normals/Tangents/Binormals at AHands_Character::NewJointPosition()"), i);
-					return FVector(0.f, 0.f, 0.f);
-				}
-				FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-				FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-				FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-
-				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-				
-				//UE_LOG(LogTemp, Warning, TEXT("Coordinates on SecondAsset[%d] correspond to OriginalAsset[%d]"), i, MappedCorrespondences[i].IndicesArray[j]);
-				
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for OriginalMeshIndices at AHands_Character::NewJointPosition()"), i);
+				return FVector(0.f, 0.f, 0.f);
 			}
-		}
+			int32 Index = SecondMeshIndices[i];
+			
+			if (!DenseCorrespondenceIndices.IsValidIndex(Index))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for DenseCorrespondenceIndices at AHands_Character::NewJointPosition()"), Index);
+				return FVector(0.f, 0.f, 0.f);
+			}
+			int32 Index2 = DenseCorrespondenceIndices[Index];
+			
+			
 
+			if (!TransformationComponents.IsValidIndex(Index2))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents, Iteration %d. At AHands_Character::NewJointPosition()"), Index2, i);
+				return FVector(0.f, 0.f, 0.f);
+			}
+			float& Alpha = TransformationComponents[Index2].X;
+			float& Beta = TransformationComponents[Index2].Y;
+			float& Gamma = TransformationComponents[Index2].Z;
+			
+			if (!Vertices.IsValidIndex(i))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices/Normals/Tangents/Binormals, iteration %d at AHands_Character::NewJointPosition()"), Index, i);
+				return FVector(0.f, 0.f, 0.f);
+			}
+			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+			if (!w_biprime.IsValidIndex(Index2))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for w_biprime, iteration %d. at AHands_Character::NewJointPosition()"), Index2, i);
+				return FVector(0.f, 0.f, 0.f);
+			}
+
+			NewJointPosition += (w_biprime[Index2] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+						
+		}
+		//UE_LOG(LogTemp, Warning, TEXT("NewJointPosition x: %f y: %f z: %f"), NewJointPosition.X, NewJointPosition.Y, NewJointPosition.Z);
 		return NewJointPosition;
 	}
 }
@@ -1502,7 +1522,7 @@ float AHands_Character::GetAlphaValue()
 FVector AHands_Character::GetLeftHandPosition()
 {
 	//if (false)
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftHandPosition;
 	}
@@ -1514,7 +1534,7 @@ FVector AHands_Character::GetLeftHandPosition()
 
 FVector AHands_Character::GetLeftIndexFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftIndexFingerPosition;
 	}
@@ -1526,7 +1546,7 @@ FVector AHands_Character::GetLeftIndexFingerPosition()
 
 FVector AHands_Character::GetLeftMiddleFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftMiddleFingerPosition;
 	}
@@ -1538,7 +1558,7 @@ FVector AHands_Character::GetLeftMiddleFingerPosition()
 
 FVector AHands_Character::GetLeftRingFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftRingFingerPosition;
 	}
@@ -1550,7 +1570,7 @@ FVector AHands_Character::GetLeftRingFingerPosition()
 
 FVector AHands_Character::GetLeftPinkyFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftPinkyFingerPosition;
 	}
@@ -1562,7 +1582,7 @@ FVector AHands_Character::GetLeftPinkyFingerPosition()
 
 FVector AHands_Character::GetLeftThumbPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftThumbPosition;
 	}
@@ -1607,7 +1627,7 @@ FRotator AHands_Character::GetLeftThumbOrientation()
 FVector AHands_Character::GetLeftMiddleKnucklePosition()
 {
 	//if (false)
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPLeftMiddleKnucklePosition;
 	}
@@ -1620,7 +1640,7 @@ FVector AHands_Character::GetLeftMiddleKnucklePosition()
 // Functions to access the right hand and fingers P & O
 FVector AHands_Character::GetRightHandPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightHandPosition;
 	}
@@ -1632,7 +1652,7 @@ FVector AHands_Character::GetRightHandPosition()
 
 FVector AHands_Character::GetRightIndexFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightIndexFingerPosition;
 	}
@@ -1644,7 +1664,7 @@ FVector AHands_Character::GetRightIndexFingerPosition()
 
 FVector AHands_Character::GetRightMiddleFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightMiddleFingerPosition;
 	}
@@ -1656,7 +1676,7 @@ FVector AHands_Character::GetRightMiddleFingerPosition()
 
 FVector AHands_Character::GetRightRingFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightRingFingerPosition;
 	}
@@ -1668,7 +1688,7 @@ FVector AHands_Character::GetRightRingFingerPosition()
 
 FVector AHands_Character::GetRightPinkyFingerPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightPinkyFingerPosition;
 	}
@@ -1680,7 +1700,7 @@ FVector AHands_Character::GetRightPinkyFingerPosition()
 
 FVector AHands_Character::GetRightThumbPosition()
 {
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightThumbPosition;
 	}
@@ -1725,7 +1745,7 @@ FRotator AHands_Character::GetRightThumbOrientation()
 FVector AHands_Character::GetRightMiddleKnucklePosition()
 {
 	//if (false)
-	if (SpawnedObject && bAreDPsActive)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
 	{
 		return DPRightMiddleKnucklePosition;
 	}
