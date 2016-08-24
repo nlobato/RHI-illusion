@@ -737,7 +737,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 				FirstPass.Emplace(Coordinates);
 				if (!ArrayFromObj.Contains(Coordinates))
 				{
-					//UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::AccessMeshVertices()"), i, Coordinates.X, Coordinates.Y, Coordinates.Z);
+					UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::AccessMeshVertices()"), i, Coordinates.X, Coordinates.Y, Coordinates.Z);
 					float Evaluation = Coordinates.Y * -1;
 					Index = ArrayFromObj.Find(FVector(Coordinates.X, Evaluation, Coordinates.Z));
 					IndicesArray.Emplace(Index);

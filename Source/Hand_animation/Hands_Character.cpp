@@ -1098,7 +1098,7 @@ void AHands_Character::AccessTriVertices(const UStaticMeshComponent* InStaticMes
 void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 {
 	//TArray<FVector>& DPInfo = *DescriptorPointsArray;
-	uint32 limit = pDPIndices->Num();
+	/*uint32 limit = pDPIndices->Num();
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Blue, FString::Printf(TEXT("draw debug points %d"), limit));
 	for (uint32 i = 0; i < limit; i++)
 	{
@@ -1111,6 +1111,22 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 		DrawDebugLine(GetWorld(), DPInfo[i * 4], DPInfo[i * 4] + DPInfo[(i * 4) + 1] * 3.f, FColor(255, 0, 0), false, -1, 0, .5f);
 		DrawDebugLine(GetWorld(), DPInfo[i * 4], DPInfo[i * 4] + DPInfo[(i * 4) + 2] * 3.f, FColor(0, 255, 0), false, -1, 0, .5f);
 		DrawDebugLine(GetWorld(), DPInfo[i * 4], DPInfo[i * 4] + DPInfo[(i * 4) + 3] * 3.f, FColor(0, 0, 255), false, -1, 0, .5f);
+	}*/
+	UE_LOG(LogTemp, Warning, TEXT("Accessed function to draw points"));
+	TArray<FVector>& Vertices = *PointerToCurrentMeshVertices;
+	TArray<FVector>& Normals = *PointerToCurrentMeshNormals;
+	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
+	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
+	for (int32 i = 0; i < Vertices.Num(); i++)
+	{
+		//int32 i = 500;
+		FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+		FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+		FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+		FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+		DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+		DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+		DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 	}
 
 }
@@ -1402,7 +1418,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	}
 	else
 	{
-		int32 limit = w_biprime.Num();
+		/*int32 limit = w_biprime.Num();
 		for (int32 i = 0; i < limit; i++)
 		{
 			if (!w_biprime.IsValidIndex(i))
@@ -1411,14 +1427,17 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 				return FVector(0.f, 0.f, 0.f);
 			}
 			sum_wbiprime += w_biprime[i];
-		}				
+		}	*/			
 		
 		//UE_LOG(LogTemp, Warning, TEXT("sum_wbiprime %f"), sum_wbiprime);
 		//UE_LOG(LogTemp, Warning, TEXT("Vertices Num on CurrentVertices %d"), Vertices.Num());
 		//UE_LOG(LogTemp, Warning, TEXT("Alpha: %f Beta: %f Gamma: %f"), TransformationComponents[0].X, TransformationComponents[0].Y, TransformationComponents[0].Z);
-		limit = SecondMeshIndices.Num();
+		int32 limit = Vertices.Num();
+		FVector NotQuiteNewJointPosition(0.f, 0.f, 0.f);
 		for (int32 i = 0; i < limit; i++)
 		{
+			//int32 i = 500;
+
 			if (!SecondMeshIndices.IsValidIndex(i))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for OriginalMeshIndices at AHands_Character::NewJointPosition()"), i);
@@ -1431,18 +1450,23 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for DenseCorrespondenceIndices at AHands_Character::NewJointPosition()"), Index);
 				return FVector(0.f, 0.f, 0.f);
 			}
-			int32 Index2 = DenseCorrespondenceIndices[Index];
-			
-			
+			int32 Index2 = DenseCorrespondenceIndices[Index];				
 
-			if (!TransformationComponents.IsValidIndex(Index2))
+			if (!OriginalMeshIndices.Contains(Index2))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents, Iteration %d. At AHands_Character::NewJointPosition()"), Index2, i);
+				UE_LOG(LogTemp, Warning, TEXT("Index %d not found on OriginalMeshIndices, Iteration %d. At AHands_Character::NewJointPosition()"), Index2, i);
 				return FVector(0.f, 0.f, 0.f);
 			}
-			float& Alpha = TransformationComponents[Index2].X;
-			float& Beta = TransformationComponents[Index2].Y;
-			float& Gamma = TransformationComponents[Index2].Z;
+			int32 Index3 = OriginalMeshIndices.Find(Index2);
+
+			if (!TransformationComponents.IsValidIndex(Index3))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents at AHands_Character::NewJointPosition()"), Index3);
+				return FVector(0.f, 0.f, 0.f);
+			}
+			float& Alpha = TransformationComponents[Index3].X;
+			float& Beta = TransformationComponents[Index3].Y;
+			float& Gamma = TransformationComponents[Index3].Z;
 			
 			if (!Vertices.IsValidIndex(i))
 			{
@@ -1454,15 +1478,18 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
 			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
 
-			if (!w_biprime.IsValidIndex(Index2))
+			if (!w_biprime.IsValidIndex(Index3))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for w_biprime, iteration %d. at AHands_Character::NewJointPosition()"), Index2, i);
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for w_biprime, iteration %d. at AHands_Character::NewJointPosition()"), Index3, i);
 				return FVector(0.f, 0.f, 0.f);
 			}
+			sum_wbiprime += w_biprime[Index3];
 
-			NewJointPosition += (w_biprime[Index2] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+
+			NotQuiteNewJointPosition += (w_biprime[Index3]) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
 						
 		}
+		NewJointPosition = NotQuiteNewJointPosition / sum_wbiprime;
 		//UE_LOG(LogTemp, Warning, TEXT("NewJointPosition x: %f y: %f z: %f"), NewJointPosition.X, NewJointPosition.Y, NewJointPosition.Z);
 		return NewJointPosition;
 	}
