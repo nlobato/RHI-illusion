@@ -221,7 +221,7 @@ private:
 
 	bool bIsShoulderCalibrated;
 
-	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
+	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray, TArray<FVector>& TargetTrianglesIndices);
 
 	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray);
 	

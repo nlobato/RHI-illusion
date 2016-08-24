@@ -470,7 +470,7 @@ void AHandsGameMode::CalibrateSystem()
 	}	
 }
 
-void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray)
+void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray, TArray<FVector>& TargetTriangleIndices)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -493,56 +493,90 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 	}
 
 	TargetCoordinatesArray.Empty();
-	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num());
+	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num() / 3);
+	TargetTriangleIndices.Empty();
+	TargetTriangleIndices.Reserve(ArrayForTextFile.Num() * (2 / 3));
 	for (FString& EachString : ArrayForTextFile)
 	{
 		FString StringVector;
-		float ComponentX = 0;
-		float ComponentY = 0;
-		float ComponentZ = 0;
-		bool bHasXValueBeenSet = false;
-		for (int32 i = 0; i < EachString.Len(); i++)
+
+		if (EachString[0] == TCHAR('f'))
 		{
-			if (!EachString.IsValidIndex(i))
+			int32 FirstVertex;
+			int32 SecondVertex;
+			int32 ThirdVertex;
+			bool bHasXValueBeenSet = false;
+			bool bHasYValueBeenSet = false;
+			for (int32 i = 2; i < EachString.Len(); i++)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index while creating coordinates array"));
-				return;
-			}
-			if (!FChar::IsWhitespace(EachString[i]))
-			{
-				StringVector += EachString[i];
-			}
-			else
-			{
-				if (!bHasXValueBeenSet)
+				if (!EachString.IsValidIndex(i))
 				{
-					ComponentX = FCString::Atof(*StringVector);
-					StringVector.Empty();
-					bHasXValueBeenSet = true;
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index while creating coordinates array"));
+					return;
+				}
+				if (!FChar::IsWhitespace(EachString[i]))
+				{
+					StringVector += EachString[i];
 				}
 				else
 				{
-					ComponentY = FCString::Atof(*StringVector);
-					StringVector.Empty();
+					if (!bHasXValueBeenSet)
+					{
+						FirstVertex = FCString::Atoi(*StringVector);
+						//UE_LOG(LogTemp, Warning, TEXT("First Vertex %d"), FirstVertex);
+						StringVector.Empty();
+						bHasXValueBeenSet = true;
+					}
+					else if (!bHasYValueBeenSet)
+					{
+						SecondVertex = FCString::Atoi(*StringVector);
+						StringVector.Empty();
+						bHasYValueBeenSet = true;
+					}
+					else
+					{
+						ThirdVertex = FCString::Atoi(*StringVector);
+					}
 				}
-				/*switch (WhitespaceCounter)
-				{
-				case 0:
-					ComponentX = FCString::Atof(*StringVector);
-					StringVector.Empty();
-					WhitespaceCounter++;
-					break;
-				case 1:
-					ComponentY = FCString::Atof(*StringVector);
-					StringVector.Empty();
-					break;
-				default:
-					break;
-				}*/
 			}
+			TargetTriangleIndices.Emplace(FVector(FirstVertex, SecondVertex, ThirdVertex));
 		}
-		ComponentZ = FCString::Atof(*StringVector);
-		TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
+		else
+		{
+
+			float ComponentX = 0;
+			float ComponentY = 0;
+			float ComponentZ = 0;
+			bool bHasXValueBeenSet = false;
+			for (int32 i = 0; i < EachString.Len(); i++)
+			{
+				if (!EachString.IsValidIndex(i))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index while creating coordinates array"));
+					return;
+				}
+				if (!FChar::IsWhitespace(EachString[i]))
+				{
+					StringVector += EachString[i];
+				}
+				else
+				{
+					if (!bHasXValueBeenSet)
+					{
+						ComponentX = FCString::Atof(*StringVector);
+						StringVector.Empty();
+						bHasXValueBeenSet = true;
+					}
+					else
+					{
+						ComponentY = FCString::Atof(*StringVector);
+						StringVector.Empty();
+					}
+				}
+			}
+			ComponentZ = FCString::Atof(*StringVector);
+			TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
+		}
 	}
 }
 
@@ -623,24 +657,19 @@ void AHandsGameMode::InitializeArrays()
 		// Read the text file with the dense correspondence indices
 		FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
 		ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
-
-		UE_LOG(LogTemp, Warning, TEXT("First Dense Correspondence file read succesfully"));
-
-		//Read the text file with the dense correspondence coordinates
-		FString VerticesCorrespondaceFilePath = LoadDirectory + "/" + DenseCorrespondanceVerticesFileName;
-		ReadTextFile(VerticesCorrespondaceFilePath, DenseCorrespondenceCoordinates);
-
-		UE_LOG(LogTemp, Warning, TEXT("Second Dense Correspondence file read succesfully"));
-		
+					
 		// Read the text file with the OBJ coordinates for the first mesh
+		TArray<FVector> Test1;
 		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
-		ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile);
+		ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, Test1);
+		UE_LOG(LogTemp, Warning, TEXT("Triangle 255 Vertex 1 %d Vetex 2 %d Vertex 3 %d"), int32(Test1[255].X), int32(Test1[255].Y), int32(Test1[255].Z));
 
 		UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
 
 		// Read the text file with the OBJ coordinates for the first mesh
+		TArray<FVector> Test2;
 		FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
-		ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile);
+		ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, Test2);
 
 		UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
 
@@ -728,8 +757,17 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 		BinormalsArray.Reserve(NumIndices / 6);
 		IndicesArray.Reserve(NumIndices / 6);
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
+		FVector Prueba;
+		FVector PruebaNormal;
 		for (int32 i = 0; i < NumIndices; i++)
 		{
+			if (i == 0)
+			{
+				Prueba = PositionVertexBuffer.VertexPosition(Indices[i]);
+				UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f"), i, Prueba.X, Prueba.Y, Prueba.Z);
+				PruebaNormal = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
+				UE_LOG(LogTemp, Warning, TEXT("Normal at index %d, x: %f y: %f z: %f. At AHandsGameMode::AccessMeshVertices()"), i, PruebaNormal.X, PruebaNormal.Y, PruebaNormal.Z);
+			}
 			FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
 			int32 Index;
 			if (!FirstPass.Contains(Coordinates))
@@ -752,6 +790,14 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 				NormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 				TangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
 				BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));				
+			}
+			else
+			{
+				if (Coordinates == Prueba)
+				{
+					FVector OtraNormal = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
+					UE_LOG(LogTemp, Warning, TEXT("Normal at index %d, x: %f y: %f z: %f. At AHandsGameMode::AccessMeshVertices()"), i, OtraNormal.X, OtraNormal.Y, OtraNormal.Z);
+				}
 			}
 		}	
 
