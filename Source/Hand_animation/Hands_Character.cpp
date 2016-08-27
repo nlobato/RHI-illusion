@@ -982,6 +982,7 @@ void AHands_Character::GetMeshCurrentTransform(const UStaticMeshComponent* InSta
 		return;
 	}
 	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
+
 	VerticesNum = Indices.Num();
 	CurrentMatrix = InStaticMesh->ComponentToWorld.ToMatrixWithScale().InverseFast().GetTransposed();
 	CurrentTransform = InStaticMesh->ComponentToWorld;

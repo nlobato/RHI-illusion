@@ -437,6 +437,21 @@ void AHandsGameMode::DecisionEvaluation(int32 ObjectChosen)
 	}
 }
 
+void AHandsGameMode::ToggleMessage()
+{
+	if (bIsSystemCalibrated)
+	{
+		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
+		MessageToDisplay = EMessages::EUnknown;
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
+		MessageToDisplay = EMessages::ECalibrationInstructions1;
+		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
+	}
+}
+
 void AHandsGameMode::CalibrateSystem()
 {	
 	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
@@ -470,6 +485,156 @@ void AHandsGameMode::CalibrateSystem()
 	}	
 }
 
+void AHandsGameMode::InitializeArrays()
+{
+	UE_LOG(LogTemp, Warning, TEXT("We are in"));
+	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (MyCharacter)
+	{
+		PtrDenseCorrespondenceIndices = &MyCharacter->DenseCorrespondenceIndices;
+		//PtrDenseCorrespondenceCoordinates = &MyCharacter->DenseCorrespondenceCoordinates;
+		//PtrOriginalMeshVerticesCoordinatesFromObjFile = &MyCharacter->OriginalMeshVerticesCoordinatesFromObjFile;
+		//PtrSecondMeshVerticesCoordinatesFromObjFile = &MyCharacter->SecondMeshVerticesCoordinatesFromObjFile;
+
+		//PtrMapped1stMeshCorrespondences = &MyCharacter->Mapped1stMeshCorrespondences;
+		//PtrMapped2ndMeshCorrespondences = &MyCharacter->Mapped2ndMeshCorrespondences;
+		PtrMesh2Mesh1Correspondences = &MyCharacter->Mesh2Mesh1Correspondences;
+
+		PtrOriginalMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->OriginalMeshVerticesCoordinatesFromUE4Asset;
+		PtrOriginalMeshVerticesNormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesNormalsFromUE4Asset;
+		PtrOriginalMeshVerticesTangentsFromUE4Asset = &MyCharacter->OriginalMeshVerticesTangentsFromUE4Asset;
+		PtrOriginalMeshVerticesBinormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesBinormalsFromUE4Asset;
+		PtrOriginalMeshIndices = &MyCharacter->OriginalMeshIndices;
+
+		PtrSecondMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->SecondMeshVerticesCoordinatesFromUE4Asset;
+		PtrSecondMeshVerticesNormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesNormalsFromUE4Asset;
+		PtrSecondMeshVerticesTangentsFromUE4Asset = &MyCharacter->SecondMeshVerticesTangentsFromUE4Asset;
+		PtrSecondMeshVerticesBinormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesBinormalsFromUE4Asset;
+		PtrSecondMeshIndices = &MyCharacter->SecondMeshIndices;
+
+		UE_LOG(LogTemp, Warning, TEXT("Pointers created succesfully"));
+
+		// Read the text file with the dense correspondence indices
+		FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
+		ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+					
+		// Read the text file with the OBJ coordinates for the first mesh
+		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
+		ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile);
+		//UE_LOG(LogTemp, Warning, TEXT("Obj[1201] x: %f y: %f z: %f"), OriginalMeshVerticesCoordinatesFromObjFile[1201].X, OriginalMeshVerticesCoordinatesFromObjFile[1201].Y, OriginalMeshVerticesCoordinatesFromObjFile[1201].Z);
+
+		UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+
+		// Read the text file with the OBJ coordinates for the first mesh
+		
+		FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
+		ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+		UE_LOG(LogTemp, Warning, TEXT("Triangle Indices Array size: %d"), SecondMeshTriangleIndicesFromObjFile.Num());
+		int32 test_index = 2699;
+		if (SecondMeshTriangleIndicesFromObjFile.IsValidIndex(test_index))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d vertices are 1st: %d 2nd: %d 3rd: %d"), test_index, int32(SecondMeshTriangleIndicesFromObjFile[test_index].X), int32(SecondMeshTriangleIndicesFromObjFile[test_index].Y), int32(SecondMeshTriangleIndicesFromObjFile[test_index].Z));
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
+
+		AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+		UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
+		//PointerToObjectSpawnedByCharacter = &MyCharacter->ObjectToSpawn4;
+		//if (PointerToObjectSpawnedByCharacter)
+		if (InteractionObjectForMeshChange)
+		{
+			AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshVerticesTangentsFromUE4Asset, *PtrOriginalMeshVerticesBinormalsFromUE4Asset, *PtrOriginalMeshIndices);
+			
+			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));			
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("InteractionObjectForMeshChange is invalid. Located at AHandsGameMode::InitializeArrays()"));
+		}
+
+		if (SecondMesh != nullptr || SecondMesh->RenderData != nullptr)
+		{
+			AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, *PtrSecondMeshVerticesTangentsFromUE4Asset, *PtrSecondMeshVerticesBinormalsFromUE4Asset, *PtrSecondMeshIndices);
+			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of second mesh"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("SecondMesh or SecondMesh->RenderData are invalid. Located at AHandsGameMode::InitializeArrays()"));
+		}
+
+		//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
+		
+		UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped the correspondances of second mesh"));
+
+		//MappingBetweenMeshes(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, OriginalMeshVerticesCoordinatesFromObjFile, *PtrMesh2Mesh1Correspondences);
+	}
+}
+
+void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray)
+{
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	TArray<FString> ArrayForTextFile;
+
+	if (PlatformFile.CreateDirectoryTree(*LoadDirectory))
+	{
+		if (PlatformFile.FileExists(*AbsolutePathToFile))
+		{
+			FFileHelper::LoadANSITextFileToStrings(*AbsolutePathToFile, NULL, ArrayForTextFile);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find file at AHandsGameMode::ReadTextFile(TargetCoordinatessArray)"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Could not find directory at AHandsGameMode::ReadTextFile(TargetCoordinatessArray)"));
+	}
+
+	TargetCoordinatesArray.Empty();
+	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num() / 3);
+	for (FString& EachString : ArrayForTextFile)
+	{
+		FString StringVector;
+
+		float ComponentX = 0;
+		float ComponentY = 0;
+		float ComponentZ = 0;
+		bool bHasXValueBeenSet = false;
+		for (int32 i = 0; i < EachString.Len(); i++)
+		{
+			if (!EachString.IsValidIndex(i))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index while creating coordinates array"));
+				return;
+			}
+			if (!FChar::IsWhitespace(EachString[i]))
+			{
+				StringVector += EachString[i];
+			}
+			else
+			{
+				if (!bHasXValueBeenSet)
+				{
+					ComponentX = FCString::Atof(*StringVector);
+					StringVector.Empty();
+					bHasXValueBeenSet = true;
+				}
+				else
+				{
+					ComponentY = FCString::Atof(*StringVector);
+					StringVector.Empty();
+				}
+			}
+		}
+		ComponentZ = FCString::Atof(*StringVector);
+		TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
+
+	}
+}
+
 void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray, TArray<FVector>& TargetTriangleIndices)
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
@@ -485,7 +650,7 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Could not find file at AHandsGameMode::ReadTextFile(TargetCoordinatessArray)"));
-		}		
+		}
 	}
 	else
 	{
@@ -507,6 +672,7 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 			int32 ThirdVertex;
 			bool bHasXValueBeenSet = false;
 			bool bHasYValueBeenSet = false;
+			bool bHasDashBeenFound = false;
 			for (int32 i = 2; i < EachString.Len(); i++)
 			{
 				if (!EachString.IsValidIndex(i))
@@ -516,7 +682,14 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 				}
 				if (!FChar::IsWhitespace(EachString[i]))
 				{
-					StringVector += EachString[i];
+					if (EachString[i] == TCHAR('/') || bHasDashBeenFound == true)
+					{
+						bHasDashBeenFound = true;
+					}
+					else
+					{
+						StringVector += EachString[i];
+					}
 				}
 				else
 				{
@@ -526,12 +699,14 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 						//UE_LOG(LogTemp, Warning, TEXT("First Vertex %d"), FirstVertex);
 						StringVector.Empty();
 						bHasXValueBeenSet = true;
+						bHasDashBeenFound = false;
 					}
 					else if (!bHasYValueBeenSet)
 					{
 						SecondVertex = FCString::Atoi(*StringVector);
 						StringVector.Empty();
 						bHasYValueBeenSet = true;
+						bHasDashBeenFound = false;
 					}
 					else
 					{
@@ -610,102 +785,6 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<int32>& Tar
 	}
 }
 
-void AHandsGameMode::ToggleMessage()
-{
-	if (bIsSystemCalibrated)
-	{
-		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
-		MessageToDisplay = EMessages::EUnknown;		
-	}
-	else
-	{
-		GetWorldTimerManager().ClearTimer(MessagesTimerHandle);
-		MessageToDisplay = EMessages::ECalibrationInstructions1;
-		GetWorldTimerManager().SetTimer(CalibrationTimerHandle, this, &AHandsGameMode::CalibrateSystem, 5.0f, false);
-	}
-}
-
-void AHandsGameMode::InitializeArrays()
-{
-	UE_LOG(LogTemp, Warning, TEXT("We are in"));
-	AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
-	if (MyCharacter)
-	{
-		PtrDenseCorrespondenceIndices = &MyCharacter->DenseCorrespondenceIndices;
-		//PtrDenseCorrespondenceCoordinates = &MyCharacter->DenseCorrespondenceCoordinates;
-		//PtrOriginalMeshVerticesCoordinatesFromObjFile = &MyCharacter->OriginalMeshVerticesCoordinatesFromObjFile;
-		//PtrSecondMeshVerticesCoordinatesFromObjFile = &MyCharacter->SecondMeshVerticesCoordinatesFromObjFile;
-
-		//PtrMapped1stMeshCorrespondences = &MyCharacter->Mapped1stMeshCorrespondences;
-		//PtrMapped2ndMeshCorrespondences = &MyCharacter->Mapped2ndMeshCorrespondences;
-		PtrMesh2Mesh1Correspondences = &MyCharacter->Mesh2Mesh1Correspondences;
-
-		PtrOriginalMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->OriginalMeshVerticesCoordinatesFromUE4Asset;
-		PtrOriginalMeshVerticesNormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesNormalsFromUE4Asset;
-		PtrOriginalMeshVerticesTangentsFromUE4Asset = &MyCharacter->OriginalMeshVerticesTangentsFromUE4Asset;
-		PtrOriginalMeshVerticesBinormalsFromUE4Asset = &MyCharacter->OriginalMeshVerticesBinormalsFromUE4Asset;
-		PtrOriginalMeshIndices = &MyCharacter->OriginalMeshIndices;
-
-		PtrSecondMeshVerticesCoordinatesFromUE4Asset = &MyCharacter->SecondMeshVerticesCoordinatesFromUE4Asset;
-		PtrSecondMeshVerticesNormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesNormalsFromUE4Asset;
-		PtrSecondMeshVerticesTangentsFromUE4Asset = &MyCharacter->SecondMeshVerticesTangentsFromUE4Asset;
-		PtrSecondMeshVerticesBinormalsFromUE4Asset = &MyCharacter->SecondMeshVerticesBinormalsFromUE4Asset;
-		PtrSecondMeshIndices = &MyCharacter->SecondMeshIndices;
-
-		UE_LOG(LogTemp, Warning, TEXT("Pointers created succesfully"));
-
-		// Read the text file with the dense correspondence indices
-		FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
-		ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
-					
-		// Read the text file with the OBJ coordinates for the first mesh
-		TArray<FVector> Test1;
-		FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
-		ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, Test1);
-		UE_LOG(LogTemp, Warning, TEXT("Triangle 255 Vertex 1 %d Vetex 2 %d Vertex 3 %d"), int32(Test1[255].X), int32(Test1[255].Y), int32(Test1[255].Z));
-
-		UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
-
-		// Read the text file with the OBJ coordinates for the first mesh
-		TArray<FVector> Test2;
-		FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
-		ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, Test2);
-
-		UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
-
-		AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
-		UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
-		//PointerToObjectSpawnedByCharacter = &MyCharacter->ObjectToSpawn4;
-		//if (PointerToObjectSpawnedByCharacter)
-		if (InteractionObjectForMeshChange)
-		{
-			AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshVerticesTangentsFromUE4Asset, *PtrOriginalMeshVerticesBinormalsFromUE4Asset, *PtrOriginalMeshIndices);
-			
-			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));			
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("InteractionObjectForMeshChange is invalid. Located at AHandsGameMode::InitializeArrays()"));
-		}
-
-		if (SecondMesh != nullptr || SecondMesh->RenderData != nullptr)
-		{
-			AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, *PtrSecondMeshVerticesTangentsFromUE4Asset, *PtrSecondMeshVerticesBinormalsFromUE4Asset, *PtrSecondMeshIndices);
-			UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of second mesh"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("SecondMesh or SecondMesh->RenderData are invalid. Located at AHandsGameMode::InitializeArrays()"));
-		}
-
-		//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
-		
-		UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped the correspondances of second mesh"));
-
-		//MappingBetweenMeshes(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, OriginalMeshVerticesCoordinatesFromObjFile, *PtrMesh2Mesh1Correspondences);
-	}
-}
-
 void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& ArrayFromObj, TArray<FVector>& TargetArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& IndicesArray)
 {
 	TargetArray.Empty();
@@ -751,55 +830,46 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	{
 		TArray<FVector> FirstPass;
 		FirstPass.Empty();
-		TargetArray.Reserve(NumIndices / 6);
-		NormalsArray.Reserve(NumIndices / 6);
-		TangentsArray.Reserve(NumIndices / 6);
-		BinormalsArray.Reserve(NumIndices / 6);
-		IndicesArray.Reserve(NumIndices / 6);
+		TargetArray.Reserve(ArrayFromObj.Num());
+		NormalsArray.Reserve(ArrayFromObj.Num());
+		TangentsArray.Reserve(ArrayFromObj.Num());
+		BinormalsArray.Reserve(ArrayFromObj.Num());
+		IndicesArray.Reserve(ArrayFromObj.Num());
 		//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
 		FVector Prueba;
 		FVector PruebaNormal;
+		
+		int32 contar = 0;
+		int32 contar2 = 0;
 		for (int32 i = 0; i < NumIndices; i++)
 		{
-			if (i == 0)
-			{
-				Prueba = PositionVertexBuffer.VertexPosition(Indices[i]);
-				UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f"), i, Prueba.X, Prueba.Y, Prueba.Z);
-				PruebaNormal = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
-				UE_LOG(LogTemp, Warning, TEXT("Normal at index %d, x: %f y: %f z: %f. At AHandsGameMode::AccessMeshVertices()"), i, PruebaNormal.X, PruebaNormal.Y, PruebaNormal.Z);
-			}
+			
 			FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
-			int32 Index;
+			int32 Index;			
+									
 			if (!FirstPass.Contains(Coordinates))
 			{
 				FirstPass.Emplace(Coordinates);
 				if (!ArrayFromObj.Contains(Coordinates))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at index %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::AccessMeshVertices()"), i, Coordinates.X, Coordinates.Y, Coordinates.Z);
+					UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at Indices[%d] = %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::AccessMeshVertices()"), i, Indices[i], Coordinates.X, Coordinates.Y, Coordinates.Z);
 					float Evaluation = Coordinates.Y * -1;
 					Index = ArrayFromObj.Find(FVector(Coordinates.X, Evaluation, Coordinates.Z));
 					IndicesArray.Emplace(Index);
+					contar++;
 				}
 				else
 				{
 					Index = ArrayFromObj.Find(Coordinates);
 					IndicesArray.Emplace(Index);
 				}
-				//UE_LOG(LogTemp, Warning, TEXT("IndicesArray = %d"), IndicesArray.Last());
 				TargetArray.Emplace(Coordinates);
 				NormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 				TangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-				BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));				
+				BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
 			}
-			else
-			{
-				if (Coordinates == Prueba)
-				{
-					FVector OtraNormal = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
-					UE_LOG(LogTemp, Warning, TEXT("Normal at index %d, x: %f y: %f z: %f. At AHandsGameMode::AccessMeshVertices()"), i, OtraNormal.X, OtraNormal.Y, OtraNormal.Z);
-				}
-			}
-		}	
+		}
+		UE_LOG(LogTemp, Warning, TEXT("Coordinates not found: %d"), contar);
 
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Test array size %d"), TargetArray.Num());
@@ -962,5 +1032,55 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 		}
 	}*/
 
+}
+
+void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& ArrayFromObj, TArray<FVector>& TrianglesIndices)
+{
+	if (MyMesh == nullptr || MyMesh->RenderData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MyMesh or MyMesh->RenderData are invalid. Located at AHandsGameMode::AccessMeshVertices()"));
+		return;
+	}
+	FStaticMeshLODResources& LODModel = MyMesh->RenderData->LODResources[0];
+	FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
+	if (PositionVertexBuffer.GetNumVertices() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("PositionVertexBuffer.GetNumVertices() == 0. Located at AHandsGameMode::AccessMeshVertices()"));
+		return;
+	}
+	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
+	int32 NumIndices = Indices.Num();
+
+	TArray<FVector> Vertices;
+	TArray<FVector> Normals;
+	TArray<int32> ObjIndices;
+	for (int32 i = 0; i < NumIndices; i++)
+	{
+		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
+		Vertices.Emplace(Coordinates);
+		int32 Index;
+		if (!ArrayFromObj.Contains(Coordinates))
+		{
+			float Evaluation = Coordinates.Y * -1;
+			Index = ArrayFromObj.Find(FVector(Coordinates.X, Evaluation, Coordinates.Z));
+			ObjIndices.Emplace(Index);
+		}
+		else
+		{
+			Index = ArrayFromObj.Find(Coordinates);
+			ObjIndices.Emplace(Index);
+		}
+		Normals.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
+	}
+
+	for (int32 i = 0; i < TrianglesIndices.Num(); i++)
+	{
+		int32 FirstIndex = TrianglesIndices[i].X - 1;
+		int32 SecondIndex = TrianglesIndices[i].Y - 1;
+		int32 ThirdIndex = TrianglesIndices[i].Z - 1;
+
+		int32 MatchinIndex = ObjIndices.Find(FirstIndex);
+
+	}
 }
 

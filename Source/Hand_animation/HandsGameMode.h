@@ -224,6 +224,8 @@ private:
 	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray, TArray<FVector>& TargetTrianglesIndices);
 
 	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
 	
 	void DPExperimentFirstPartOver();
 
@@ -240,6 +242,8 @@ private:
 	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
 
 	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
+
+	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
 
 	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromUE4Asset;
 
@@ -276,4 +280,6 @@ private:
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
+
+	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& TriangleIndices);
 };
