@@ -263,6 +263,10 @@ private:
 
 	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
 
+	TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
+
+	TArray<FVector> MapTriangleIndices;
+
 	//TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
 
 	TArray<int32> Mapped1stMeshCorrespondences;
