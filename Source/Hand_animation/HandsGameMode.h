@@ -286,4 +286,6 @@ private:
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
 
 	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndices);
+
+	void TangentComputation(TArray<FVector> VerticesArray, TArray<FVector> NormalsArray, TArray<int32> IndicesArray);
 };

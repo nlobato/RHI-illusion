@@ -565,6 +565,7 @@ void AHandsGameMode::InitializeArrays()
 
 		MappingTriangles(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, SecondMeshTriangleIndicesFromObjFile);
 
+		TangentComputation(*PtrOriginalMeshVerticesCoordinatesFromUE4Asset, *PtrOriginalMeshVerticesNormalsFromUE4Asset, *PtrOriginalMeshIndices);
 		//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 		
 		//UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped the correspondances of second mesh"));
@@ -808,6 +809,8 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 		return;
 	}
 	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
+	TArray<uint32> IndicesFromBuffer;
+	LODModel.IndexBuffer.GetCopy(IndicesFromBuffer);
 	int32 NumIndices = Indices.Num();
 	
 	//if (bIsSizeToChange)
@@ -825,7 +828,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 			NormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 			TangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
 			BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
-			IndicesArray.Emplace(i);			
+			IndicesArray.Emplace(Indices[i]);			
 		}
 	//}
 	/*else
@@ -1176,6 +1179,107 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 	if (VerticesCoordinates.IsValidIndex(int32(MapTriangleIndices[test_index].Z)) && ObjIndices.IsValidIndex(int32(MapTriangleIndices[test_index].Z)))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 3 Triangle %d, x: %f y: %f z: %f. Obj vertex: %d"), test_index, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].X, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].Y, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].Z, ObjIndices[int32(MapTriangleIndices[test_index].Z)]);
+	}*/
+}
+
+void AHandsGameMode::TangentComputation(TArray<FVector> VerticesArray, TArray<FVector> NormalsArray, TArray<int32> IndicesArray)
+{
+	TArray<FVector> Coordinates;
+	Coordinates.Empty();
+	
+	int32 contador = 0;
+	int32 limit = IndicesArray.Num() / 3;
+	for (int32 i = 0; i < limit; i++)
+	{
+		//int32 IndexBufferIdx = i * 3;
+		int32 Index0 = i * 3;
+		int32 Index1 = Index0 + 1;
+		int32 Index2 = Index0 + 2;
+
+		FVector ProposedTangent;
+		FVector NewTangent;
+		int32 IndexForNormalsArray = 0;
+		bool bNewTangentSet = false;
+
+		if (!VerticesArray.IsValidIndex(Index0) || !VerticesArray.IsValidIndex(Index1) || !VerticesArray.IsValidIndex(Index2))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index for Vertices Array, Index0: %d Index1: %d Index: %d. At AHandsGameMode::TangentComputation()"), Index0, Index1, Index2);
+			return;
+		}
+		if (!Coordinates.Contains(VerticesArray[Index0]))
+		{
+			ProposedTangent = VerticesArray[Index1] - VerticesArray[Index0];
+			NewTangent = ProposedTangent.GetSafeNormal();
+			Coordinates.Emplace(VerticesArray[Index0]);
+			IndexForNormalsArray = Index0;
+			bNewTangentSet = true;
+		}
+		else if (!Coordinates.Contains(VerticesArray[Index1]))
+		{
+			ProposedTangent = VerticesArray[Index2] - VerticesArray[Index1];
+			NewTangent = ProposedTangent.GetSafeNormal();
+			Coordinates.Emplace(VerticesArray[Index1]);
+			IndexForNormalsArray = Index1;
+			bNewTangentSet = true;
+		}
+		else if (!Coordinates.Contains(VerticesArray[Index2]))
+		{
+			ProposedTangent = VerticesArray[Index0] - VerticesArray[Index2];
+			NewTangent = ProposedTangent.GetSafeNormal();
+			Coordinates.Emplace(VerticesArray[Index2]);
+			IndexForNormalsArray = Index2;
+			bNewTangentSet = true;
+		}
+
+		if (bNewTangentSet)
+		{
+			if (!NormalsArray.IsValidIndex(IndexForNormalsArray))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid &d for NormalsArray. At AHandsGameMode::TangentComputation()"), IndexForNormalsArray);
+				return;
+			}
+			FVector SafeNormal = NormalsArray[IndexForNormalsArray].GetSafeNormal();
+			bool bIsOrthogonal = FVector::Orthogonal(NewTangent, SafeNormal);
+			
+			if (!bIsOrthogonal)
+			{
+				FPlane VertexPlane(FVector(0.f,0.f,0.f), SafeNormal);
+				FVector Tangent = FVector::PointPlaneProject(NewTangent, VertexPlane);
+
+				//Tangent = Tangent.GetSafeNormal();
+				bIsOrthogonal = FVector::Orthogonal(Tangent.GetSafeNormal(), SafeNormal);
+
+			}		
+			if (i < 100 && i >= 0)
+			{
+						
+				if (bIsOrthogonal)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Vectors at index %d are orthogonals"), IndexForNormalsArray);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("vectors at index %d are not orthogonals"), IndexForNormalsArray);
+				}
+			}
+			contador++;
+		}
+	}
+	Coordinates.Empty();
+	UE_LOG(LogTemp, Warning, TEXT("total number of tangents: %d"), contador);
+
+	/*FPlane PlanoPrueba(FVector(0.f, 0.f, 0.f), FVector(0.f, 0.f, 1.f));
+	FVector PruebaVector(3.f, 0.f, 5.f);
+	FVector Proyeccion = FVector::PointPlaneProject(PruebaVector, PlanoPrueba);
+	UE_LOG(LogTemp, Warning, TEXT("Projection on plane x: %f y: %f z: %f"), Proyeccion.X, Proyeccion.Y, Proyeccion.Z);
+	bool bIsOrthogonal = FVector::Orthogonal(Proyeccion.GetSafeNormal(), FVector(0.f, 0.f, 1.f));
+	if (bIsOrthogonal)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Vectors are orthogonals"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("vectors are not orthogonals"));
 	}*/
 }
 
