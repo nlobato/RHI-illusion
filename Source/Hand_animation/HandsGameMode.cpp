@@ -563,7 +563,7 @@ void AHandsGameMode::InitializeArrays()
 			UE_LOG(LogTemp, Warning, TEXT("SecondMesh or SecondMesh->RenderData are invalid. Located at AHandsGameMode::InitializeArrays()"));
 		}
 
-		MappingTriangles(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+		MappingTriangles(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVerticesCoordinatesFromUE4Asset, *PtrSecondMeshVerticesNormalsFromUE4Asset, SecondMeshTriangleIndicesFromObjFile);
 
 		//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 		
@@ -810,8 +810,8 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
 	int32 NumIndices = Indices.Num();
 	
-	if (bIsSizeToChange)
-	{
+	//if (bIsSizeToChange)
+	//{
 		TargetArray.Reserve(NumIndices);
 		NormalsArray.Reserve(NumIndices);
 		TangentsArray.Reserve(NumIndices);
@@ -827,8 +827,8 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 			BinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
 			IndicesArray.Emplace(i);			
 		}
-	}
-	else
+	//}
+	/*else
 	{
 		TArray<FVector> FirstPass;
 		FirstPass.Empty();
@@ -873,7 +873,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 		}
 		UE_LOG(LogTemp, Warning, TEXT("Coordinates not found: %d"), contar);
 
-	}
+	}*/
 	UE_LOG(LogTemp, Warning, TEXT("Test array size %d"), TargetArray.Num());
 }
 
@@ -1036,26 +1036,11 @@ void AHandsGameMode::MappingBetweenMeshes(TArray<FVector>& ArrayFromAsset, TArra
 
 }
 
-void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& ArrayFromObj, TArray<FVector>& TrianglesIndices)
+void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TrianglesIndices)
 {
-	if (MyMesh == nullptr || MyMesh->RenderData == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("MyMesh or MyMesh->RenderData are invalid. Located at AHandsGameMode::AccessMeshVertices()"));
-		return;
-	}
-	FStaticMeshLODResources& LODModel = MyMesh->RenderData->LODResources[0];
-	FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
-	if (PositionVertexBuffer.GetNumVertices() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("PositionVertexBuffer.GetNumVertices() == 0. Located at AHandsGameMode::AccessMeshVertices()"));
-		return;
-	}
-	FIndexArrayView Indices = LODModel.IndexBuffer.GetArrayView();
-	int32 NumIndices = Indices.Num();
-
-	TArray<FVector> Vertices;
-	TArray<FVector> Normals;
 	TArray<int32> ObjIndices;
+
+	TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
 	Map2ndMeshAssetObjIndices.Empty();
 	for (int32 i = 0; i < ArrayFromObj.Num(); i++)
 	{
@@ -1064,10 +1049,10 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 		Map2ndMeshAssetObjIndices.Add(Empty_array);
 	}
 
+	int32 NumIndices = VerticesCoordinates.Num();
 	for (int32 i = 0; i < NumIndices; i++)
 	{
-		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
-		Vertices.Emplace(Coordinates);
+		FVector Coordinates = VerticesCoordinates[i];
 		int32 Index;
 		if (!ArrayFromObj.Contains(Coordinates))
 		{
@@ -1092,7 +1077,6 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 			Map2ndMeshAssetObjIndices[Index].IndicesArray.Emplace(i);
 			ObjIndices.Emplace(Index);
 		}
-		Normals.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 	}
 
 	for (int32 i = 0; i < TrianglesIndices.Num(); i++)
@@ -1114,12 +1098,12 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 		for (int32 j = 0; j < NumIndicesArray; j++)
 		{
 			int32 MoreIndices = Map2ndMeshAssetObjIndices[FirstIndex].IndicesArray[j];
-			if (!Normals.IsValidIndex(MoreIndices))
+			if (!VerticesNormals.IsValidIndex(MoreIndices))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index &d at Normals1stIndex. At AHandsGameMode::MappingTriangles()"), FirstIndex);
 				return;
 			}
-			Normals1stIndex.Emplace(Normals[MoreIndices]);
+			Normals1stIndex.Emplace(VerticesNormals[MoreIndices]);
 		}
 
 		if (!Map2ndMeshAssetObjIndices.IsValidIndex(SecondIndex))
@@ -1131,12 +1115,12 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 		for (int32 j = 0; j < NumIndicesArray; j++)
 		{
 			int32 MoreIndices = Map2ndMeshAssetObjIndices[SecondIndex].IndicesArray[j];
-			if (!Normals.IsValidIndex(MoreIndices))
+			if (!VerticesNormals.IsValidIndex(MoreIndices))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index &d at Normals2ndIndex. At AHandsGameMode::MappingTriangles()"), FirstIndex);
 				return;
 			}
-			Normals2ndIndex.Emplace(Normals[MoreIndices]);
+			Normals2ndIndex.Emplace(VerticesNormals[MoreIndices]);
 		}
 
 		if (!Map2ndMeshAssetObjIndices.IsValidIndex(FirstIndex))
@@ -1148,12 +1132,12 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 		for (int32 j = 0; j < NumIndicesArray; j++)
 		{
 			int32 MoreIndices = Map2ndMeshAssetObjIndices[ThirdIndex].IndicesArray[j];
-			if (!Normals.IsValidIndex(MoreIndices))
+			if (!VerticesNormals.IsValidIndex(MoreIndices))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index &d at Normals3rdIndex. At AHandsGameMode::MappingTriangles()"), FirstIndex);
 				return;
 			}
-			Normals3rdIndex.Emplace(Normals[MoreIndices]);
+			Normals3rdIndex.Emplace(VerticesNormals[MoreIndices]);
 		}
 
 		FVector StoreIndices;
@@ -1175,22 +1159,23 @@ void AHandsGameMode::MappingTriangles(UStaticMesh* MyMesh, TArray<FVector>& Arra
 
 		MapTriangleIndices.Emplace(StoreIndices);
 	}
-	int32 test_index = 2699;
+
+	/*int32 test_index = 899;
 	if (MapTriangleIndices.IsValidIndex(test_index))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Triangle %d vertices are 1st: %d 2nd: %d 3rd: %d"), test_index, int32(MapTriangleIndices[test_index].X), int32(MapTriangleIndices[test_index].Y), int32(MapTriangleIndices[test_index].Z));		
 	}
-	if (Vertices.IsValidIndex(int32(MapTriangleIndices[test_index].X)))
+	if (VerticesCoordinates.IsValidIndex(int32(MapTriangleIndices[test_index].X)) && ObjIndices.IsValidIndex(int32(MapTriangleIndices[test_index].X)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 1 Triangle %d, x: %f y: %f z: %f"), test_index, Vertices[int32(MapTriangleIndices[test_index].X)].X, Vertices[int32(MapTriangleIndices[test_index].X)].Y, Vertices[int32(MapTriangleIndices[test_index].X)].Z);
+		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 1 Triangle %d, x: %f y: %f z: %f. Obj vertex: %d"), test_index, VerticesCoordinates[int32(MapTriangleIndices[test_index].X)].X, VerticesCoordinates[int32(MapTriangleIndices[test_index].X)].Y, VerticesCoordinates[int32(MapTriangleIndices[test_index].X)].Z, ObjIndices[int32(MapTriangleIndices[test_index].X)]);
 	}
-	if (Vertices.IsValidIndex(int32(MapTriangleIndices[test_index].Y)))
+	if (VerticesCoordinates.IsValidIndex(int32(MapTriangleIndices[test_index].Y)) && ObjIndices.IsValidIndex(int32(MapTriangleIndices[test_index].Y)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 2 Triangle %d, x: %f y: %f z: %f"), test_index, Vertices[int32(MapTriangleIndices[test_index].Y)].X, Vertices[int32(MapTriangleIndices[test_index].Y)].Y, Vertices[int32(MapTriangleIndices[test_index].Y)].Z);
+		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 2 Triangle %d, x: %f y: %f z: %f. Obj vertex: %d"), test_index, VerticesCoordinates[int32(MapTriangleIndices[test_index].Y)].X, VerticesCoordinates[int32(MapTriangleIndices[test_index].Y)].Y, VerticesCoordinates[int32(MapTriangleIndices[test_index].Y)].Z, ObjIndices[int32(MapTriangleIndices[test_index].Y)]);
 	}
-	if (Vertices.IsValidIndex(int32(MapTriangleIndices[test_index].Z)))
+	if (VerticesCoordinates.IsValidIndex(int32(MapTriangleIndices[test_index].Z)) && ObjIndices.IsValidIndex(int32(MapTriangleIndices[test_index].Z)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 3 Triangle %d, x: %f y: %f z: %f"), test_index, Vertices[int32(MapTriangleIndices[test_index].Z)].X, Vertices[int32(MapTriangleIndices[test_index].Z)].Y, Vertices[int32(MapTriangleIndices[test_index].Z)].Z);
-	}
+		UE_LOG(LogTemp, Warning, TEXT("Coordinates at Vertex 3 Triangle %d, x: %f y: %f z: %f. Obj vertex: %d"), test_index, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].X, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].Y, VerticesCoordinates[int32(MapTriangleIndices[test_index].Z)].Z, ObjIndices[int32(MapTriangleIndices[test_index].Z)]);
+	}*/
 }
 

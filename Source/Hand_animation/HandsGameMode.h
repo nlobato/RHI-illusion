@@ -263,7 +263,7 @@ private:
 
 	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
 
-	TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
+	//TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
 
 	TArray<FVector> MapTriangleIndices;
 
@@ -285,5 +285,5 @@ private:
 
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
 
-	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& TriangleIndices);
+	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndices);
 };
