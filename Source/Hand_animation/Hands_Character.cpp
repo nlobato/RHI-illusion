@@ -947,22 +947,22 @@ void AHands_Character::AssignPointers()
 	switch (CurrentMeshIdentificator)
 	{
 	case 1:
-		PointerToCurrentMeshVertices = &OriginalMeshVerticesCoordinatesFromUE4Asset;
-		PointerToCurrentMeshNormals = &OriginalMeshVerticesNormalsFromUE4Asset;
-		PointerToCurrentMeshTangents = &OriginalMeshVerticesTangentsFromUE4Asset;
-		PointerToCurrentMeshBinormals = &OriginalMeshVerticesBinormalsFromUE4Asset;
+		PointerToCurrentMeshVertices = &OriginalMeshVertices;
+		PointerToCurrentMeshNormals = &OriginalMeshNormals;
+		PointerToCurrentMeshTangents = &OriginalMeshTangents;
+		PointerToCurrentMeshBinormals = &OriginalMeshBinormals;
 		break;
 	case 2:
-		PointerToCurrentMeshVertices = &SecondMeshVerticesCoordinatesFromUE4Asset;
-		PointerToCurrentMeshNormals = &SecondMeshVerticesNormalsFromUE4Asset;
-		PointerToCurrentMeshTangents = &SecondMeshVerticesTangentsFromUE4Asset;
-		PointerToCurrentMeshBinormals = &SecondMeshVerticesBinormalsFromUE4Asset;
+		PointerToCurrentMeshVertices = &SecondMeshVertices;
+		PointerToCurrentMeshNormals = &SecondMeshNormals;
+		PointerToCurrentMeshTangents = &SecondMeshTangents;
+		PointerToCurrentMeshBinormals = &SecondMeshBinormals;
 		break;
 	default:
-		PointerToCurrentMeshVertices = &OriginalMeshVerticesCoordinatesFromUE4Asset;
-		PointerToCurrentMeshNormals = &OriginalMeshVerticesNormalsFromUE4Asset;
-		PointerToCurrentMeshTangents = &OriginalMeshVerticesTangentsFromUE4Asset;
-		PointerToCurrentMeshBinormals = &OriginalMeshVerticesBinormalsFromUE4Asset;
+		PointerToCurrentMeshVertices = &OriginalMeshVertices;
+		PointerToCurrentMeshNormals = &OriginalMeshNormals;
+		PointerToCurrentMeshTangents = &OriginalMeshTangents;
+		PointerToCurrentMeshBinormals = &OriginalMeshBinormals;
 	}
 }
 
@@ -1266,10 +1266,10 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	Distance.Reserve(limit);
 	TArray<float> w_prime;
 	w_prime.Reserve(limit);
-	TArray<FVector>& Vertices = OriginalMeshVerticesCoordinatesFromUE4Asset;
-	TArray<FVector>& Normals = OriginalMeshVerticesNormalsFromUE4Asset;
-	TArray<FVector>& Tangents = OriginalMeshVerticesTangentsFromUE4Asset;
-	TArray<FVector>& Binormals = OriginalMeshVerticesBinormalsFromUE4Asset;
+	TArray<FVector>& Vertices = OriginalMeshVertices;
+	TArray<FVector>& Normals = OriginalMeshNormals;
+	TArray<FVector>& Tangents = OriginalMeshTangents;
+	TArray<FVector>& Binormals = OriginalMeshBinormals;
 	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 	//Engine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
 	for (int32 i = 0; i < limit; i++)

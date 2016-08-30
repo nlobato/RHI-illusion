@@ -91,6 +91,9 @@ protected:
 	FString DenseCorrespondanceVerticesFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString BlendedIntrinsicMapsFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString OriginalMeshVerticesCoordinatesFromObjFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
@@ -226,6 +229,8 @@ private:
 	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray);
 
 	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray, TArray<FVector>& TargetBarycentricCoordinatesArray);
 	
 	void DPExperimentFirstPartOver();
 
@@ -245,21 +250,21 @@ private:
 
 	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
 
-	TArray<FVector>* PtrOriginalMeshVerticesCoordinatesFromUE4Asset;
+	TArray<FVector>* PtrOriginalMeshVertices;
 
-	TArray<FVector>* PtrOriginalMeshVerticesNormalsFromUE4Asset;
+	TArray<FVector>* PtrOriginalMeshNormals;
 
-	TArray<FVector>* PtrOriginalMeshVerticesTangentsFromUE4Asset;
+	TArray<FVector>* PtrOriginalMeshTangents;
 
-	TArray<FVector>* PtrOriginalMeshVerticesBinormalsFromUE4Asset;
+	TArray<FVector>* PtrOriginalMeshBinormals;
 
-	TArray<FVector>* PtrSecondMeshVerticesCoordinatesFromUE4Asset;
+	TArray<FVector>* PtrSecondMeshVertices;
 
-	TArray<FVector>* PtrSecondMeshVerticesNormalsFromUE4Asset;
+	TArray<FVector>* PtrSecondMeshNormals;
 
-	TArray<FVector>* PtrSecondMeshVerticesTangentsFromUE4Asset;
+	TArray<FVector>* PtrSecondMeshTangents;
 
-	TArray<FVector>* PtrSecondMeshVerticesBinormalsFromUE4Asset;
+	TArray<FVector>* PtrSecondMeshBinormals;
 
 	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
 
@@ -277,15 +282,23 @@ private:
 
 	TArray<int32>* PtrSecondMeshIndices;
 
+	TArray<int32> Vertex2TriangleMapFromFile;
+
+	TArray<FVector> BarycentricCoordinatesFromFile;
+
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
 	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndices, TArray<int32>& ArrayToStoreIndicesMap);
 
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
 
-	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndices);
+	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
 
-	void TangentComputation(TArray<FVector> VerticesArray, TArray<FVector> NormalsArray, TArray<int32> IndicesArray);
+	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+
+	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& VertexTriangleMap, TArray<FVector>& BarycentricCoordinates, TArray<FVector>& MeshTriangleIndices, TArray<FVector>& MeshVertices, TArray<FVector>& MeshNormals, TArray<int32>& MeshTangentsIndices, TArray<int32>& MeshIndicesMap);
 };
