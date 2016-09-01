@@ -288,9 +288,9 @@ private:
 
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
-	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
 
-	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndices, TArray<int32>& ArrayToStoreIndicesMap);
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndicesMap);
 
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
@@ -298,7 +298,7 @@ private:
 
 	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
 
-	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreVertices, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
 
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& VertexTriangleMap, TArray<FVector>& BarycentricCoordinates, TArray<FVector>& MeshTriangleIndices, TArray<FVector>& MeshVertices, TArray<FVector>& MeshNormals, TArray<int32>& MeshTangentsIndices, TArray<int32>& MeshIndicesMap);
 };
