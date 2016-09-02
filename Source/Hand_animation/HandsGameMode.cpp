@@ -869,8 +869,10 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<int32>& Tar
 	TargetIndicesArray.Empty();
 	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num());
 	TargetIndicesArray.Reserve(ArrayForTextFile.Num());
-	for (FString& EachString : ArrayForTextFile)
+
+	for (int32 i = ArrayForTextFile.Num() - 1; i >= 0; i--)
 	{
+		FString& EachString = ArrayForTextFile[i];
 		FString StringVector;
 
 		float ComponentX = 0;
@@ -1486,7 +1488,7 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for VertexTriangleMap. At AHandsGameMode::SecondMeshTangentComputation()"), Index);
 			return;
 		}
-		int32 Triangle = BlendedMapVertexTriangleMap[Index] - 1;
+		int32 Triangle = BlendedMapVertexTriangleMap[Index];
 		
 		/*if (i == TestIndex)
 		{
@@ -1597,7 +1599,7 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for VertexTriangleMap. At AHandsGameMode::SecondMeshTangentComputation()"), IndexForTangentComputation);
 			return;
 		}
-		Triangle = BlendedMapVertexTriangleMap[IndexForTangentComputation] - 1;
+		Triangle = BlendedMapVertexTriangleMap[IndexForTangentComputation];
 
 		/*if (i == TestIndex)
 		{

@@ -1119,7 +1119,7 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 
-	int32 Test_index = 100;
+	int32 Test_index = 1201;
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
@@ -1131,8 +1131,8 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
 			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
 			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 		}
 	}
@@ -1278,7 +1278,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
 
-	int32 Test_index = 100;
+	int32 Test_index = 1201;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
@@ -1341,6 +1341,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			Gamma = FVector::DotProduct(p_j - TransformedVertices, TransformedBinormals);
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
+
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+
 		}
 	}
 
@@ -1409,7 +1414,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = 100;
+	int32 Test_index = 1201;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
 	{
