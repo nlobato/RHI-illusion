@@ -270,7 +270,7 @@ private:
 
 	//TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
 
-	TArray<FVector> MapTriangleIndices;
+	TArray<FVector> SecondMeshMapTriangleIndices;
 
 	//TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
 
@@ -297,6 +297,8 @@ private:
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
 
 	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
+	
+	void MappingTriangles(TArray<int32>& Asset2ObjIndicesMap, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
 
 	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreVertices, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
 

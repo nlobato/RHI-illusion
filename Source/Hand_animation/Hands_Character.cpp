@@ -1119,7 +1119,7 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 
-	int32 Test_index = 1201;
+	int32 Test_index = 1700;
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
@@ -1278,7 +1278,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
 
-	int32 Test_index = 1201;
+	int32 Test_index = 1700;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
@@ -1414,7 +1414,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = 1201;
+	int32 Test_index = 1700;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
 	{
