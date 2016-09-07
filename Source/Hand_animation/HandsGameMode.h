@@ -286,11 +286,30 @@ private:
 
 	TArray<FVector> BarycentricCoordinatesFromFile;
 
+	TArray<int32> OriginalMeshAsset2ObjIndicesMap;
+	TArray<int32> SecondMeshAsset2ObjIndicesMap;
+	TArray<int32> OriginalMeshTangentsIndicesMap;
+
+	TArray<FVector> OriginalMeshVerticesFromUE4Asset;
+	TArray<FVector> OriginalMeshNormalsFromUE4Asset;
+	TArray<FVector> OriginalMeshBinormalsFromUE4Asset;
+	TArray<FVector> OriginalMeshTangentsFromUE4Asset;
+	TArray<FVector> OriginalMeshBlendedMapBinormals;
+
+	TArray<FVector> SecondMeshVerticesFromUE4Asset;
+	TArray<FVector> SecondMeshNormalsFromUE4Asset;
+	TArray<FVector> SecondMeshBinormalsFromUE4Asset;
+	TArray<FVector> SecondMeshTangentsFromUE4Asset;
+	TArray<FVector> SecondMeshBlendedMapBinormals;
+
+	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
+	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
+
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
 	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
 
-	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndicesMap);
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndicesMap);
 
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
@@ -303,4 +322,6 @@ private:
 	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreVertices, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
 
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& VertexTriangleMap, TArray<FVector>& BarycentricCoordinates, TArray<FVector>& MeshTriangleIndices, TArray<FVector>& MeshVertices, TArray<FVector>& MeshNormals, TArray<int32>& MeshTangentsIndices, TArray<int32>& MeshIndicesMap);
+
+	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
 };
