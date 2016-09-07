@@ -1119,18 +1119,23 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 
-	int32 Test_index = 1700;
+	int32 Test_index = 1234;
+	int32 upper_limit = 1235;
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
 		//int32 i = 500;
-		if (i == Test_index)
+		if (i >= Test_index && i < upper_limit)
 		{
 
 			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
 			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
 			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
 			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedNormal x: %f y: %f z: %f"), Normals[i].X, Normals[i].Y, Normals[i].Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedNormal x: %f y: %f z: %f"), TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
+
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
@@ -1278,10 +1283,10 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
 
-	int32 Test_index = 1700;
-
-	//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
-	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("Num Vertices %d"), Vertices.Num()));
+	int32 Test_index = 1234;
+	int32 upper_limit = 1235;
+	//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshVertices.Num() %d"), limit);
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("OriginalMeshVertices.Num() %d"), limit));
 	for (int32 i = 0; i < limit; i++)
 	{
 		FVector TransformedVertices;
@@ -1292,7 +1297,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Beta;
 		float Gamma;
 
-		if (i == Test_index)
+		if (i >= Test_index && i < upper_limit)
 		{
 
 			if (!Vertices.IsValidIndex(i))
@@ -1301,7 +1306,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 				return;
 			}
 			TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedVertices x: %f y: %f z: %f"), TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedVertices x: %f y: %f z: %f"), TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
 
 			Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
 
@@ -1346,6 +1351,9 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedTangent x: %f y: %f z: %f"),Tangents[i].X, Tangents[i].Y, Tangents[i].Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTangent x: %f y: %f z: %f"), TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
+
 		}
 	}
 
@@ -1353,29 +1361,41 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	float r_j_2 = r_j_1 + (0.25 * 200);
 	sum_w_biprime = 0;
 	float valor = 0;
+	int32 j = 0;
 	for (int32 i = 0; i < limit; i++)
 	{
-		if (i == Test_index)
+		//j = i;
+		if (i >= Test_index && i < upper_limit)
 		{
-			int32 StoreiValue = i;
-			i = 0;
-			if (r_j_2 <= Distance[i])
+			
+			if (!Distance.IsValidIndex(j))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Distance. on AHands_Character::WeightsComputation()"), j);
+				return;
+			}
+			if (r_j_2 <= Distance[j])
 			{
 				valor = 0;
 			}
-			else if (r_j_1 < Distance[i] && r_j_2 > Distance[i])
+			else if (r_j_1 < Distance[j] && r_j_2 > Distance[j])
 			{
-				valor = 1 - (Distance[i] - r_j_1) / (r_j_2 - r_j_1);
+				valor = 1 - (Distance[j] - r_j_1) / (r_j_2 - r_j_1);
 			}
-			else if (Distance[i] <= r_j_1)
+			else if (Distance[j] <= r_j_1)
 			{
 				valor = 1;
 			}
-			float w_biprime_val = w_prime[i] * valor;
+
+			if (!w_prime.IsValidIndex(j))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for w_prime. on AHands_Character::WeightsComputation()"), j);
+				return;
+			}
+			float w_biprime_val = w_prime[j] * valor;
 			sum_w_biprime += w_biprime_val;
 			w_biprime.Emplace(w_biprime_val);
 
-			i = StoreiValue;
+			j++;
 		}
 	}
 
@@ -1414,7 +1434,9 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = 1700;
+	int32 Test_index = 1234;
+	int32 upper_limit = 1235;
+	int32 j = 0;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
 	{
@@ -1422,39 +1444,42 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		int32 limit = Vertices.Num();
 		for (int32 i = 0; i < limit; i++)
 		{
-			if (i == Test_index)
+			//j = i;
+			if (i >= Test_index && i < upper_limit)
 			{
-				int32 StoreiValue = i;
-				i = 0;
-				if (!w_biprime.IsValidIndex(i))
+				
+				if (!w_biprime.IsValidIndex(j))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
 					return FVector(0.f, 0.f, 0.f);
 				}
-				sum_wbiprime += w_biprime[i];
-				i = StoreiValue;
+				sum_wbiprime += w_biprime[j];
+				j++;
 			}
 		}
 
+		j = 0;
 		for (int32 i = 0; i < limit; i++)
 		{
-			if (i == Test_index)
+			//j = i;
+			if (i >= Test_index && i < upper_limit)
 			{
-				int32 StoreiValue = i;
-				i = 0;
-				float& Alpha = TransformationComponents[i].X;
-				float& Beta = TransformationComponents[i].Y;
-				float& Gamma = TransformationComponents[i].Z;
+				if (!TransformationComponents.IsValidIndex(j))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
+					return FVector(0.f, 0.f, 0.f);
+				}
+				float& Alpha = TransformationComponents[j].X;
+				float& Beta = TransformationComponents[j].Y;
+				float& Gamma = TransformationComponents[j].Z;
 
-				i = StoreiValue;
 				FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
 				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
 				FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
 				FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
 
-				i = 0;
-				NewJointPosition += (w_biprime[i] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-				i = StoreiValue;
+				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+				j++;
 			}
 
 		}
