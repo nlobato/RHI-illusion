@@ -324,4 +324,6 @@ private:
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& VertexTriangleMap, TArray<FVector>& BarycentricCoordinates, TArray<FVector>& MeshTriangleIndices, TArray<FVector>& MeshVertices, TArray<FVector>& MeshNormals, TArray<int32>& MeshTangentsIndices, TArray<int32>& MeshIndicesMap);
 
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
+
+	void PointCalculationForICP();
 };

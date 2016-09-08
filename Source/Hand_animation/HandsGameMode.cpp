@@ -172,7 +172,7 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			MyCharacter->bIsExperimentFinished = true;
 			RootLocation = MyCharacter->MyMesh->GetSocketLocation(TEXT("spine_02"));
 		}
-		if (bIsExperimentForDPAlgorithm)
+		if (bIsExperimentForDPAlgorithm && bIsSizeToChange)
 		{
 			SpawnObjectsForDecision();
 			MessageToDisplay = EMessages::EDPAlgorithmQuestion;
@@ -617,6 +617,8 @@ void AHandsGameMode::InitializeArrays()
 			SecondMeshTangentComputation(*PtrSecondMeshVertices, *PtrSecondMeshNormals, *PtrSecondMeshTangents, *PtrSecondMeshBinormals);
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully calculated tangents and binormals for second mesh"));
+
+			//PointCalculationForICP();
 
 			//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 
@@ -1903,4 +1905,101 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		
 	}
 	UE_LOG(LogTemp, Warning, TEXT("TargetPointArry.Num() %d"), TargetPointArray.Num());
+}
+
+void AHandsGameMode::PointCalculationForICP()
+{
+	TArray<int32>& BlendedMapVertexTriangleMap = BlendedIntrinsicMapsTrianglesMap;
+	TArray<FVector>& BarycentricCoordinatesArray = BlendedIntrinsicMapsBarycentricCoordinates;
+	TArray<FVector>& SecondMeshTriangleIndices = SecondMeshTriangleIndicesFromObjFile;
+	TArray<FVector>& VerticesFrom2ndAsset = SecondMeshVerticesFromUE4Asset;
+	TArray<FVector>& NormalsFrom2ndAsset = SecondMeshNormalsFromUE4Asset;
+	TArray<int32>& VerticesMap = SecondMeshAsset2ObjIndicesMap;
+
+	int32 TestIndex = 0;
+
+	FString CoordinatesToSave = "";
+
+	for (int32 i = 0; i < BlendedMapVertexTriangleMap.Num(); i++)
+	{
+		int32 Triangle = BlendedIntrinsicMapsTrianglesMap[i];
+		FVector BarycentricCoordinates = BarycentricCoordinatesArray[i];
+		/*if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BlendedIntrinsicMapsTrianglesMap[%d]: %d"), i, Triangle);
+		}*/
+		
+		if (!SecondMeshTriangleIndices.IsValidIndex(Triangle))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for MeshTriangleIndices. At AHandsGameMode::SecondMeshTangentComputation()"), Triangle);
+			return;
+		}
+		FVector SecondMeshTriangle = SecondMeshTriangleIndices[Triangle];
+		int32 Index1 = VerticesMap.Find(SecondMeshTriangle.X - 1);
+		int32 Index2 = VerticesMap.Find(SecondMeshTriangle.Y - 1);
+		int32 Index3 = VerticesMap.Find(SecondMeshTriangle.Z - 1);
+		
+		if (!VerticesFrom2ndAsset.IsValidIndex(Index1))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index1 %d for MeshVertices or MeshNormals, iteration %d. At AHandsGameMode::SecondMeshTangentComputation()"), Index1, i);
+			return;
+		}
+		FVector Index1Coordinates = VerticesFrom2ndAsset[Index1];
+		Index1Coordinates.Y *= -1;
+		FVector Index1Normals = NormalsFrom2ndAsset[Index1];
+		/*if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, int32(SecondMeshTriangle.X - 1), Index1Coordinates.X, Index1Coordinates.Y, Index1Coordinates.Z);
+		}*/
+
+		if (!VerticesFrom2ndAsset.IsValidIndex(Index2))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index2 %d for MeshVertices or MeshNormals. At AHandsGameMode::SecondMeshTangentComputation()"), Index2);
+			return;
+		}
+		FVector Index2Coordinates = VerticesFrom2ndAsset[Index2];
+		Index2Coordinates.Y *= -1;
+		FVector Index2Normals = NormalsFrom2ndAsset[Index2];
+		/*if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, int32(SecondMeshTriangle.Y - 1), Index2Coordinates.X, Index2Coordinates.Y, Index2Coordinates.Z);
+		}*/
+
+		if (!VerticesFrom2ndAsset.IsValidIndex(Index3))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index3 %d for MeshVertices. At AHandsGameMode::SecondMeshTangentComputation()"), Index3);
+			return;
+		}
+		FVector Index3Coordinates = VerticesFrom2ndAsset[Index3];
+		Index3Coordinates.Y *= -1;
+		FVector Index3Normals = NormalsFrom2ndAsset[Index3];
+		/*if (i == TestIndex)
+		{
+		UE_LOG(LogTemp, Warning, TEXT("Index3Normals x: %f y: %f z: %f"), Index3Normals.X, Index3Normals.Y, Index3Normals.Z);
+		}*/
+
+		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index2Coordinates;
+
+		CoordinatesToSave += FString::SanitizeFloat(PointInTriangle.X) + " " + FString::SanitizeFloat(PointInTriangle.Y) + " " + FString::SanitizeFloat(PointInTriangle.Z) + "\n";
+		
+		/*if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *TextToSave);
+		}*/
+	}
+
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+	{
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints.txt";
+		if (!PlatformFile.FileExists(*AbsoluteFilePath))
+		{
+			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+		}
+	}
 }
