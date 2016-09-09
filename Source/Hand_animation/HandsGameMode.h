@@ -304,6 +304,7 @@ private:
 
 	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
 	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
+	TArray<FVector> BlendedIntrinsicMapsPoints;
 
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
@@ -326,4 +327,6 @@ private:
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
 
 	void PointCalculationForICP();
+
+	void MeshAlignment();
 };
