@@ -250,6 +250,8 @@ private:
 
 	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
 
+	TArray<FVector> OriginalMeshTriangleIndicesFromObjFile;
+
 	TArray<FVector>* PtrOriginalMeshVertices;
 
 	TArray<FVector>* PtrOriginalMeshNormals;
