@@ -2068,21 +2068,27 @@ void AHandsGameMode::MeshAlignment()
 	int32 limit = PointsToAlign.Num();
 	//UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
 
-	for (int32 Iteration = 0; Iteration < 100; Iteration++)
+	for (int32 Iteration = 0; Iteration < 50; Iteration++)
 	{
 
 		TArray<FVector> FirstAligment;
 		FirstAligment.Reserve(limit);
 
-		int32 TestIndex = 0;
+		int32 TestIndex = 1583;
 
 		// First aligment done by obtaining the mean distance between meshes
 		for (int32 i = 0; i < limit; i++)
 		{
+			if (Iteration == 0)
+			{
+				ReferencePoints[i].Y *= -1;
+			}
+			
 			FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
 			/*if (i == TestIndex)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+				UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+				UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
 			}*/
 			FirstAligment.Emplace(MeanAligment);
 		}
@@ -2136,19 +2142,36 @@ void AHandsGameMode::MeshAlignment()
 		/*TArray<FVector> FinalAlingment;
 		FinalAlingment.Reserve(limit);*/
 		
+		FString CoordinatesToSave = "";
 
 		for (int32 i = 0; i < limit; i++)
 		{
 			FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
-
-			//CoordinatesToSave += FString::SanitizeFloat(AlignedPoint.X) + " " + FString::SanitizeFloat(AlignedPoint.Y) + " " + FString::SanitizeFloat(AlignedPoint.Z) + "\n";
-
 			PointsToAlign[i] = AlignedPoint;
 
+			CoordinatesToSave += FString::SanitizeFloat(AlignedPoint.X) + " " + FString::SanitizeFloat(AlignedPoint.Y) + " " + FString::SanitizeFloat(AlignedPoint.Z) + "\n";
+			
 			//FinalAlingment.Emplace(AlignedPoint);
+		}
+		if (Iteration == 10 || Iteration == 20 || Iteration == 30 || Iteration == 40 || Iteration == 50)
+		{
+			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+			if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+			{
+				FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest_iteration" + FString::FromInt(Iteration) + ".txt";
+				if (!PlatformFile.FileExists(*AbsoluteFilePath))
+				{
+					FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+				}
+			}
 		}
 	}
 
+	
 	FString CoordinatesToSave = "";
 	for (int32 i = 0; i < limit; i++)
 	{
@@ -2158,19 +2181,8 @@ void AHandsGameMode::MeshAlignment()
 
 	}
 
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	
 
-	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
-	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest.txt";
-		if (!PlatformFile.FileExists(*AbsoluteFilePath))
-		{
-			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
-		}
-	}
+	
 
 }
