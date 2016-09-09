@@ -284,10 +284,6 @@ private:
 
 	TArray<int32>* PtrSecondMeshIndices;
 
-	TArray<int32> Vertex2TriangleMapFromFile;
-
-	TArray<FVector> BarycentricCoordinatesFromFile;
-
 	TArray<int32> OriginalMeshAsset2ObjIndicesMap;
 	TArray<int32> SecondMeshAsset2ObjIndicesMap;
 	TArray<int32> OriginalMeshTangentsIndicesMap;

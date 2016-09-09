@@ -618,9 +618,9 @@ void AHandsGameMode::InitializeArrays()
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully calculated tangents and binormals for second mesh"));
 
-			PointCalculationForICP();
+			//PointCalculationForICP();
 
-			//MeshAlignment();
+			MeshAlignment();
 
 			//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 
@@ -995,7 +995,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 
 	int32 test_index = 0;
 
-	int32 ArraySize = ArrayFromObj.Num();
+	int32 ArraySize = BlendedIntrinsicMapsBarycentricCoordinates.Num();
 
 	TargetVerticesArray.Reserve(ArraySize);
 	TargetNormalsArray.Reserve(ArraySize);
@@ -1831,10 +1831,10 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 	TargetTangentsArray.Empty();
 	TargetBinormalsArray.Empty();
 
-	TargetPointArray.AddUninitialized(limit);
-	TargetNormalsArray.AddUninitialized(limit);
-	TargetTangentsArray.AddUninitialized(limit);
-	TargetBinormalsArray.AddUninitialized(limit);
+	TargetPointArray.Reserve(limit);
+	TargetNormalsArray.Reserve(limit);
+	TargetTangentsArray.Reserve(limit);
+	TargetBinormalsArray.Reserve(limit);
 	int32 TestIndex = 0;
 	for (int32 i = 0; i < limit; i++)
 	{
@@ -2043,7 +2043,7 @@ void AHandsGameMode::PointCalculationForICP()
 
 	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_3.txt";
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_4.txt";
 		if (!PlatformFile.FileExists(*AbsoluteFilePath))
 		{
 			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2057,77 +2057,120 @@ void AHandsGameMode::PointCalculationForICP()
 
 void AHandsGameMode::MeshAlignment()
 {
-	TArray<FVector>& PointsToAlign = BlendedIntrinsicMapsPoints;
+	TArray<FVector> PointsToAlign;
 	TArray<FVector>& ReferencePoints = *PtrOriginalMeshVertices;
+
+	for (int32 i = 0; i < (*PtrSecondMeshVertices).Num(); i++)
+	{
+		PointsToAlign.Emplace((*PtrSecondMeshVertices)[i]);
+	}
 	
 	int32 limit = PointsToAlign.Num();
-	UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
+	//UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
 
-	TArray<FVector> FirstAligment;
-	FirstAligment.Reserve(limit);
-
-	int32 TestIndex = 10;
-
-	// First aligment done by obtaining the mean distance between meshes
-	for (int32 i = 0; i < limit; i++)
+	for (int32 Iteration = 0; Iteration < 100; Iteration++)
 	{
-		FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
-		if (i == TestIndex)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
-		}
-		FirstAligment.Emplace(MeanAligment);
-	}
 
-	
-	FQuat Identity(ForceInit);
-	FQuat QuaternionBetweenPoints;
-	for (int32 i = 0; i < limit; i++)
-	{
-		// Obtain the quaternion between our points
-		FQuat TempQuat = FQuat::FindBetween(ReferencePoints[i], FirstAligment[i]);
-		if (i == TestIndex)
+		TArray<FVector> FirstAligment;
+		FirstAligment.Reserve(limit);
+
+		int32 TestIndex = 0;
+
+		// First aligment done by obtaining the mean distance between meshes
+		for (int32 i = 0; i < limit; i++)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Quaternion %s"), *TempQuat.ToString());
+			FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+			}*/
+			FirstAligment.Emplace(MeanAligment);
 		}
 
-		// Make sure the quaternions are on the same hemisphere
-		float QuatDot = TempQuat | Identity;
+
+		FQuat Identity(ForceInit);
+		FQuat QuaternionBetweenPoints(ForceInitToZero);
+		for (int32 i = 0; i < limit; i++)
+		{
+			// Obtain the quaternion between our points
+			FQuat TempQuat = FQuat::FindBetween(ReferencePoints[i], FirstAligment[i]);
+
+			TempQuat.Normalize();
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Quaternion %s"), *TempQuat.ToString());
+			}*/
+
+			// Make sure the quaternions are on the same hemisphere
+			float QuatDot = TempQuat | Identity;
+
+			if (QuatDot < 0)
+			{
+				TempQuat *= -1.f;
+			}
+
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints before adding tempquat %s"), *QuaternionBetweenPoints.ToString());
+			}*/
+
+			QuaternionBetweenPoints += TempQuat;
+
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("TempQuaternion %s"), *TempQuat.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
+			}*/
+		}
+
+		//UE_LOG(LogTemp, Warning, TEXT("Total QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
+
+		FQuat MeanQuat = QuaternionBetweenPoints / limit;
+
+		//UE_LOG(LogTemp, Warning, TEXT("MeanQuat unnormalized %s"), *MeanQuat.ToString());
+
+		MeanQuat.Normalize();
+
+		//UE_LOG(LogTemp, Warning, TEXT("MeanQuat %s"), *MeanQuat.ToString());
+
+		/*TArray<FVector> FinalAlingment;
+		FinalAlingment.Reserve(limit);*/
 		
-		if (QuatDot < 0)
-		{
-			TempQuat *= -1;
-		}
 
-		if (i == TestIndex)
+		for (int32 i = 0; i < limit; i++)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints before adding tempquat %s"), *QuaternionBetweenPoints.ToString());
-		}
+			FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
 
-		QuaternionBetweenPoints += TempQuat;
-		
-		if (i == TestIndex)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("TempQuaternion %s"), *TempQuat.ToString());
-			UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
+			//CoordinatesToSave += FString::SanitizeFloat(AlignedPoint.X) + " " + FString::SanitizeFloat(AlignedPoint.Y) + " " + FString::SanitizeFloat(AlignedPoint.Z) + "\n";
+
+			PointsToAlign[i] = AlignedPoint;
+
+			//FinalAlingment.Emplace(AlignedPoint);
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Total QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
-	
-	FQuat MeanQuat = QuaternionBetweenPoints / limit;
-
-	UE_LOG(LogTemp, Warning, TEXT("MeanQuat unnormalized %s"), *MeanQuat.ToString());
-
-	MeanQuat.Normalize();
-
-	UE_LOG(LogTemp, Warning, TEXT("MeanQuat %s"), *MeanQuat.ToString());
-
-	TArray<FVector> FinalAlingment;
-	FinalAlingment.Reserve(limit);
+	FString CoordinatesToSave = "";
 	for (int32 i = 0; i < limit; i++)
 	{
-		FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
-		FinalAlingment.Emplace(AlignedPoint);
+		//FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
+
+		CoordinatesToSave += FString::SanitizeFloat(PointsToAlign[i].X) + " " + FString::SanitizeFloat(PointsToAlign[i].Y) + " " + FString::SanitizeFloat(PointsToAlign[i].Z) + "\n";
+
 	}
+
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+	{
+		FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest.txt";
+		if (!PlatformFile.FileExists(*AbsoluteFilePath))
+		{
+			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+		}
+	}
+
 }
