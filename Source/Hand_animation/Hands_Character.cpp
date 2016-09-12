@@ -213,16 +213,26 @@ void AHands_Character::Tick( float DeltaTime )
 
 			if (bDrawLeftHandPoints)
 			{
-				DrawDebugSphere(GetWorld(), DPLeftHandPosition, 5.0, 50, FColor(0, 255, 0), false, 0.05);
-				DrawDebugSphere(GetWorld(), DPLeftMiddleKnucklePosition, 2.0, 50, FColor(0, 255, 0), false, 0.05);
-				DrawDebugPoint(GetWorld(), DPLeftIndexFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
-				DrawDebugPoint(GetWorld(), DPLeftMiddleFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
-				DrawDebugPoint(GetWorld(), DPLeftRingFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
-				DrawDebugPoint(GetWorld(), DPLeftPinkyFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
-				DrawDebugPoint(GetWorld(), DPLeftThumbPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+				DrawDebugSphere(GetWorld(), DPLeftHandPosition, 3.0, 50, FColor(0, 255, 255), false, 0.05);
+				DrawDebugSphere(GetWorld(), DPLeftMiddleKnucklePosition, 1.f, 50, FColor(0, 255, 255), false, 0.05);
+				DrawDebugPoint(GetWorld(), DPLeftIndexFingerPosition, 5.0, FColor(0, 255, 255), false, 0.05);
+				DrawDebugPoint(GetWorld(), DPLeftMiddleFingerPosition, 5.0, FColor(0, 255, 255), false, 0.05);
+				DrawDebugPoint(GetWorld(), DPLeftRingFingerPosition, 5.0, FColor(0, 255, 255), false, 0.05);
+				DrawDebugPoint(GetWorld(), DPLeftPinkyFingerPosition, 5.0, FColor(0, 255, 255), false, 0.05);
+				DrawDebugPoint(GetWorld(), DPLeftThumbPosition, 5.0, FColor(0, 255, 255), false, 0.05);
 			}
 
 		}
+		/*if (bDrawLeftHandPoints)
+		{
+			DrawDebugSphere(GetWorld(), LeftHandPosition, 3.0, 50, FColor(0, 255, 0), false, 0.05);
+			DrawDebugSphere(GetWorld(), LeftMiddleKnucklePosition, 1.f, 50, FColor(0, 255, 0), false, 0.05);
+			DrawDebugPoint(GetWorld(), LeftIndexFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+			DrawDebugPoint(GetWorld(), LeftMiddleFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+			DrawDebugPoint(GetWorld(), LeftRingFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+			DrawDebugPoint(GetWorld(), LeftPinkyFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+			DrawDebugPoint(GetWorld(), LeftThumbPosition, 5.0, FColor(0, 255, 0), false, 0.05);
+		}*/
 	}
 
 }
@@ -1119,27 +1129,34 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 
-	int32 Test_index = 1000;
-	int32 upper_limit = 1001;
+	int32 Test_index = 412;
+	int32 upper_limit = 414;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Vertices.Num() %d at DrawDescriptionPoints()"), Vertices.Num());
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
 		//int32 i = 500;
-		//if (i >= Test_index && i < upper_limit)
-		//{
+		//int Module = i % (Vertices.Num() / 5);
+		//if (Module == 0)
+		if (i >= Test_index && i < upper_limit)
+		{
 
 			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
 			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
 			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
 			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
 
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedNormal x: %f y: %f z: %f"), Normals[i].X, Normals[i].Y, Normals[i].Z));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedNormal x: %f y: %f z: %f"), TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
+			/*GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Vertices[%d] x: %f y: %f z: %f"), i, TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Normals[%d] x: %f y: %f z: %f"), i, TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Tangents[%d] x: %f y: %f z: %f"), i, TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Binormals[%d] x: %f y: %f z: %f"), i, TransformedBinormals.X, TransformedBinormals.Y, TransformedBinormals.Z));*/
 
+			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
-		//}
+		}
 	}
 
 }
@@ -1283,8 +1300,8 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
 
-	int32 Test_index = 1000;
-	int32 upper_limit = 1001;
+	int32 Test_index = 412;
+	int32 upper_limit = 414;
 	//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshVertices.Num() %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("OriginalMeshVertices.Num() %d"), limit));
 	for (int32 i = 0; i < Vertices.Num(); i++)
@@ -1297,8 +1314,10 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Beta;
 		float Gamma;
 
-		//if (i >= Test_index && i < upper_limit)
-		//{
+		int Module = i % (Vertices.Num() / 5);
+		//if (Module == 0)
+		if (i >= Test_index && i < upper_limit)
+		{
 
 			if (!Vertices.IsValidIndex(i))
 			{
@@ -1347,14 +1366,15 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedTangent x: %f y: %f z: %f"),Tangents[i].X, Tangents[i].Y, Tangents[i].Z));
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTangent x: %f y: %f z: %f"), TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
 
-		//}
+		}
 	}
 
 	float r_j_1 = FMath::Min<float>(Distance);
@@ -1364,9 +1384,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	int32 j = 0;
 	for (int32 i = 0; i < limit; i++)
 	{
-		j = i;
-		//if (i >= Test_index && i < upper_limit)
-		//{	
+		//j = i;
+		int Module = i % (Vertices.Num() / 5);
+		//if (Module == 0)
+		if (i >= Test_index && i < upper_limit)
+		{	
 			
 			if (!Distance.IsValidIndex(j))
 			{
@@ -1396,7 +1418,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			w_biprime.Emplace(w_biprime_val);
 
 			j++;
-		//}
+		}
 	}
 
 }
@@ -1434,8 +1456,8 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = 1000;
-	int32 upper_limit = 1001;
+	int32 Test_index = 412;
+	int32 upper_limit = 414;
 	int32 j = 0;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
@@ -1445,9 +1467,11 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 		for (int32 i = 0; i < limit; i++)
 		{
-			j = i;
-			//if (i >= Test_index && i < upper_limit)
-			//{
+			//j = i;
+			int Module = i % (Vertices.Num() / 5);
+			//if (Module == 0)
+			if (i >= Test_index && i < upper_limit)
+			{
 				
 				if (!w_biprime.IsValidIndex(j))
 				{
@@ -1456,15 +1480,17 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 				}
 				sum_wbiprime += w_biprime[j];
 				j++;
-			//}
+			}
 		}
 
 		j = 0;
 		for (int32 i = 0; i < limit; i++)
 		{
-			j = i;
-			//if (i >= Test_index && i < upper_limit)
-			//{
+			//j = i;
+			int Module = i % (Vertices.Num() / 5);
+			//if (Module == 0)
+			if (i >= Test_index && i < upper_limit)
+			{
 				if (!TransformationComponents.IsValidIndex(j))
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
@@ -1472,7 +1498,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 				}
 				float& Alpha = TransformationComponents[j].X;
 				float& Beta = TransformationComponents[j].Y;
-				float& Gamma = TransformationComponents[j].Z;
+				float& Gamma = TransformationComponents[j].Z;			
 
 				FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
 				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
@@ -1481,7 +1507,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 
 				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
 				j++;
-			//}
+			}
 
 		}
 		return NewJointPosition;

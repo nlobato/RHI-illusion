@@ -620,7 +620,7 @@ void AHandsGameMode::InitializeArrays()
 
 			//PointCalculationForICP();
 
-			MeshAlignment();
+			//MeshAlignment();
 
 			//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 
@@ -1063,7 +1063,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 			}
 			TargetNormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
 			TargetBinormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
-			FVector Tangent = FVector::CrossProduct(TargetNormalsArray.Last().GetSafeNormal(), TargetBinormalsArray.Last().GetSafeNormal());
+			FVector Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
 			TargetTangentsArray[Index]=(Tangent);
 		}
 		//if (i == test_index)
@@ -1835,7 +1835,7 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 	TargetNormalsArray.Reserve(limit);
 	TargetTangentsArray.Reserve(limit);
 	TargetBinormalsArray.Reserve(limit);
-	int32 TestIndex = 0;
+	int32 TestIndex = 2284;
 	for (int32 i = 0; i < limit; i++)
 	{
 		/*int32 OriginalMeshIndex = OriginalMeshIndicesMap[i];
@@ -1849,6 +1849,11 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 			return;
 		}
 		int32 Triangle = BlendedMapVertexTriangleMap[i];
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BlendedMApVertexTriangleMap: %d"), Triangle);
+		}
+
 
 		if (!BarycentricCoordinatesArray.IsValidIndex(i))
 		{
@@ -1888,10 +1893,10 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		FVector Index2Coordinates = VerticesFrom2ndAsset[Index2];
 		FVector Index2Normal = NormalsFrom2ndAsset[Index2];
 		FVector Index2Binormal = BinormalsFrom2ndAsset[Index2];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index2Normals x: %f y: %f z: %f"), Index2Normals.X, Index2Normals.Y, Index2Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index2Coordinates[%d] x: %f y: %f z: %f"), Triangle, Index2, Index2Coordinates.X, Index2Coordinates.Y, Index2Coordinates.Z);
+		}
 
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index3) || !NormalsFrom2ndAsset.IsValidIndex(Index3))
 		{
@@ -1901,10 +1906,10 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		FVector Index3Coordinates = VerticesFrom2ndAsset[Index3];
 		FVector Index3Normal = NormalsFrom2ndAsset[Index3];
 		FVector Index3Binormal = BinormalsFrom2ndAsset[Index3];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index3Normals x: %f y: %f z: %f"), Index3Normals.X, Index3Normals.Y, Index3Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, Index3, Index3Coordinates.X, Index3Coordinates.Y, Index3Coordinates.Z);
+		}
 
 		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index2Coordinates;
 
@@ -1914,8 +1919,14 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		}
 				
 		// The normal of the blended map point is the average of the triangle vertices normals
-		FVector NewBinormal;
+		
 		FVector NewNormal = (1.f / 3.f) * (Index1Normal + Index2Normal + Index3Normal);
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewNormal x: %f y: %f z: %f"), NewNormal.X, NewNormal.Y, NewNormal.Z);
+		}
+
+		FVector NewBinormal;
 		FVector ProposedBinormal = (1.f / 3.f) * (Index1Binormal + Index2Binormal + Index3Binormal);
 		
 		bool bIsOrthogonal = FVector::Orthogonal(ProposedBinormal.GetSafeNormal(), NewNormal.GetSafeNormal());
@@ -1934,14 +1945,21 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		{
 			NewBinormal = ProposedBinormal;
 		}
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewBinormal x: %f y: %f z: %f"), NewBinormal.X, NewBinormal.Y, NewBinormal.Z);
+		}
 
-		FVector Tangent = FVector::CrossProduct(NewNormal.GetSafeNormal(), NewBinormal.GetSafeNormal());
-		
+		FVector NewTangent = FVector::CrossProduct(NewNormal.GetSafeNormal(), NewBinormal.GetSafeNormal());
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewTangent x: %f y: %f z: %f"), NewTangent.X, NewTangent.Y, NewTangent.Z);
+		}
 
 
 		TargetPointArray.Emplace(PointInTriangle);
 		TargetNormalsArray.Emplace(NewNormal);
-		TargetTangentsArray.Emplace(Tangent);
+		TargetTangentsArray.Emplace(NewTangent);
 		TargetBinormalsArray.Emplace(NewBinormal);
 		
 	}
@@ -2068,31 +2086,31 @@ void AHandsGameMode::MeshAlignment()
 	int32 limit = PointsToAlign.Num();
 	//UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
 
+	TArray<FVector> FirstAligment;
+	FirstAligment.Reserve(limit);
+
+	int32 TestIndex = 1583;
+
+	// First aligment done by obtaining the mean distance between meshes
+	for (int32 i = 0; i < limit; i++)
+	{
+		//if (Iteration == 0)
+		//{
+			ReferencePoints[i].Y *= -1;
+			PointsToAlign[i].Y *= -1;
+		//}
+
+		FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
+		/*if (i == TestIndex)
+		{
+		UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+		UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
+		}*/
+		FirstAligment.Emplace(MeanAligment);
+	}
+
 	for (int32 Iteration = 0; Iteration < 50; Iteration++)
 	{
-
-		TArray<FVector> FirstAligment;
-		FirstAligment.Reserve(limit);
-
-		int32 TestIndex = 1583;
-
-		// First aligment done by obtaining the mean distance between meshes
-		for (int32 i = 0; i < limit; i++)
-		{
-			if (Iteration == 0)
-			{
-				ReferencePoints[i].Y *= -1;
-			}
-			
-			FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
-			/*if (i == TestIndex)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
-				UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
-			}*/
-			FirstAligment.Emplace(MeanAligment);
-		}
-
 
 		FQuat Identity(ForceInit);
 		FQuat QuaternionBetweenPoints(ForceInitToZero);
@@ -2110,7 +2128,7 @@ void AHandsGameMode::MeshAlignment()
 			// Make sure the quaternions are on the same hemisphere
 			float QuatDot = TempQuat | Identity;
 
-			if (QuatDot < 0)
+			if (QuatDot < 1.e-4f)
 			{
 				TempQuat *= -1.f;
 			}
@@ -2170,19 +2188,4 @@ void AHandsGameMode::MeshAlignment()
 			}
 		}
 	}
-
-	
-	FString CoordinatesToSave = "";
-	for (int32 i = 0; i < limit; i++)
-	{
-		//FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
-
-		CoordinatesToSave += FString::SanitizeFloat(PointsToAlign[i].X) + " " + FString::SanitizeFloat(PointsToAlign[i].Y) + " " + FString::SanitizeFloat(PointsToAlign[i].Z) + "\n";
-
-	}
-
-	
-
-	
-
 }
