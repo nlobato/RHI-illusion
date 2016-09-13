@@ -318,4 +318,6 @@ private:
 	void PointCalculationForICP();
 
 	void MeshAlignment();
+
+	void MeasureMeshAlingment();
 };

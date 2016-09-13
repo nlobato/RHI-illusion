@@ -1132,14 +1132,16 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	int32 Test_index = (2284/5) * 0;
 	int32 upper_limit = Test_index + 1;
 
+	int32 SamplingRate = 10;
+
 	//UE_LOG(LogTemp, Warning, TEXT("Vertices.Num() %d at DrawDescriptionPoints()"), Vertices.Num());
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
 		//int32 i = 500;
-		int Module = i % (Vertices.Num() / 5);
+		int32 Module = i % (Vertices.Num() / SamplingRate);
 		//if (Module == 0)
-		if (i >= Test_index && i < upper_limit)
+		//if (i >= Test_index && i < upper_limit)
 		{
 
 			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
@@ -1154,7 +1156,8 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 
 
 
-			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
+			//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
+			DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Red, .1f, false);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
@@ -1328,6 +1331,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 	int32 Test_index = (2284 / 5) * 0;
 	int32 upper_limit = Test_index + 1;
+	int32 SamplingRate = 10;
 	//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshVertices.Num() %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("OriginalMeshVertices.Num() %d"), limit));
 	for (int32 i = 0; i < Vertices.Num(); i++)
@@ -1340,9 +1344,9 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Beta;
 		float Gamma;
 
-		int Module = i % (Vertices.Num() / 5);
+		int32 Module = i % (Vertices.Num() / SamplingRate);
 		//if (Module == 0)
-		if (i >= Test_index && i < upper_limit)
+		//if (i >= Test_index && i < upper_limit)
 		{
 
 			if (!Vertices.IsValidIndex(i))
@@ -1392,10 +1396,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
-			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
-			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+			//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
+			//DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
+			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedTangent x: %f y: %f z: %f"),Tangents[i].X, Tangents[i].Y, Tangents[i].Z));
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTangent x: %f y: %f z: %f"), TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
@@ -1410,10 +1415,10 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	int32 j = 0;
 	for (int32 i = 0; i < limit; i++)
 	{
-		//j = i;
-		int Module = i % (Vertices.Num() / 5);
+		j = i;
+		int32 Module = i % (Vertices.Num() / SamplingRate);
 		//if (Module == 0)
-		if (i >= Test_index && i < upper_limit)
+		//if (i >= Test_index && i < upper_limit)
 		{	
 			
 			if (!Distance.IsValidIndex(j))
@@ -1484,6 +1489,9 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	
 	int32 Test_index = (2284 / 5) * 0;
 	int32 upper_limit = Test_index + 1;
+
+	int32 SamplingRate = 10;
+
 	int32 j = 0;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
@@ -1493,10 +1501,10 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 		for (int32 i = 0; i < limit; i++)
 		{
-			//j = i;
-			int Module = i % (Vertices.Num() / 5);
+			j = i;
+			int32 Module = i % (Vertices.Num() / SamplingRate);
 			//if (Module == 0)
-			if (i >= Test_index && i < upper_limit)
+			//if (i >= Test_index && i < upper_limit)
 			{
 				
 				if (!w_biprime.IsValidIndex(j))
@@ -1512,10 +1520,10 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		j = 0;
 		for (int32 i = 0; i < limit; i++)
 		{
-			//j = i;
-			int Module = i % (Vertices.Num() / 5);
+			j = i;
+			int32 Module = i % (Vertices.Num() / SamplingRate);
 			//if (Module == 0)
-			if (i >= Test_index && i < upper_limit)
+			//if (i >= Test_index && i < upper_limit)
 			{
 				if (!TransformationComponents.IsValidIndex(j))
 				{

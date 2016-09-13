@@ -620,7 +620,9 @@ void AHandsGameMode::InitializeArrays()
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully calculated tangents and binormals for second mesh"));
 
-			PointCalculationForICP();
+			//PointCalculationForICP();
+
+			MeasureMeshAlingment();
 
 			//MeshAlignment();
 
@@ -2078,7 +2080,7 @@ void AHandsGameMode::PointCalculationForICP()
 
 	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_4500_triangle.txt";
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_4500_rotated_triangle.txt";
 		if (!PlatformFile.FileExists(*AbsoluteFilePath))
 		{
 			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2204,5 +2206,56 @@ void AHandsGameMode::MeshAlignment()
 				}
 			}
 		}
+	}
+}
+
+void AHandsGameMode::MeasureMeshAlingment()
+{
+	TArray<FVector>& SecondMeshPoints = *PtrSecondMeshVertices;
+	TArray<FVector>& OriginalMeshPoints = *PtrOriginalMeshVertices;
+
+	int32 TotalPoints = OriginalMeshPoints.Num();
+	int32 SamplingRate = 20;
+
+	//FPlane VertexPlane(FVector(0.f, 0.f, 0.f), FVector(0.f, 0.f, 1.f).GetSafeNormal());
+	TArray<float> AngleArray;
+	AngleArray.Reserve(SamplingRate);
+	float AngleSum = 0;
+	for (int32 i = 0; i < OriginalMeshPoints.Num(); i++)
+	{
+		int32 Module = i % (TotalPoints / SamplingRate);
+		if (Module == 0)
+		{
+			FVector OriginalMeshSinglePoint = OriginalMeshPoints[i];
+			FVector SecondMeshsinglePoint = SecondMeshPoints[i];
+
+			float CosineBetweenPoints = OriginalMeshSinglePoint.CosineAngle2D(SecondMeshsinglePoint);
+
+			float Angle = (FMath::Acos(CosineBetweenPoints)) * (180 / PI);
+			AngleSum += Angle;
+			AngleArray.Emplace(Angle);
+			UE_LOG(LogTemp, Warning, TEXT("Angle between OriginalMesh[%d] and SecondMesh[%d] is %f"), i, i, Angle);
+
+			//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshPointDirection x: %f y: %f z: %f"), OriginalMeshSinglePointn.X, OriginalMeshPointDirection.Y, OriginalMeshPointDirection.Z);
+			//UE_LOG(LogTemp, Warning, TEXT("SecondMeshPointDirection x: %f y: %f z: %f"), SecondMeshPointDirection.X, SecondMeshPointDirection.Y, SecondMeshPointDirection.Z);
+
+		}
+	}
+
+	float Mean = AngleSum / AngleArray.Num();
+	UE_LOG(LogTemp, Warning, TEXT("Mean is %f"), Mean);
+
+	AngleArray.Sort();
+	float Median;
+	float Mitad = AngleArray.Num() / 2.f;
+	if (AngleArray.Num() % 2 == 0)
+	{
+		Median = (AngleArray[int32(Mitad)] + AngleArray[int32(Mitad) - 1]) / 2.f;
+		UE_LOG(LogTemp, Warning, TEXT("Median is %f"), Median);
+	}
+	else
+	{
+		Median = AngleArray[FMath::RoundToInt(Mitad) - 1];
+		UE_LOG(LogTemp, Warning, TEXT("Median is %f"), Median);
 	}
 }
