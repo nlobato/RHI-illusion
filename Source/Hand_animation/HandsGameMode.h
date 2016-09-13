@@ -241,31 +241,21 @@ private:
 	UStaticMesh* OriginalMesh;
 	
 	TArray<int32>* PtrDenseCorrespondenceIndices;
-
 	TArray<FVector> DenseCorrespondenceCoordinates;
 
 	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
-
 	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
-
 	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
-
 	TArray<FVector> OriginalMeshTriangleIndicesFromObjFile;
 
 	TArray<FVector>* PtrOriginalMeshVertices;
-
 	TArray<FVector>* PtrOriginalMeshNormals;
-
 	TArray<FVector>* PtrOriginalMeshTangents;
-
 	TArray<FVector>* PtrOriginalMeshBinormals;
 
 	TArray<FVector>* PtrSecondMeshVertices;
-
 	TArray<FVector>* PtrSecondMeshNormals;
-
 	TArray<FVector>* PtrSecondMeshTangents;
-
 	TArray<FVector>* PtrSecondMeshBinormals;
 
 	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
@@ -302,7 +292,8 @@ private:
 
 	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
 	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
-	TArray<FVector> BlendedIntrinsicMapsPoints;
+	
+	//TArray<FVector>* PtrArrayForTestingVertices;
 
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 

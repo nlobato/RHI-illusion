@@ -150,6 +150,8 @@ public:
 	TArray<FVector> SecondMeshBinormals;
 	TArray<int32> SecondMeshIndices;
 
+	//TArray<FVector> ArrayForTestingVertices;
+
 	TArray<int32> DenseCorrespondenceIndices;
 	
 	TArray<FArrayForStoringIndices> Mesh2Mesh1Correspondences;

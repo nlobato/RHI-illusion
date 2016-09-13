@@ -1129,15 +1129,15 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 
-	int32 Test_index = 412;
-	int32 upper_limit = 414;
+	int32 Test_index = (2284/5) * 0;
+	int32 upper_limit = Test_index + 1;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Vertices.Num() %d at DrawDescriptionPoints()"), Vertices.Num());
 
 	for (int32 i = 0; i < Vertices.Num(); i++)
 	{
 		//int32 i = 500;
-		//int Module = i % (Vertices.Num() / 5);
+		int Module = i % (Vertices.Num() / 5);
 		//if (Module == 0)
 		if (i >= Test_index && i < upper_limit)
 		{
@@ -1152,12 +1152,38 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Tangents[%d] x: %f y: %f z: %f"), i, TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
 			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Binormals[%d] x: %f y: %f z: %f"), i, TransformedBinormals.X, TransformedBinormals.Y, TransformedBinormals.Z));*/
 
+
+
 			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 		}
+
+		/*if (i == 284)
+		{
+			FVector TransformedTestingVertices = CurrentMeshComponentToWorldTransform.TransformPosition(ArrayForTestingVertices[i] * 5.f);
+			FVector TransformedTestingVertices2 = CurrentMeshComponentToWorldTransform.TransformPosition(ArrayForTestingVertices[557] * 5.f);
+			FVector TransformedTestingVertices3 = CurrentMeshComponentToWorldTransform.TransformPosition(ArrayForTestingVertices[719] * 5.f);
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("ArrayForTestingVertices[%d] x: %f y: %f z: %f"), i, ArrayForTestingVertices[i].X, ArrayForTestingVertices[i].Y, ArrayForTestingVertices[i].Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTestingVertices x: %f y: %f z: %f"), TransformedTestingVertices.X, TransformedTestingVertices.Y, TransformedTestingVertices.Z));
+			//DrawDebugSphere(GetWorld(), TransformedTestingVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
+			//DrawDebugPoint(GetWorld(), TransformedTestingVertices, 5.0, FColor(0, 255, 255), false, 0.05);
+
+			DrawDebugLine(GetWorld(), TransformedTestingVertices, TransformedTestingVertices2, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedTestingVertices2, TransformedTestingVertices3, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedTestingVertices, TransformedTestingVertices3, FColor(0, 255, 0), false, -1, 0, .1f);
+
+			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[1289] * 5.f);
+			DrawDebugPoint(GetWorld(), TransformedVertices, 5.0, FColor(0, 0, 255), false, -1);
+
+			//DrawDebugLine(GetWorld(), TransformedTestingVertices * 2, TransformedTestingVertices2 * 2, FColor(0, 255, 0), false, -1, 0, 1.1f);
+			//DrawDebugLine(GetWorld(), TransformedTestingVertices2 * 2, TransformedTestingVertices3 * 2, FColor(0, 255, 0), false, -1, 0, 1.1f);
+			//DrawDebugLine(GetWorld(), TransformedTestingVertices * 2, TransformedTestingVertices3 * 2, FColor(0, 255, 0), false, -1, 0, 1.1f);
+		}*/
 	}
+
+
 
 }
 
@@ -1300,8 +1326,8 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
 
-	int32 Test_index = 412;
-	int32 upper_limit = 414;
+	int32 Test_index = (2284 / 5) * 0;
+	int32 upper_limit = Test_index + 1;
 	//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshVertices.Num() %d"), limit);
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Green, FString::Printf(TEXT("OriginalMeshVertices.Num() %d"), limit));
 	for (int32 i = 0; i < Vertices.Num(); i++)
@@ -1456,8 +1482,8 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = 412;
-	int32 upper_limit = 414;
+	int32 Test_index = (2284 / 5) * 0;
+	int32 upper_limit = Test_index + 1;
 	int32 j = 0;
 
 	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
