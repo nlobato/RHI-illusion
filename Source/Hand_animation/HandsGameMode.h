@@ -292,6 +292,9 @@ private:
 
 	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
 	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
+
+	AInteractionObject* DecisionObject1;
+	AInteractionObject* DecisionObject2;
 	
 	//TArray<FVector>* PtrArrayForTestingVertices;
 
@@ -320,4 +323,8 @@ private:
 	void MeshAlignment();
 
 	void MeasureMeshAlingment();
+
+	void SpawnObjectsForVisualization();
+
+	void DrawLines(UStaticMeshComponent* Object1, UStaticMeshComponent* Object2);
 };

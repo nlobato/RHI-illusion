@@ -87,6 +87,17 @@ void AHandsGameMode::Tick(float DeltaTime)
 				}
 			}
 		}
+		else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		{
+			if (DecisionObject1 != NULL && DecisionObject2 != NULL)
+			{
+				DrawLines(DecisionObject1->OurVisibleComponent, DecisionObject2->OurVisibleComponent);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("COuldn't access the meshes"));
+			}
+		}
 	}
 }
 
@@ -116,7 +127,10 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	{
 		// Display welcome message
 		MessageToDisplay = EMessages::EWelcomeMessage;
-		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
+		SpawnObjectsForVisualization();
+		float DelayInMinutes = 5.f;
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);
+		//GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
 	}
 		break;
 	case EExperimentPlayState::ERHIExperimentInProgress:
@@ -622,7 +636,7 @@ void AHandsGameMode::InitializeArrays()
 
 			//PointCalculationForICP();
 
-			MeasureMeshAlingment();
+			//MeasureMeshAlingment();
 
 			//MeshAlignment();
 
@@ -2080,7 +2094,7 @@ void AHandsGameMode::PointCalculationForICP()
 
 	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_4500_rotated_triangle.txt";
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_pepper_transformed.txt";
 		if (!PlatformFile.FileExists(*AbsoluteFilePath))
 		{
 			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2094,50 +2108,83 @@ void AHandsGameMode::PointCalculationForICP()
 
 void AHandsGameMode::MeshAlignment()
 {
-	TArray<FVector> PointsToAlign;
+	TArray<FVector>& PointsToAlign = *PtrSecondMeshVertices;
 	TArray<FVector>& ReferencePoints = *PtrOriginalMeshVertices;
 
-	for (int32 i = 0; i < (*PtrSecondMeshVertices).Num(); i++)
+	/*for (int32 i = 0; i < (*PtrSecondMeshVertices).Num(); i++)
 	{
 		PointsToAlign.Emplace((*PtrSecondMeshVertices)[i]);
-	}
+	}*/
 	
 	int32 limit = PointsToAlign.Num();
 	//UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
-
-	TArray<FVector> FirstAligment;
-	FirstAligment.Reserve(limit);
-
+	
 	int32 TestIndex = 1583;
+	int32 SamplingRate = 10;
+	int32 TotalIterations = 50;
 
-	// First aligment done by obtaining the mean distance between meshes
-	for (int32 i = 0; i < limit; i++)
+	for (int32 Iteration = 0; Iteration < TotalIterations; Iteration++)
 	{
-		//if (Iteration == 0)
+		
+		// First aligment done by obtaining the mean distance between meshes
+		//TArray<FVector> FirstAligment;
+		//FirstAligment.Reserve(limit);		
+		//for (int32 i = 0; i < limit; i++)
 		//{
-			ReferencePoints[i].Y *= -1;
-			PointsToAlign[i].Y *= -1;
+			//if (Iteration == 0)
+			//{
+				//ReferencePoints[i].Y *= -1;
+				//PointsToAlign[i].Y *= -1;
+			//}
+			//FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
+			//if (i == TestIndex)
+			//{
+			//UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+			//UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
+			//}
+			//FirstAligment.Emplace(MeanAligment);
 		//}
 
-		FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
-		/*if (i == TestIndex)
+		// 1st Centroid calculation
+		FVector SumPoints(0.f, 0.f, 0.f);
+		for (int32 i = 0; i < PointsToAlign.Num(); i++)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
-		UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
-		}*/
-		FirstAligment.Emplace(MeanAligment);
-	}
+			SumPoints += PointsToAlign[i];
+		}
+		FVector CentroidA = SumPoints / PointsToAlign.Num();
 
-	for (int32 Iteration = 0; Iteration < 50; Iteration++)
-	{
+		// 2nd Centroid calculation
+		SumPoints = FVector(0.f, 0.f, 0.f);
+		for (int32 i = 0; i < ReferencePoints.Num(); i++)
+		{
+			SumPoints += ReferencePoints[i];
+		}
+		FVector CentroidB = SumPoints / ReferencePoints.Num();
 
+		// Align points using their centroids
+		TArray<FVector> CenteredPointsToAlign;
+		CenteredPointsToAlign.Reserve(PointsToAlign.Num());
+		for (int32 i = 0; i < PointsToAlign.Num(); i++)
+		{
+			FVector CenteredPoint = PointsToAlign[i] - CentroidA;
+			CenteredPointsToAlign.Emplace(CenteredPoint);
+		}
+
+		TArray<FVector> CenteredReferencePoints;
+		CenteredReferencePoints.Reserve(ReferencePoints.Num());
+		for (int32 i = 0; i < ReferencePoints.Num(); i++)
+		{
+			FVector CenteredPoint = ReferencePoints[i] - CentroidB;
+			CenteredReferencePoints.Emplace(CenteredPoint);
+		}
+		
+		// Get quat between points
 		FQuat Identity(ForceInit);
 		FQuat QuaternionBetweenPoints(ForceInitToZero);
 		for (int32 i = 0; i < limit; i++)
 		{
 			// Obtain the quaternion between our points
-			FQuat TempQuat = FQuat::FindBetween(ReferencePoints[i], FirstAligment[i]);
-
+			FQuat TempQuat = FQuat::FindBetween(CenteredReferencePoints[i], CenteredPointsToAlign[i]);
 			TempQuat.Normalize();
 			/*if (i == TestIndex)
 			{
@@ -2183,19 +2230,20 @@ void AHandsGameMode::MeshAlignment()
 
 		for (int32 i = 0; i < limit; i++)
 		{
-			FVector AlignedPoint = MeanQuat.RotateVector(PointsToAlign[i]);
+			FVector AlignedPoint = MeanQuat.RotateVector(CenteredPointsToAlign[i]) + CentroidA;
+
 			PointsToAlign[i] = AlignedPoint;
 
 			CoordinatesToSave += FString::SanitizeFloat(AlignedPoint.X) + " " + FString::SanitizeFloat(AlignedPoint.Y) + " " + FString::SanitizeFloat(AlignedPoint.Z) + "\n";
 			
 			//FinalAlingment.Emplace(AlignedPoint);
 		}
-		if (Iteration == 10 || Iteration == 20 || Iteration == 30 || Iteration == 40 || Iteration == 50)
+		if (Iteration % SamplingRate == 0)
 		{
 			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 			if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 			{
-				FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest_iteration" + FString::FromInt(Iteration) + ".txt";
+				FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest_TesselatedTriangle_iteration" + FString::FromInt(Iteration) + ".txt";
 				if (!PlatformFile.FileExists(*AbsoluteFilePath))
 				{
 					FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2258,4 +2306,69 @@ void AHandsGameMode::MeasureMeshAlingment()
 		Median = AngleArray[FMath::RoundToInt(Mitad) - 1];
 		UE_LOG(LogTemp, Warning, TEXT("Median is %f"), Median);
 	}
+}
+
+void AHandsGameMode::SpawnObjectsForVisualization()
+{
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+		if (MyCharacter)
+		{
+			// Set the spawn parameters
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			RootLocation = MyCharacter->MyMesh->GetSocketLocation(TEXT("spine_02"));
+			// spawn the pickup
+			FVector PositionForObject = FVector(40.f, -5.f, 0.f) + RootLocation;
+
+			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(90.f, 0.f, 0.f), SpawnParams);
+
+			PositionForObject = FVector(40.f, 5.f, 0.f) + RootLocation;
+
+			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(90.f, 0.f, 0.f), SpawnParams);
+			if (DecisionObject2)
+			{
+				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Mesh of DecisionObject2 wasn't changed"));
+			}
+		}
+	}
+}
+
+void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticMeshComponent* PepperMeshComponent)
+{
+	FTransform PearTransform = PearMeshComponent->ComponentToWorld;
+
+	FTransform PepperTransform = PepperMeshComponent->ComponentToWorld;
+	
+	TArray<FVector>& PearVertices = *PtrOriginalMeshVertices;
+	TArray<FVector>& PepperMappedPoints = *PtrSecondMeshVertices;
+
+	int32 limit = PearVertices.Num();
+
+	int32 SamplingRate = 200;
+
+	for (int32 i = 0; i < limit; i++)
+	{
+		if (i % SamplingRate == 0)
+		{
+			int32 ColorRange = (255 * i) / limit;
+			FVector TransformedPearVertex = PearTransform.TransformPosition(PearVertices[i]);
+			FVector TransformedPepperPoint = PepperTransform.TransformPosition(PepperMappedPoints[i]);
+			DrawDebugLine(GetWorld(), TransformedPearVertex, TransformedPepperPoint, FColor(ColorRange, 0, 100), false, -1, 0, .1f);
+			//DrawDebugPoint(GetWorld(), TransformedPearVertex, 5.f, FColor::Cyan, false, -1.f, 0);
+			//DrawDebugPoint(GetWorld(), TransformedPepperPoint, 5.f, FColor::Green, false, -1.f, 0);
+			DrawDebugString(GetWorld(), TransformedPearVertex, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
+			DrawDebugString(GetWorld(), TransformedPepperPoint, FString::FromInt(i), NULL, FColor::Red, 0.1f, false);
+		}
+	}
+
 }
