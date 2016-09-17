@@ -87,7 +87,7 @@ void AHandsGameMode::Tick(float DeltaTime)
 				}
 			}
 		}
-		else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		/*else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
 		{
 			if (DecisionObject1 != NULL && DecisionObject2 != NULL)
 			{
@@ -95,9 +95,9 @@ void AHandsGameMode::Tick(float DeltaTime)
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("COuldn't access the meshes"));
+				UE_LOG(LogTemp, Warning, TEXT("Couldn't access the meshes"));
 			}
-		}
+		}*/
 	}
 }
 
@@ -127,10 +127,13 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	{
 		// Display welcome message
 		MessageToDisplay = EMessages::EWelcomeMessage;
-		SpawnObjectsForVisualization();
+		
+		// Bit for the visualization of alignment between meshes
+		/*SpawnObjectsForVisualization();
 		float DelayInMinutes = 5.f;
-		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);
-		//GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);*/
+		
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
 	}
 		break;
 	case EExperimentPlayState::ERHIExperimentInProgress:
@@ -634,7 +637,7 @@ void AHandsGameMode::InitializeArrays()
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully calculated tangents and binormals for second mesh"));
 
-			//PointCalculationForICP();
+			PointCalculationForICP();
 
 			//MeasureMeshAlingment();
 
@@ -2094,7 +2097,7 @@ void AHandsGameMode::PointCalculationForICP()
 
 	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_pepper_transformed.txt";
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_ellipsoid.txt";
 		if (!PlatformFile.FileExists(*AbsoluteFilePath))
 		{
 			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2324,21 +2327,22 @@ void AHandsGameMode::SpawnObjectsForVisualization()
 
 			RootLocation = MyCharacter->MyMesh->GetSocketLocation(TEXT("spine_02"));
 			// spawn the pickup
-			FVector PositionForObject = FVector(40.f, -5.f, 0.f) + RootLocation;
+			FVector PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
 
-			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(90.f, 0.f, 0.f), SpawnParams);
+			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 90.f, 0.f), SpawnParams);
+			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 
-			PositionForObject = FVector(40.f, 5.f, 0.f) + RootLocation;
+			PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
 
-			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(90.f, 0.f, 0.f), SpawnParams);
-			if (DecisionObject2)
+			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn3, PositionForObject, FRotator(0.f, 90.f, 0.f), SpawnParams);
+			/*if (DecisionObject2)
 			{
 				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
 			}
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Mesh of DecisionObject2 wasn't changed"));
-			}
+			}*/
 		}
 	}
 }

@@ -1140,7 +1140,7 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	{
 		//int32 i = 500;
 		int32 Module = i % (Vertices.Num() / SamplingRate);
-		if (Module == 0)
+		//if (Module == 0)
 		//if (i >= Test_index && i < upper_limit)
 		{
 
@@ -1494,7 +1494,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	int32 Test_index = (2284 / 5) * 0;
 	int32 upper_limit = Test_index + 1;
 
-	int32 SamplingRate = 5;
+	int32 SamplingRate = 10;
 
 	int32 j = 0;
 
