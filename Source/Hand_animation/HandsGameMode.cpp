@@ -979,10 +979,13 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	for (int32 i = 0; i < NumIndices; i++)
 	{
 		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
-		TargetVerticesArray.Emplace(Coordinates);
-		TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-		TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-		TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));		
+		if (!TargetVerticesArray.Contains(Coordinates))
+		{
+			TargetVerticesArray.Emplace(Coordinates);
+			TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
+			TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+			TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+		}
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("Test array size %d"), TargetVerticesArray.Num());
@@ -2329,12 +2332,12 @@ void AHandsGameMode::SpawnObjectsForVisualization()
 			// spawn the pickup
 			FVector PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
 
-			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 90.f, 0.f), SpawnParams);
+			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
 			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 
 			PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
 
-			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn3, PositionForObject, FRotator(0.f, 90.f, 0.f), SpawnParams);
+			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn3, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
 			/*if (DecisionObject2)
 			{
 				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
@@ -2358,7 +2361,7 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 
 	int32 limit = PearVertices.Num();
 
-	int32 SamplingRate = 200;
+	int32 SamplingRate = 150;
 
 	for (int32 i = 0; i < limit; i++)
 	{

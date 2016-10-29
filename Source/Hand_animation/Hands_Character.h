@@ -297,6 +297,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Hand", meta = (BlueprintProtected = "true"))
 	bool bAreDPsActive;
 
+	/*UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDebugPoints;*/
+
 	// Right hand & fingers
 	/** Right hand P & O */
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
