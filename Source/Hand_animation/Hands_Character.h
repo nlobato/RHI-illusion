@@ -150,6 +150,8 @@ public:
 	TArray<FVector> SecondMeshBinormals;
 	TArray<int32> SecondMeshIndices;
 
+	//TArray<FVector> ArrayForTestingVertices;
+
 	TArray<int32> DenseCorrespondenceIndices;
 	
 	TArray<FArrayForStoringIndices> Mesh2Mesh1Correspondences;
@@ -294,6 +296,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Hand", meta = (BlueprintProtected = "true"))
 	bool bAreDPsActive;
+
+	/*UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDebugPoints;*/
 
 	// Right hand & fingers
 	/** Right hand P & O */

@@ -241,29 +241,21 @@ private:
 	UStaticMesh* OriginalMesh;
 	
 	TArray<int32>* PtrDenseCorrespondenceIndices;
-
 	TArray<FVector> DenseCorrespondenceCoordinates;
 
 	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
-
 	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
-
 	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
+	TArray<FVector> OriginalMeshTriangleIndicesFromObjFile;
 
 	TArray<FVector>* PtrOriginalMeshVertices;
-
 	TArray<FVector>* PtrOriginalMeshNormals;
-
 	TArray<FVector>* PtrOriginalMeshTangents;
-
 	TArray<FVector>* PtrOriginalMeshBinormals;
 
 	TArray<FVector>* PtrSecondMeshVertices;
-
 	TArray<FVector>* PtrSecondMeshNormals;
-
 	TArray<FVector>* PtrSecondMeshTangents;
-
 	TArray<FVector>* PtrSecondMeshBinormals;
 
 	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
@@ -281,10 +273,6 @@ private:
 	TArray<int32>* PtrOriginalMeshIndices;
 
 	TArray<int32>* PtrSecondMeshIndices;
-
-	TArray<int32> Vertex2TriangleMapFromFile;
-
-	TArray<FVector> BarycentricCoordinatesFromFile;
 
 	TArray<int32> OriginalMeshAsset2ObjIndicesMap;
 	TArray<int32> SecondMeshAsset2ObjIndicesMap;
@@ -304,6 +292,11 @@ private:
 
 	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
 	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
+
+	AInteractionObject* DecisionObject1;
+	AInteractionObject* DecisionObject2;
+	
+	//TArray<FVector>* PtrArrayForTestingVertices;
 
 	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
 
@@ -326,4 +319,12 @@ private:
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
 
 	void PointCalculationForICP();
+
+	void MeshAlignment();
+
+	void MeasureMeshAlingment();
+
+	void SpawnObjectsForVisualization();
+
+	void DrawLines(UStaticMeshComponent* Object1, UStaticMeshComponent* Object2);
 };

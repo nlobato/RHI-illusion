@@ -87,6 +87,17 @@ void AHandsGameMode::Tick(float DeltaTime)
 				}
 			}
 		}
+		/*else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		{
+			if (DecisionObject1 != NULL && DecisionObject2 != NULL)
+			{
+				DrawLines(DecisionObject1->OurVisibleComponent, DecisionObject2->OurVisibleComponent);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Couldn't access the meshes"));
+			}
+		}*/
 	}
 }
 
@@ -116,7 +127,13 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 	{
 		// Display welcome message
 		MessageToDisplay = EMessages::EWelcomeMessage;
-		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.0, false);
+		
+		// Bit for the visualization of alignment between meshes
+		/*SpawnObjectsForVisualization();
+		float DelayInMinutes = 5.f;
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);*/
+		
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
 	}
 		break;
 	case EExperimentPlayState::ERHIExperimentInProgress:
@@ -517,6 +534,8 @@ void AHandsGameMode::InitializeArrays()
 		PtrSecondMeshBinormals = &MyCharacter->SecondMeshBinormals;
 		PtrSecondMeshIndices = &MyCharacter->SecondMeshIndices;
 
+		//PtrArrayForTestingVertices = &MyCharacter->ArrayForTestingVertices;
+
 		UE_LOG(LogTemp, Warning, TEXT("Pointers created succesfully"));
 		
 		if (bIsSizeToChange)
@@ -548,7 +567,7 @@ void AHandsGameMode::InitializeArrays()
 			FString BlendedIntrinsicMapsFilePath = LoadDirectory + "/" + BlendedIntrinsicMapsFileName;
 			ReadTextFile(BlendedIntrinsicMapsFilePath, BlendedIntrinsicMapsTrianglesMap, BlendedIntrinsicMapsBarycentricCoordinates);
 			UE_LOG(LogTemp, Warning, TEXT("BlendedIntrinsicMaps text file read succesfully"));
-			int32 test_index = 1234;
+			//int32 test_index = 1234;
 			/*if (BlendedIntrinsicMapsBarycentricCoordinates.IsValidIndex(test_index))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Index %d barycentric coordinates are x: %f y: %f z: %f"), test_index, BlendedIntrinsicMapsBarycentricCoordinates[test_index].X, BlendedIntrinsicMapsBarycentricCoordinates[test_index].Y, BlendedIntrinsicMapsBarycentricCoordinates[test_index].Z);
@@ -556,7 +575,7 @@ void AHandsGameMode::InitializeArrays()
 
 			// Read the text file with the OBJ coordinates and triangle indices for the first mesh
 			FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
-			ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile);
+			ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
 			//UE_LOG(LogTemp, Warning, TEXT("Obj[1201] x: %f y: %f z: %f"), OriginalMeshVerticesCoordinatesFromObjFile[1201].X, OriginalMeshVerticesCoordinatesFromObjFile[1201].Y, OriginalMeshVerticesCoordinatesFromObjFile[1201].Z);
 
 			UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
@@ -602,7 +621,7 @@ void AHandsGameMode::InitializeArrays()
 
 			//MappingTriangles(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshVerticesFromUE4Asset, SecondMeshNormalsFromUE4Asset, SecondMeshTriangleIndicesFromObjFile, MapTriangleIndices);
 
-			MappingTriangles(SecondMeshAsset2ObjIndicesMap, SecondMeshTriangleIndicesFromObjFile, SecondMeshMapTriangleIndices);
+			//MappingTriangles(SecondMeshAsset2ObjIndicesMap, SecondMeshTriangleIndicesFromObjFile, SecondMeshMapTriangleIndices);
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped triangle indices of second mesh"));
 
@@ -618,7 +637,11 @@ void AHandsGameMode::InitializeArrays()
 
 			UE_LOG(LogTemp, Warning, TEXT("Succesfully calculated tangents and binormals for second mesh"));
 
-			//PointCalculationForICP();
+			PointCalculationForICP();
+
+			//MeasureMeshAlingment();
+
+			//MeshAlignment();
 
 			//Map2ndMeshCorrespondences(*PtrSecondMeshVerticesCoordinatesFromUE4Asset, SecondMeshVerticesCoordinatesFromObjFile, Mapped2ndMeshCorrespondences);
 
@@ -719,6 +742,7 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 	TargetCoordinatesArray.Reserve(ArrayForTextFile.Num() / 3);
 	TargetTriangleIndices.Empty();
 	TargetTriangleIndices.Reserve(ArrayForTextFile.Num() * (2 / 3));
+	int32 contar = 0;
 	for (FString& EachString : ArrayForTextFile)
 	{
 		FString StringVector;
@@ -808,9 +832,13 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 				}
 			}
 			ComponentZ = FCString::Atof(*StringVector);
+			//UE_LOG(LogTemp, Warning, TEXT("Component x %f iteration %d"), ComponentX, contar);
 			TargetCoordinatesArray.Emplace(FVector(ComponentX, ComponentY, ComponentZ));
+			contar++;
 		}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("TargetCoordinatesArray.Num() %d"), TargetCoordinatesArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("TargetCoordinatesArray.Num() %d"), TargetTriangleIndices.Num());
 }
 
 void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray)
@@ -951,10 +979,13 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	for (int32 i = 0; i < NumIndices; i++)
 	{
 		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
-		TargetVerticesArray.Emplace(Coordinates);
-		TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-		TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-		TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));		
+		if (!TargetVerticesArray.Contains(Coordinates))
+		{
+			TargetVerticesArray.Emplace(Coordinates);
+			TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
+			TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+			TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+		}
 	}
 	
 	UE_LOG(LogTemp, Warning, TEXT("Test array size %d"), TargetVerticesArray.Num());
@@ -967,7 +998,8 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	TargetTangentsArray.Empty();
 	TargetBinormalsArray.Empty();
 	TargetIndicesMapArray.Empty();
-	
+	//TArray<FVector>&TestingArray = *PtrArrayForTestingVertices;
+	//TestingArray.Empty();
 
 	if (MyMesh == nullptr || MyMesh->RenderData == nullptr)
 	{
@@ -986,14 +1018,24 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	LODModel.IndexBuffer.GetCopy(IndicesFromBuffer);
 	int32 NumIndices = Indices.Num();
 
-	int32 test_index = 0;
+	int32 test_index = 284;
 
-	TargetVerticesArray.Reserve(NumIndices);
-	TargetNormalsArray.Reserve(NumIndices);
-	TargetTangentsArray.Reserve(NumIndices);
-	TargetBinormalsArray.Reserve(NumIndices);
+	int32 ArraySize = BlendedIntrinsicMapsBarycentricCoordinates.Num();
+
+	TargetVerticesArray.Reserve(ArraySize);
+	TargetNormalsArray.Reserve(ArraySize);
+	TargetTangentsArray.Reserve(ArraySize);
+	TargetBinormalsArray.Reserve(ArraySize);
 	TArray<FVector> NonRepeatedCoordinates;
-	NonRepeatedCoordinates.Reserve(NumIndices / 3);
+	NonRepeatedCoordinates.Reserve(ArraySize);
+
+	//TArray<FVector> PruebaArray;
+	//PruebaArray.Reserve(ArraySize);
+	TargetVerticesArray.AddUninitialized(ArraySize);
+	TargetNormalsArray.AddUninitialized(ArraySize);
+	TargetTangentsArray.AddUninitialized(ArraySize);
+	TargetBinormalsArray.AddUninitialized(ArraySize);
+	//TestingArray.AddUninitialized(ArraySize);
 
 	int32 contar = 0;
 	for (int32 i = 0; i < NumIndices; i++)
@@ -1017,19 +1059,46 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 				//UE_LOG(LogTemp, Warning, TEXT("Coordinates at Indices[%d] = %d were corrected with Coordinates.Y = Coordinates.Y * (-1)"), i, Indices[i]);
 				Index = ArrayFromObj.Find(CoordinatesCorrection);
 				TargetIndicesMapArray.Emplace(Index);
-				TargetVerticesArray.Emplace(Coordinates);
+				//TargetVerticesArray.Emplace(Coordinates);
+
+				if (!TargetVerticesArray.IsValidIndex(Index))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for PruebaArray at AHandsGameMode::AccessMeshVertices()"), Index);
+					return;
+				}
+				TargetVerticesArray[Index] = Coordinates;
+				//TestingArray[Index] = Coordinates;
 				contar++;
 			}
 			else
 			{
 				Index = ArrayFromObj.Find(Coordinates);
 				TargetIndicesMapArray.Emplace(Index);
-				TargetVerticesArray.Emplace(Coordinates);				
-			}	
-			TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-			TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
-			FVector Tangent = FVector::CrossProduct(TargetNormalsArray.Last().GetSafeNormal(), TargetBinormalsArray.Last().GetSafeNormal());
-			TargetTangentsArray.Emplace(Tangent);
+				//TargetVerticesArray.Emplace(Coordinates);
+
+				if (!TargetVerticesArray.IsValidIndex(Index))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for TargetVerticesArray at AHandsGameMode::AccessMeshVertices()"), Index);
+					return;
+				}
+				TargetVerticesArray[Index] = Coordinates;
+				//TestingArray[Index] = Coordinates;
+				
+
+			}
+			if (test_index == Index)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("TestingArray[%d] x: %f y: %f z: %f "), Index, Coordinates.X, Coordinates.Y, Coordinates.Z);
+			}
+			if (!TargetNormalsArray.IsValidIndex(Index))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for TargetNormalsArray at AHandsGameMode::AccessMeshVertices()"), Index);
+				return;
+			}
+			TargetNormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
+			TargetBinormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+			FVector Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
+			TargetTangentsArray[Index]=(Tangent);
 		}
 		//if (i == test_index)
 		//{
@@ -1782,13 +1851,14 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 {
 	TArray<int32>& BlendedMapVertexTriangleMap = BlendedIntrinsicMapsTrianglesMap;
 	TArray<FVector>& BarycentricCoordinatesArray = BlendedIntrinsicMapsBarycentricCoordinates; 
-	TArray<FVector>& SecondMeshTriangleIndices = SecondMeshMapTriangleIndices; 
+	//TArray<FVector>& SecondMeshTriangleIndices = SecondMeshMapTriangleIndices; 
+	TArray<FVector>& SecondMeshTriangleIndices = SecondMeshTriangleIndicesFromObjFile;
 	TArray<FVector>& VerticesFrom2ndAsset = SecondMeshVerticesFromUE4Asset;
 	TArray<FVector>& NormalsFrom2ndAsset = SecondMeshNormalsFromUE4Asset;
 	TArray<FVector>& BinormalsFrom2ndAsset = SecondMeshBinormalsFromUE4Asset;
 	TArray<int32>& OriginalMeshIndicesMap = OriginalMeshAsset2ObjIndicesMap;
 
-	int32 limit = OriginalMeshIndicesMap.Num();
+	int32 limit = VerticesFrom2ndAsset.Num();
 	UE_LOG(LogTemp, Warning, TEXT("Limit: %d"), limit);
 	TargetPointArray.Empty();
 	TargetNormalsArray.Empty();
@@ -1799,35 +1869,47 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 	TargetNormalsArray.Reserve(limit);
 	TargetTangentsArray.Reserve(limit);
 	TargetBinormalsArray.Reserve(limit);
-	int32 TestIndex = 4570;
+	int32 TestIndex = 1289;
 	for (int32 i = 0; i < limit; i++)
 	{
-		int32 OriginalMeshIndex = OriginalMeshIndicesMap[i];
+		/*int32 OriginalMeshIndex = OriginalMeshIndicesMap[i];
 		if (i == TestIndex)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("OriginMeshIndex: %d"), OriginalMeshIndex);
-		}
-		if (!BlendedMapVertexTriangleMap.IsValidIndex(OriginalMeshIndex))
+		}*/
+		if (!BlendedMapVertexTriangleMap.IsValidIndex(i))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for BlendedMapVertexTriangleMap. At AHandsGameMode::SecondMeshTangentComputation()"), OriginalMeshIndex);
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for BlendedMapVertexTriangleMap. At AHandsGameMode::SecondMeshTangentComputation()"), i);
 			return;
 		}
-		int32 Triangle = BlendedMapVertexTriangleMap[OriginalMeshIndex];
-		if (!BarycentricCoordinatesArray.IsValidIndex(OriginalMeshIndex))
+		int32 Triangle = BlendedMapVertexTriangleMap[i];
+		if (i == TestIndex)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for BarycentricCoordinatesArray. At AHandsGameMode::SecondMeshTangentComputation()"), OriginalMeshIndex);
+			UE_LOG(LogTemp, Warning, TEXT("BlendedMapVertexTriangleMap[%d]: %d"), i, Triangle);
+		}
+
+
+		if (!BarycentricCoordinatesArray.IsValidIndex(i))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for BarycentricCoordinatesArray. At AHandsGameMode::SecondMeshTangentComputation()"), i);
 			return;
 		}
-		FVector BarycentricCoordinates = BarycentricCoordinatesArray[OriginalMeshIndex];
+		FVector BarycentricCoordinates = BarycentricCoordinatesArray[i];
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BarycentricCoordinates[%d] x: %f y: %f z: %f"), i, BarycentricCoordinates.X, BarycentricCoordinates.Y, BarycentricCoordinates.Z);
+		}
+
 		if (!SecondMeshTriangleIndices.IsValidIndex(Triangle))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for MeshTriangleIndices. At AHandsGameMode::SecondMeshTangentComputation()"), Triangle);
 			return;
 		}
 		FVector SecondMeshTriangle = SecondMeshTriangleIndices[Triangle];
-		int32 Index1 = SecondMeshTriangle.X;
-		int32 Index2 = SecondMeshTriangle.Y;
-		int32 Index3 = SecondMeshTriangle.Z;
+		int32 Index1 = SecondMeshTriangle.X - 1;
+		int32 Index2 = SecondMeshTriangle.Y - 1;
+		int32 Index3 = SecondMeshTriangle.Z - 1;
+
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index1) || !NormalsFrom2ndAsset.IsValidIndex(Index1))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index1 %d for MeshVertices or MeshNormals, iteration %d. At AHandsGameMode::SecondMeshTangentComputation()"), Index1, i);
@@ -1836,10 +1918,10 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		FVector Index1Coordinates = VerticesFrom2ndAsset[Index1];
 		FVector Index1Normal = NormalsFrom2ndAsset[Index1];
 		FVector Index1Binormal = BinormalsFrom2ndAsset[Index1];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index1Normals x: %f y: %f z: %f"), Index1Normals.X, Index1Normals.Y, Index1Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, Index1, Index1Coordinates.X, Index1Coordinates.Y, Index1Coordinates.Z);
+		}
 
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index2) || !NormalsFrom2ndAsset.IsValidIndex(Index2))
 		{
@@ -1849,10 +1931,10 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		FVector Index2Coordinates = VerticesFrom2ndAsset[Index2];
 		FVector Index2Normal = NormalsFrom2ndAsset[Index2];
 		FVector Index2Binormal = BinormalsFrom2ndAsset[Index2];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index2Normals x: %f y: %f z: %f"), Index2Normals.X, Index2Normals.Y, Index2Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index2Coordinates[%d] x: %f y: %f z: %f"), Triangle, Index2, Index2Coordinates.X, Index2Coordinates.Y, Index2Coordinates.Z);
+		}
 
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index3) || !NormalsFrom2ndAsset.IsValidIndex(Index3))
 		{
@@ -1862,21 +1944,27 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		FVector Index3Coordinates = VerticesFrom2ndAsset[Index3];
 		FVector Index3Normal = NormalsFrom2ndAsset[Index3];
 		FVector Index3Binormal = BinormalsFrom2ndAsset[Index3];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index3Normals x: %f y: %f z: %f"), Index3Normals.X, Index3Normals.Y, Index3Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, Index3, Index3Coordinates.X, Index3Coordinates.Y, Index3Coordinates.Z);
+		}
 
-		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index2Coordinates;
+		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index3Coordinates;
 
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("PointinTriangle x: %f y: %f z: %f"), PointInTriangle.X, PointInTriangle.Y, PointInTriangle.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("PointinTriangle in SecondMeshTangentcomputation x: %f y: %f z: %f"), PointInTriangle.X, PointInTriangle.Y, PointInTriangle.Z);
+		}
 				
 		// The normal of the blended map point is the average of the triangle vertices normals
-		FVector NewBinormal;
+		
 		FVector NewNormal = (1.f / 3.f) * (Index1Normal + Index2Normal + Index3Normal);
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewNormal x: %f y: %f z: %f"), NewNormal.X, NewNormal.Y, NewNormal.Z);
+		}
+
+		FVector NewBinormal;
 		FVector ProposedBinormal = (1.f / 3.f) * (Index1Binormal + Index2Binormal + Index3Binormal);
 		
 		bool bIsOrthogonal = FVector::Orthogonal(ProposedBinormal.GetSafeNormal(), NewNormal.GetSafeNormal());
@@ -1895,12 +1983,21 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		{
 			NewBinormal = ProposedBinormal;
 		}
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewBinormal x: %f y: %f z: %f"), NewBinormal.X, NewBinormal.Y, NewBinormal.Z);
+		}
 
-		FVector Tangent = FVector::CrossProduct(NewNormal.GetSafeNormal(), NewBinormal.GetSafeNormal());
-				
+		FVector NewTangent = FVector::CrossProduct(NewNormal.GetSafeNormal(), NewBinormal.GetSafeNormal());
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("NewTangent x: %f y: %f z: %f"), NewTangent.X, NewTangent.Y, NewTangent.Z);
+		}
+
+
 		TargetPointArray.Emplace(PointInTriangle);
 		TargetNormalsArray.Emplace(NewNormal);
-		TargetTangentsArray.Emplace(Tangent);
+		TargetTangentsArray.Emplace(NewTangent);
 		TargetBinormalsArray.Emplace(NewBinormal);
 		
 	}
@@ -1914,31 +2011,35 @@ void AHandsGameMode::PointCalculationForICP()
 	TArray<FVector>& SecondMeshTriangleIndices = SecondMeshTriangleIndicesFromObjFile;
 	TArray<FVector>& VerticesFrom2ndAsset = SecondMeshVerticesFromUE4Asset;
 	TArray<FVector>& NormalsFrom2ndAsset = SecondMeshNormalsFromUE4Asset;
-	TArray<int32>& VerticesMap = SecondMeshAsset2ObjIndicesMap;
+	//TArray<int32>& VerticesMap = SecondMeshAsset2ObjIndicesMap;
+	//TArray<FVector>& Results = BlendedIntrinsicMapsPoints;
 
-	int32 TestIndex = 0;
+	int32 TestIndex = 1289;
 
 	FString CoordinatesToSave = "";
+
+	//Results.Reserve(BlendedMapVertexTriangleMap.Num());
 
 	for (int32 i = 0; i < BlendedMapVertexTriangleMap.Num(); i++)
 	{
 		int32 Triangle = BlendedIntrinsicMapsTrianglesMap[i];
 		FVector BarycentricCoordinates = BarycentricCoordinatesArray[i];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("BlendedIntrinsicMapsTrianglesMap[%d]: %d"), i, Triangle);
-		}*/
-		
+			UE_LOG(LogTemp, Warning, TEXT("BarycentricCoordinates[%d] x: %f y: %f z: %f"), i, BarycentricCoordinates.X, BarycentricCoordinates.Y, BarycentricCoordinates.Z);
+		}
+
 		if (!SecondMeshTriangleIndices.IsValidIndex(Triangle))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index %d for MeshTriangleIndices. At AHandsGameMode::SecondMeshTangentComputation()"), Triangle);
 			return;
 		}
 		FVector SecondMeshTriangle = SecondMeshTriangleIndices[Triangle];
-		int32 Index1 = VerticesMap.Find(SecondMeshTriangle.X - 1);
-		int32 Index2 = VerticesMap.Find(SecondMeshTriangle.Y - 1);
-		int32 Index3 = VerticesMap.Find(SecondMeshTriangle.Z - 1);
-		
+		int32 Index1 = (SecondMeshTriangle.X - 1);
+		int32 Index2 = (SecondMeshTriangle.Y - 1);
+		int32 Index3 = (SecondMeshTriangle.Z - 1);
+				
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index1))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Invalid Index1 %d for MeshVertices or MeshNormals, iteration %d. At AHandsGameMode::SecondMeshTangentComputation()"), Index1, i);
@@ -1947,10 +2048,10 @@ void AHandsGameMode::PointCalculationForICP()
 		FVector Index1Coordinates = VerticesFrom2ndAsset[Index1];
 		Index1Coordinates.Y *= -1;
 		FVector Index1Normals = NormalsFrom2ndAsset[Index1];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, int32(SecondMeshTriangle.X - 1), Index1Coordinates.X, Index1Coordinates.Y, Index1Coordinates.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index1, Index1Coordinates.X, Index1Coordinates.Y, Index1Coordinates.Z);
+		}
 
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index2))
 		{
@@ -1960,10 +2061,10 @@ void AHandsGameMode::PointCalculationForICP()
 		FVector Index2Coordinates = VerticesFrom2ndAsset[Index2];
 		Index2Coordinates.Y *= -1;
 		FVector Index2Normals = NormalsFrom2ndAsset[Index2];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index1Coordinates[%d] x: %f y: %f z: %f"), Triangle, int32(SecondMeshTriangle.Y - 1), Index2Coordinates.X, Index2Coordinates.Y, Index2Coordinates.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index2Coordinates[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index2, Index2Coordinates.X, Index2Coordinates.Y, Index2Coordinates.Z);
+		}
 
 		if (!VerticesFrom2ndAsset.IsValidIndex(Index3))
 		{
@@ -1973,12 +2074,19 @@ void AHandsGameMode::PointCalculationForICP()
 		FVector Index3Coordinates = VerticesFrom2ndAsset[Index3];
 		Index3Coordinates.Y *= -1;
 		FVector Index3Normals = NormalsFrom2ndAsset[Index3];
-		/*if (i == TestIndex)
+		if (i == TestIndex)
 		{
-		UE_LOG(LogTemp, Warning, TEXT("Index3Normals x: %f y: %f z: %f"), Index3Normals.X, Index3Normals.Y, Index3Normals.Z);
-		}*/
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index2Coordinates[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index3, Index3Coordinates.X, Index3Coordinates.Y, Index3Coordinates.Z);
+		}
 
-		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index2Coordinates;
+		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index3Coordinates;
+
+		if (i == TestIndex)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PointinTriangle in PointCalculationForICP x: %f y: %f z: %f"), PointInTriangle.X, PointInTriangle.Y, PointInTriangle.Z);
+		}
+
+		//Results.Emplace(PointInTriangle);
 
 		CoordinatesToSave += FString::SanitizeFloat(PointInTriangle.X) + " " + FString::SanitizeFloat(PointInTriangle.Y) + " " + FString::SanitizeFloat(PointInTriangle.Z) + "\n";
 		
@@ -1992,7 +2100,7 @@ void AHandsGameMode::PointCalculationForICP()
 
 	if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 	{
-		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints.txt";
+		FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_ellipsoid.txt";
 		if (!PlatformFile.FileExists(*AbsoluteFilePath))
 		{
 			FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2002,4 +2110,272 @@ void AHandsGameMode::PointCalculationForICP()
 			UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
 		}
 	}
+}
+
+void AHandsGameMode::MeshAlignment()
+{
+	TArray<FVector>& PointsToAlign = *PtrSecondMeshVertices;
+	TArray<FVector>& ReferencePoints = *PtrOriginalMeshVertices;
+
+	/*for (int32 i = 0; i < (*PtrSecondMeshVertices).Num(); i++)
+	{
+		PointsToAlign.Emplace((*PtrSecondMeshVertices)[i]);
+	}*/
+	
+	int32 limit = PointsToAlign.Num();
+	//UE_LOG(LogTemp, Warning, TEXT("limit %d"), limit);
+	
+	int32 TestIndex = 1583;
+	int32 SamplingRate = 10;
+	int32 TotalIterations = 50;
+
+	for (int32 Iteration = 0; Iteration < TotalIterations; Iteration++)
+	{
+		
+		// First aligment done by obtaining the mean distance between meshes
+		//TArray<FVector> FirstAligment;
+		//FirstAligment.Reserve(limit);		
+		//for (int32 i = 0; i < limit; i++)
+		//{
+			//if (Iteration == 0)
+			//{
+				//ReferencePoints[i].Y *= -1;
+				//PointsToAlign[i].Y *= -1;
+			//}
+			//FVector MeanAligment = PointsToAlign[i] + ((ReferencePoints[i] - PointsToAlign[i]) / 2);
+			//if (i == TestIndex)
+			//{
+			//UE_LOG(LogTemp, Warning, TEXT("PointsToAlign x: %f y: %f z: %f"), PointsToAlign[i].X, PointsToAlign[i].Y, PointsToAlign[i].Z);
+			//UE_LOG(LogTemp, Warning, TEXT("ReferencePoints x: %f y: %f z: %f"), ReferencePoints[i].X, ReferencePoints[i].Y, ReferencePoints[i].Z);
+			//}
+			//FirstAligment.Emplace(MeanAligment);
+		//}
+
+		// 1st Centroid calculation
+		FVector SumPoints(0.f, 0.f, 0.f);
+		for (int32 i = 0; i < PointsToAlign.Num(); i++)
+		{
+			SumPoints += PointsToAlign[i];
+		}
+		FVector CentroidA = SumPoints / PointsToAlign.Num();
+
+		// 2nd Centroid calculation
+		SumPoints = FVector(0.f, 0.f, 0.f);
+		for (int32 i = 0; i < ReferencePoints.Num(); i++)
+		{
+			SumPoints += ReferencePoints[i];
+		}
+		FVector CentroidB = SumPoints / ReferencePoints.Num();
+
+		// Align points using their centroids
+		TArray<FVector> CenteredPointsToAlign;
+		CenteredPointsToAlign.Reserve(PointsToAlign.Num());
+		for (int32 i = 0; i < PointsToAlign.Num(); i++)
+		{
+			FVector CenteredPoint = PointsToAlign[i] - CentroidA;
+			CenteredPointsToAlign.Emplace(CenteredPoint);
+		}
+
+		TArray<FVector> CenteredReferencePoints;
+		CenteredReferencePoints.Reserve(ReferencePoints.Num());
+		for (int32 i = 0; i < ReferencePoints.Num(); i++)
+		{
+			FVector CenteredPoint = ReferencePoints[i] - CentroidB;
+			CenteredReferencePoints.Emplace(CenteredPoint);
+		}
+		
+		// Get quat between points
+		FQuat Identity(ForceInit);
+		FQuat QuaternionBetweenPoints(ForceInitToZero);
+		for (int32 i = 0; i < limit; i++)
+		{
+			// Obtain the quaternion between our points
+			FQuat TempQuat = FQuat::FindBetween(CenteredReferencePoints[i], CenteredPointsToAlign[i]);
+			TempQuat.Normalize();
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Quaternion %s"), *TempQuat.ToString());
+			}*/
+
+			// Make sure the quaternions are on the same hemisphere
+			float QuatDot = TempQuat | Identity;
+
+			if (QuatDot < 1.e-4f)
+			{
+				TempQuat *= -1.f;
+			}
+
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints before adding tempquat %s"), *QuaternionBetweenPoints.ToString());
+			}*/
+
+			QuaternionBetweenPoints += TempQuat;
+
+			/*if (i == TestIndex)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("TempQuaternion %s"), *TempQuat.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
+			}*/
+		}
+
+		//UE_LOG(LogTemp, Warning, TEXT("Total QuaternionBetweenPoints %s"), *QuaternionBetweenPoints.ToString());
+
+		FQuat MeanQuat = QuaternionBetweenPoints / limit;
+
+		//UE_LOG(LogTemp, Warning, TEXT("MeanQuat unnormalized %s"), *MeanQuat.ToString());
+
+		MeanQuat.Normalize();
+
+		//UE_LOG(LogTemp, Warning, TEXT("MeanQuat %s"), *MeanQuat.ToString());
+
+		/*TArray<FVector> FinalAlingment;
+		FinalAlingment.Reserve(limit);*/
+		
+		FString CoordinatesToSave = "";
+
+		for (int32 i = 0; i < limit; i++)
+		{
+			FVector AlignedPoint = MeanQuat.RotateVector(CenteredPointsToAlign[i]) + CentroidA;
+
+			PointsToAlign[i] = AlignedPoint;
+
+			CoordinatesToSave += FString::SanitizeFloat(AlignedPoint.X) + " " + FString::SanitizeFloat(AlignedPoint.Y) + " " + FString::SanitizeFloat(AlignedPoint.Z) + "\n";
+			
+			//FinalAlingment.Emplace(AlignedPoint);
+		}
+		if (Iteration % SamplingRate == 0)
+		{
+			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+			if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
+			{
+				FString AbsoluteFilePath = LoadDirectory + "/" + "AlingmentTest_TesselatedTriangle_iteration" + FString::FromInt(Iteration) + ".txt";
+				if (!PlatformFile.FileExists(*AbsoluteFilePath))
+				{
+					FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Could not find directory"));
+				}
+			}
+		}
+	}
+}
+
+void AHandsGameMode::MeasureMeshAlingment()
+{
+	TArray<FVector>& SecondMeshPoints = *PtrSecondMeshVertices;
+	TArray<FVector>& OriginalMeshPoints = *PtrOriginalMeshVertices;
+
+	int32 TotalPoints = OriginalMeshPoints.Num();
+	int32 SamplingRate = 20;
+
+	//FPlane VertexPlane(FVector(0.f, 0.f, 0.f), FVector(0.f, 0.f, 1.f).GetSafeNormal());
+	TArray<float> AngleArray;
+	AngleArray.Reserve(SamplingRate);
+	float AngleSum = 0;
+	for (int32 i = 0; i < OriginalMeshPoints.Num(); i++)
+	{
+		int32 Module = i % (TotalPoints / SamplingRate);
+		if (Module == 0)
+		{
+			FVector OriginalMeshSinglePoint = OriginalMeshPoints[i];
+			FVector SecondMeshsinglePoint = SecondMeshPoints[i];
+
+			float CosineBetweenPoints = OriginalMeshSinglePoint.CosineAngle2D(SecondMeshsinglePoint);
+
+			float Angle = (FMath::Acos(CosineBetweenPoints)) * (180 / PI);
+			AngleSum += Angle;
+			AngleArray.Emplace(Angle);
+			UE_LOG(LogTemp, Warning, TEXT("Angle between OriginalMesh[%d] and SecondMesh[%d] is %f"), i, i, Angle);
+
+			//UE_LOG(LogTemp, Warning, TEXT("OriginalMeshPointDirection x: %f y: %f z: %f"), OriginalMeshSinglePointn.X, OriginalMeshPointDirection.Y, OriginalMeshPointDirection.Z);
+			//UE_LOG(LogTemp, Warning, TEXT("SecondMeshPointDirection x: %f y: %f z: %f"), SecondMeshPointDirection.X, SecondMeshPointDirection.Y, SecondMeshPointDirection.Z);
+
+		}
+	}
+
+	float Mean = AngleSum / AngleArray.Num();
+	UE_LOG(LogTemp, Warning, TEXT("Mean is %f"), Mean);
+
+	AngleArray.Sort();
+	float Median;
+	float Mitad = AngleArray.Num() / 2.f;
+	if (AngleArray.Num() % 2 == 0)
+	{
+		Median = (AngleArray[int32(Mitad)] + AngleArray[int32(Mitad) - 1]) / 2.f;
+		UE_LOG(LogTemp, Warning, TEXT("Median is %f"), Median);
+	}
+	else
+	{
+		Median = AngleArray[FMath::RoundToInt(Mitad) - 1];
+		UE_LOG(LogTemp, Warning, TEXT("Median is %f"), Median);
+	}
+}
+
+void AHandsGameMode::SpawnObjectsForVisualization()
+{
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
+		if (MyCharacter)
+		{
+			// Set the spawn parameters
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = Instigator;
+			SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+			RootLocation = MyCharacter->MyMesh->GetSocketLocation(TEXT("spine_02"));
+			// spawn the pickup
+			FVector PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
+
+			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
+			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
+
+			PositionForObject = FVector(50.f, 0.f, 10.f) + RootLocation;
+
+			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn3, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
+			/*if (DecisionObject2)
+			{
+				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Mesh of DecisionObject2 wasn't changed"));
+			}*/
+		}
+	}
+}
+
+void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticMeshComponent* PepperMeshComponent)
+{
+	FTransform PearTransform = PearMeshComponent->ComponentToWorld;
+
+	FTransform PepperTransform = PepperMeshComponent->ComponentToWorld;
+	
+	TArray<FVector>& PearVertices = *PtrOriginalMeshVertices;
+	TArray<FVector>& PepperMappedPoints = *PtrSecondMeshVertices;
+
+	int32 limit = PearVertices.Num();
+
+	int32 SamplingRate = 150;
+
+	for (int32 i = 0; i < limit; i++)
+	{
+		if (i % SamplingRate == 0)
+		{
+			int32 ColorRange = (255 * i) / limit;
+			FVector TransformedPearVertex = PearTransform.TransformPosition(PearVertices[i]);
+			FVector TransformedPepperPoint = PepperTransform.TransformPosition(PepperMappedPoints[i]);
+			DrawDebugLine(GetWorld(), TransformedPearVertex, TransformedPepperPoint, FColor(ColorRange, 0, 100), false, -1, 0, .1f);
+			//DrawDebugPoint(GetWorld(), TransformedPearVertex, 5.f, FColor::Cyan, false, -1.f, 0);
+			//DrawDebugPoint(GetWorld(), TransformedPepperPoint, 5.f, FColor::Green, false, -1.f, 0);
+			DrawDebugString(GetWorld(), TransformedPearVertex, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
+			DrawDebugString(GetWorld(), TransformedPepperPoint, FString::FromInt(i), NULL, FColor::Red, 0.1f, false);
+		}
+	}
+
 }
