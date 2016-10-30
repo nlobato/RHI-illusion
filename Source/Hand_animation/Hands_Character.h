@@ -241,14 +241,32 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Vertices")
 	uint32 NumDescriptorPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawRightHandPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawLeftHandPoints;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftHand;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftKnuckle;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftIndex;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftMiddle;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftRing;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftPinky;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugPointsLeftThumb;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	UStaticMesh* SecondMesh;
 
 	//bool bAreDPset;
 	TArray<uint32>* pDPIndices;
@@ -274,7 +292,7 @@ protected:
 	//Weights calculation
 	void WeightsComputation(TArray<float>& WeightsArray, TArray<float>& TransformationArray, FVector p_j);
 
-	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray);
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, bool bDrawDebugPoints);
 
 	void AssignPointers();
 

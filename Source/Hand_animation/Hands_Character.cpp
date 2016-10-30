@@ -117,49 +117,49 @@ void AHands_Character::Tick( float DeltaTime )
 				//LeftHandTransformation.Empty();
 				//AHands_Character::WeightsComputation(LeftHandWeights, LeftHandTransformation, LeftHandPosition);
 				//DPLeftHandPosition = AHands_Character::NewJointPosition(LeftHandWeights, LeftHandTransformation, DPVirtualObject);
-				WeightsComputation(LeftHandPosition, LeftHandTransformationArray, LeftHandWeights);
+				WeightsComputation(LeftHandPosition, LeftHandTransformationArray, LeftHandWeights, bDrawDebugPointsLeftHand);
 				DPLeftHandPosition = NewJointPosition(LeftHandWeights, LeftHandTransformationArray);
 				
 				/*LeftMiddleKnuckleWeights.Empty();
 				LeftMiddleKnuckleTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
 				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights);
+				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights, bDrawDebugPointsLeftKnuckle);
 				DPLeftMiddleKnucklePosition = NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformationArray);
 
 				/*LeftIndexFingerWeights.Empty();
 				LeftIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
 				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights);
+				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights, bDrawDebugPointsLeftIndex);
 				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray);
 
 				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, LeftMiddleFingerPosition);
 				DPLeftMiddleFingerPosition = AHands_Character::NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights);
+				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights, bDrawDebugPointsLeftMiddle);
 				DPLeftMiddleFingerPosition = NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray);
 
 				/*LeftRingFingerWeights.Empty();
 				LeftRingFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftRingFingerWeights, LeftRingFingerTransformation, LeftRingFingerPosition);
 				DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights);
+				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights, bDrawDebugPointsLeftRing);
 				DPLeftRingFingerPosition = NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformationArray);
 
 				/*LeftPinkyFingerWeights.Empty();
 				LeftPinkyFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, LeftPinkyFingerPosition);
 				DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights);
+				WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights, bDrawDebugPointsLeftPinky);
 				DPLeftPinkyFingerPosition = NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformationArray);
 
 				/*LeftThumbWeights.Empty();
 				LeftThumbTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftThumbWeights, LeftThumbTransformation, LeftThumbPosition);
 				DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights);
+				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights, bDrawDebugPointsLeftThumb);
 				DPLeftThumbPosition = NewJointPosition(LeftThumbWeights, LeftThumbTransformationArray);
 
 				RightHandWeights.Empty();
@@ -1149,7 +1149,7 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	{
 		//int32 i = 500;
 		int32 Module = i % (Vertices.Num() / SamplingRate);
-		//if (Module == 0)
+		if (Module == 0)
 		//if (i >= Test_index && i < upper_limit)
 		{
 
@@ -1295,17 +1295,19 @@ void AHands_Character::WeightsComputation(TArray<float>& w_biprime, TArray<float
 	return;
 }
 
-void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& w_biprime)
+void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& w_biprime, bool bDrawDebugPoints)
 {
 	int32 limit;
 	if (bHasObjectSizeChanged)
 	{
+		UStaticMesh* OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
 		FVector ObjectScale = SpawnedObject->OurVisibleComponent->RelativeScale3D;
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
-		
+		//SpawnedObject->OurVisibleComponent->SetMaterial();
+		//SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(ObjectScale);
-
+		//SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 		// The object is just changing sizes, so the vertices num doesn't change
 		limit = OriginalMeshVertices.Num();
 	} 
@@ -1337,6 +1339,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	TArray<FVector>& Normals = OriginalMeshNormals;
 	TArray<FVector>& Tangents = OriginalMeshTangents;
 	TArray<FVector>& Binormals = OriginalMeshBinormals;
+	TArray<FVector> ArrayTransformedVertices;
 
 	int32 Test_index = (2284 / 5) * 0;
 	int32 upper_limit = Test_index + 1;
@@ -1354,7 +1357,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Gamma;
 
 		int32 Module = i % (Vertices.Num() / SamplingRate);
-		//if (Module == 0)
+		if (Module == 0)
 		//if (i >= Test_index && i < upper_limit)
 		{
 
@@ -1364,6 +1367,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 				return;
 			}
 			TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+			ArrayTransformedVertices.Emplace(TransformedVertices);
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedVertices x: %f y: %f z: %f"), TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
 
 			Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
@@ -1405,11 +1409,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
-			//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
-			//DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+			DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
+			DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
 			//FVector TransformedVertices2 = CurrentMeshComponentToWorldTransform.TransformPosition((*PointerToCurrentMeshVertices)[i]);
 
@@ -1428,9 +1432,9 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	int32 j = 0;
 	for (int32 i = 0; i < limit; i++)
 	{
-		j = i;
+		//j = i;
 		int32 Module = i % (Vertices.Num() / SamplingRate);
-		//if (Module == 0)
+		if (Module == 0)
 		//if (i >= Test_index && i < upper_limit)
 		{	
 			
@@ -1462,6 +1466,51 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			w_biprime.Emplace(w_biprime_val);
 
 			j++;
+		}
+	}
+	if (bDrawDebugPoints)
+	{
+
+		j = 0;
+		float sum_wbiprime = 0;
+		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
+		for (int32 i = 0; i < limit; i++)
+		{
+			//j = i;
+			int32 Module = i % (Vertices.Num() / SamplingRate);
+			if (Module == 0)
+				//if (i >= Test_index && i < upper_limit)
+			{
+
+				if (!w_biprime.IsValidIndex(j))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::WeightsComputation()"), j);
+					return;
+				}
+				sum_wbiprime += w_biprime[j];
+				j++;
+			}
+		}
+
+		j = 0;
+		for (int32 i = 0; i < limit; i++)
+		{
+			//j = i;
+			int32 Module = i % (Vertices.Num() / SamplingRate);
+			if (Module == 0)
+				//if (i >= Test_index && i < upper_limit)
+			{
+				if (!ArrayTransformedVertices.IsValidIndex(j))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for ArrayTransformedVertices on AHands_Character::WeightsComputation()"), j);
+					return;
+				}
+				FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
+				FVector TransformedVertices = ArrayTransformedVertices[j];
+				DrawDebugLine(GetWorld(), TransformedVertices, p_j, colorgradient, false, -1, 0, .1f);
+				UE_LOG(LogTemp, Warning, TEXT("index %d at ArrayTransformedVertices"), j);
+				j++;
+			}
 		}
 	}
 
@@ -1503,7 +1552,7 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 	int32 Test_index = (2284 / 5) * 0;
 	int32 upper_limit = Test_index + 1;
 
-	int32 SamplingRate = 10;
+	int32 SamplingRate = 5;
 
 	int32 j = 0;
 
@@ -1514,9 +1563,9 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
 		for (int32 i = 0; i < limit; i++)
 		{
-			j = i;
+			//j = i;
 			int32 Module = i % (Vertices.Num() / SamplingRate);
-			//if (Module == 0)
+			if (Module == 0)
 			//if (i >= Test_index && i < upper_limit)
 			{
 				
@@ -1533,9 +1582,9 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 		j = 0;
 		for (int32 i = 0; i < limit; i++)
 		{
-			j = i;
+			//j = i;
 			int32 Module = i % (Vertices.Num() / SamplingRate);
-			//if (Module == 0)
+			if (Module == 0)
 			//if (i >= Test_index && i < upper_limit)
 			{
 				if (!TransformationComponents.IsValidIndex(j))
