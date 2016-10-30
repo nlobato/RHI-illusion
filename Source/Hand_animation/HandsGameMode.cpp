@@ -983,8 +983,10 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 		{
 			TargetVerticesArray.Emplace(Coordinates);
 			TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-			TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+			//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
 			TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+			FVector Tangent = FVector::CrossProduct(TargetNormalsArray.Last().GetSafeNormal(), TargetBinormalsArray.Last().GetSafeNormal());
+			TargetTangentsArray.Emplace(Tangent);
 		}
 	}
 	

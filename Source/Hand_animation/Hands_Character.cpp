@@ -202,8 +202,8 @@ void AHands_Character::Tick( float DeltaTime )
 			// For debug purposes, draw the calculated joint positions
 			if (bDrawRightHandPoints)
 			{
-				DrawDebugSphere(GetWorld(), DPRightHandPosition, 5.0, 50, FColor(255, 255, 0), false, 0.1);
-				DrawDebugSphere(GetWorld(), DPRightMiddleKnucklePosition, 2.0, 50, FColor(255, 255, 0), false, 0.1);
+				DrawDebugPoint(GetWorld(), DPRightHandPosition, 5.0, FColor(255, 255, 0), false, 0.1);
+				DrawDebugPoint(GetWorld(), DPRightMiddleKnucklePosition, 2.0, FColor(255, 255, 0), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPRightIndexFingerPosition, 5.0, FColor(255, 255, 0), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPRightMiddleFingerPosition, 5.0, FColor(255, 255, 0), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPRightRingFingerPosition, 5.0, FColor(255, 255, 0), false, 0.1);
@@ -214,8 +214,8 @@ void AHands_Character::Tick( float DeltaTime )
 			if (bDrawLeftHandPoints)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("We entered the if statement for DrawLeftHandPoints"));
-				DrawDebugSphere(GetWorld(), DPLeftHandPosition, 3.0, 50, FColor(0, 255, 255), false, 0.1);
-				DrawDebugSphere(GetWorld(), DPLeftMiddleKnucklePosition, 1.f, 50, FColor(0, 255, 255), false, 0.1);
+				DrawDebugPoint(GetWorld(), DPLeftHandPosition, 5.0, FColor(0, 255, 255), false, 0.1);
+				DrawDebugPoint(GetWorld(), DPLeftMiddleKnucklePosition, 5.0, FColor(0, 255, 255), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPLeftIndexFingerPosition, 5.0, FColor(0, 255, 255), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPLeftMiddleFingerPosition, 5.0, FColor(0, 255, 255), false, 0.1);
 				DrawDebugPoint(GetWorld(), DPLeftRingFingerPosition, 5.0, FColor(0, 255, 255), false, 0.1);
