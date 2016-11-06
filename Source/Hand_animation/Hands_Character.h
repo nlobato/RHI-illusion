@@ -241,14 +241,46 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Vertices")
 	uint32 NumDescriptorPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
-	bool bDrawPoints;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawCurrentMeshPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawOriginalMeshPoints;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawRightHandPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Vertices")
+	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawLeftHandPoints;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftHand;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftKnuckle;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftIndex;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugJointPositionsLeftIndex;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftMiddle;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftRing;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftPinky;
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bDrawDebugWeightsLeftThumb;
+
+
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bSamplePoints;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	int32 NumberSamplingPoints;
+
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	UStaticMesh* SecondMesh;
 
 	//bool bAreDPset;
 	TArray<uint32>* pDPIndices;
@@ -274,14 +306,14 @@ protected:
 	//Weights calculation
 	void WeightsComputation(TArray<float>& WeightsArray, TArray<float>& TransformationArray, FVector p_j);
 
-	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray);
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, bool bDrawDebugPoints);
 
 	void AssignPointers();
 
 	/** Calculate a new joint position with the descriptor points weights */
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<float>& TransformationArray, TArray<FVector>& DescriptorPointsArray);
 
-	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray);
+	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, bool bDrawDebugLines);
 
 protected:
 
@@ -648,5 +680,9 @@ private:
 	float SensorDelayElapsedTime;
 
 	bool bIsDelayCompleted;
+
+	int32 CalculateModule(bool bSample, int32 VerticesNum, int32 CurrentIndex);
+
+	int32 CalculateModule(bool bSample, int32 VerticesNum, int32 CurrentIndex, int32& SampledIndex);
 	
 };
