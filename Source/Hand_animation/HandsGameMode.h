@@ -138,6 +138,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsSizeToChange;
+
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
+	bool bCalculateBlendedIntrinsicPoints;
 	
 	// Number of cases for the mesh/shape experiment
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")

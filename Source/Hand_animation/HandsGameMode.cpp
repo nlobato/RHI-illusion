@@ -626,7 +626,7 @@ void AHandsGameMode::InitializeArrays()
 
 			//MappingTriangles(SecondMeshAsset2ObjIndicesMap, SecondMeshTriangleIndicesFromObjFile, SecondMeshMapTriangleIndices);
 
-			UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped triangle indices of second mesh"));
+			//UE_LOG(LogTemp, Warning, TEXT("Succesfully mapped triangle indices of second mesh"));
 
 			//OriginalMeshTangentComputation(OriginalMeshVerticesFromUE4Asset, OriginalMeshNormalsFromUE4Asset, *PtrOriginalMeshVertices, *PtrOriginalMeshNormals, *PtrOriginalMeshTangents, *PtrOriginalMeshBinormals, OriginalMeshTangentsIndicesMap);
 
