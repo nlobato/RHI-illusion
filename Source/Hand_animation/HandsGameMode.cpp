@@ -1101,9 +1101,9 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 				return;
 			}
 			TargetNormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-			TargetBinormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
+			/*TargetBinormalsArray[Index]=(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
 			FVector Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
-			TargetTangentsArray[Index]=(Tangent);
+			TargetTangentsArray[Index]=(Tangent);*/
 		}
 		//if (i == test_index)
 		//{
@@ -1123,6 +1123,84 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 		//}
 
 	}
+	TArray<FVector>& Triangles = OriginalMeshTriangleIndicesFromObjFile;
+	TArray<int32> TheIndices;
+	TheIndices.AddUninitialized(TargetVerticesArray.Num());
+	TArray<int32> RepeatedIndices;
+	
+	for (int32 i = 0; i < Triangles.Num(); i++)
+	{
+		FVector TriangleVertices = Triangles[i];
+		int32 Index1 = TriangleVertices.X - 1;
+		int32 Index2 = TriangleVertices.Y - 1;
+		int32 Index3 = TriangleVertices.Z - 1;
+		int32 IndexForNormalsArray = 0;
+
+		FVector ProposedTangent;
+		bool bNewTangentSet = false;
+
+		if (!TargetVerticesArray.IsValidIndex(Index1) || !TargetVerticesArray.IsValidIndex(Index2) || !TargetVerticesArray.IsValidIndex(Index3))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index for Vertices Array, Index0: %d Index1: %d Index: %d. At AHandsGameMode::TangentComputation()"), Index1, Index2, Index3);
+			return;
+		}
+		if (!RepeatedIndices.Contains(Index1))
+		{
+			ProposedTangent = (TargetVerticesArray[Index1] - TargetVerticesArray[Index2]).GetSafeNormal();
+			TheIndices[Index1] = Index2;
+			IndexForNormalsArray = Index1;
+			bNewTangentSet = true;
+		}
+		else if (!RepeatedIndices.Contains(Index2))
+		{
+			ProposedTangent = (TargetVerticesArray[Index2] - TargetVerticesArray[Index3]).GetSafeNormal();
+			TheIndices[Index2] = Index3;
+			IndexForNormalsArray = Index2;
+			bNewTangentSet = true;
+		}
+		else if (!RepeatedIndices.Contains(Index3))
+		{
+			ProposedTangent = (TargetVerticesArray[Index3] - TargetVerticesArray[Index1]).GetSafeNormal();
+			TheIndices[Index3] = Index1;
+			IndexForNormalsArray = Index3;
+			bNewTangentSet = true;
+		}
+
+		if (bNewTangentSet)
+		{
+			FVector Tangent;
+			if (!TargetNormalsArray.IsValidIndex(IndexForNormalsArray))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid &d for NormalsArray. At AHandsGameMode::TangentComputation()"), IndexForNormalsArray);
+				return;
+			}
+			FVector SafeNormal = TargetNormalsArray[IndexForNormalsArray].GetSafeNormal();
+			bool bIsOrthogonal = FVector::Orthogonal(ProposedTangent, SafeNormal);
+
+			if (!bIsOrthogonal)
+			{
+				FPlane VertexPlane(FVector(0.f, 0.f, 0.f), SafeNormal);
+				Tangent = FVector::PointPlaneProject(ProposedTangent, VertexPlane);
+				bIsOrthogonal = FVector::Orthogonal(Tangent.GetSafeNormal(), SafeNormal);
+				if (!bIsOrthogonal)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Computed tangent and normal are not orthogonal"));
+				}
+			}
+			else
+			{
+				Tangent = ProposedTangent;
+			}
+
+
+			FVector Binormal = FVector::CrossProduct(SafeNormal, Tangent);
+			TargetTangentsArray[IndexForNormalsArray] = (Tangent.GetSafeNormal());
+			TargetBinormalsArray[IndexForNormalsArray] = (Binormal.GetSafeNormal());
+
+		}
+	}
+
+
 
 	UE_LOG(LogTemp, Warning, TEXT("VerticesArray size: %d. Total number of corrections: %d"), TargetVerticesArray.Num(), contar);
 }
