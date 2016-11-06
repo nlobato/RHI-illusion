@@ -598,6 +598,9 @@ void AHandsGameMode::InitializeArrays()
 			//if (PointerToObjectSpawnedByCharacter)
 			if (InteractionObjectForMeshChange)
 			{
+				// We are getting the vertices information (coordinates, normal, tangent, binormal) and indices now instead of getting them each frame, this information doesn't change.
+				// The mapping between te UE4 asset indices and the obj indices is done to use them later when calculating the blended correspondences
+
 				//AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshVerticesFromUE4Asset, OriginalMeshNormalsFromUE4Asset, OriginalMeshTangentsFromUE4Asset, OriginalMeshBinormalsFromUE4Asset,OriginalMeshAsset2ObjIndicesMap);
 				AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVertices, *PtrOriginalMeshNormals, *PtrOriginalMeshTangents, *PtrOriginalMeshBinormals, OriginalMeshAsset2ObjIndicesMap);
 				UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));
@@ -838,7 +841,7 @@ void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& T
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("TargetCoordinatesArray.Num() %d"), TargetCoordinatesArray.Num());
-	UE_LOG(LogTemp, Warning, TEXT("TargetCoordinatesArray.Num() %d"), TargetTriangleIndices.Num());
+	UE_LOG(LogTemp, Warning, TEXT("TargetTriangleIndices.Num() %d"), TargetTriangleIndices.Num());
 }
 
 void AHandsGameMode::ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray)
@@ -1959,6 +1962,7 @@ void AHandsGameMode::SecondMeshTangentComputation(TArray<FVector>& TargetPointAr
 		}
 				
 		// The normal of the blended map point is the average of the triangle vertices normals
+		//FVector NewNormal = BarycentricCoordinates.X * Index1Normal + BarycentricCoordinates.Y * Index2Normal + BarycentricCoordinates.Z * Index3Normal;
 		
 		FVector NewNormal = (1.f / 3.f) * (Index1Normal + Index2Normal + Index3Normal);
 		if (i == TestIndex)
