@@ -307,6 +307,14 @@ private:
 
 	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndicesMap);
 
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndicesMap);
+
+	void TangentBinormalCalculation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TrianglesFromObj, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+
+	void TangentBinormalCalculation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<int32>& TangentIndices, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
+	
+	void NewTangentFunction(FVector Normal, FVector ProposedTangent, FVector& NewTangent, FVector& NewBinormal);
+	
 	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
 
 	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
