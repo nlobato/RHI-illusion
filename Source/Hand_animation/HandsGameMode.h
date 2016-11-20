@@ -99,6 +99,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString SecondMeshVerticesCoordinatesFromObjFileName;
 
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	bool bWriteBlendedMapFiles;
+
 	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool AllowOverwriting;*/
 
@@ -329,7 +332,7 @@ private:
 
 	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
 
-	void PointCalculationForICP();
+	void BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TargetVerticesArray, TArray<FVector>& TargetNormalsArray);
 
 	void MeshAlignment();
 
