@@ -87,7 +87,7 @@ void AHandsGameMode::Tick(float DeltaTime)
 				}
 			}
 		}
-		else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
+		/*else if (CurrentState == EExperimentPlayState::EExperimentInitiated)
 		{
 			if (DecisionObject1 != NULL && DecisionObject2 != NULL)
 			{
@@ -97,7 +97,7 @@ void AHandsGameMode::Tick(float DeltaTime)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Couldn't access the meshes"));
 			}
-		}
+		}*/
 	}
 }
 
@@ -129,11 +129,11 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 		MessageToDisplay = EMessages::EWelcomeMessage;
 		
 		// Bit for the visualization of alignment between meshes. Uncomment this part and comment the line after it.
-		SpawnObjectsForVisualization();
+		/*SpawnObjectsForVisualization();
 		float DelayInMinutes = 5.f;
-		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, DelayInMinutes * 60.f, false);*/
 		
-		//GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
+		GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 5.f, false);
 	}
 		break;
 	case EExperimentPlayState::ERHIExperimentInProgress:
@@ -2422,7 +2422,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 			return;
 		}
 		FVector Index1Coordinates = VerticesArray[Index1];
-		Index1Coordinates.Y *= -1;
+		//Index1Coordinates.Y *= -1;
 		FVector Index1Normals = NormalsArray[Index1];
 		if (i == TestIndex)
 		{
@@ -2436,7 +2436,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 			return;
 		}
 		FVector Index2Coordinates = VerticesArray[Index2];
-		Index2Coordinates.Y *= -1;
+		//Index2Coordinates.Y *= -1;
 		FVector Index2Normals = NormalsArray[Index2];
 		if (i == TestIndex)
 		{
@@ -2450,7 +2450,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 			return;
 		}
 		FVector Index3Coordinates = VerticesArray[Index3];
-		Index3Coordinates.Y *= -1;
+		//Index3Coordinates.Y *= -1;
 		FVector Index3Normals = NormalsArray[Index3];
 		if (i == TestIndex)
 		{
@@ -2460,7 +2460,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 
 		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index3Coordinates;
 		FVector InterpolatedNormal = BarycentricCoordinates.X * Index1Normals + BarycentricCoordinates.Y * Index2Normals + BarycentricCoordinates.Z * Index3Normals;
-		FVector NewNormal = (1.f / 3.f) * (Index1Normals + Index2Normals + Index3Normals);
+		//FVector NewNormal = (1.f / 3.f) * (Index1Normals + Index2Normals + Index3Normals);
 
 		if (i == TestIndex)
 		{
@@ -2469,7 +2469,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 		}
 
 		TargetVerticesArray.Emplace(PointInTriangle);
-		TargetNormalsArray.Emplace(NewNormal);
+		TargetNormalsArray.Emplace(InterpolatedNormal);
 
 		CoordinatesToSave += FString::SanitizeFloat(PointInTriangle.X) + " " + FString::SanitizeFloat(PointInTriangle.Y) + " " + FString::SanitizeFloat(PointInTriangle.Z) + "\n";
 		NormalsToSave += FString::SanitizeFloat(InterpolatedNormal.X) + " " + FString::SanitizeFloat(InterpolatedNormal.Y) + " " + FString::SanitizeFloat(InterpolatedNormal.Z) + "\n";
@@ -2772,8 +2772,8 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 
 	for (int32 i = 0; i < limit; i++)
 	{
-		if (i % (limit / SamplingRate) == 0)
-		//if (i == 1088)
+		//if (i % (limit / SamplingRate) == 0)
+		if (i == 265 || i == 266 || i == 267)
 		{
 			int32 ColorRange = (255 * i) / limit;
 			FVector TransformedPearVertices = PearTransform.TransformPosition(PearVertices[i]);
@@ -2796,10 +2796,10 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Coordinates[%d] x: %f y: %f z: %f"), i, PepperMappedPoints[i].X, PepperMappedPoints[i].Y, PepperMappedPoints[i].Z));
 			DrawDebugString(GetWorld(), TransformedPepperVertices, FString::FromInt(i), NULL, FColor::Red, 0.1f, false);
-			DrawDebugPoint(GetWorld(), TransformedPepperVertices, 5.f, FColor::Red, false, .1f);
+			//DrawDebugPoint(GetWorld(), TransformedPepperVertices, 5.f, FColor::Red, false, .1f);
 			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			//DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 		}
 	}
 
