@@ -1304,6 +1304,7 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 			{
 				UE_LOG(LogTemp, Warning, TEXT("TestingArray[%d] x: %f y: %f z: %f "), Index, Coordinates.X, Coordinates.Y, Coordinates.Z);
 			}
+			
 			if (!TargetNormalsArray.IsValidIndex(Index))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for TargetNormalsArray at AHandsGameMode::AccessMeshVertices()"), Index);
@@ -2388,7 +2389,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 	TargetVerticesArray.Reserve(ArraySize);
 	TargetNormalsArray.Reserve(ArraySize);
 	
-	int32 TestIndex = 88;
+	int32 TestIndex = 1237;
 
 	FString CoordinatesToSave = "";
 	FString NormalsToSave = "";
@@ -2453,12 +2454,13 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 		FVector Index3Normals = NormalsArray[Index3];
 		if (i == TestIndex)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index2Coordinates[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index3, Index3Coordinates.X, Index3Coordinates.Y, Index3Coordinates.Z);
+			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index3Coordinates[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index3, Index3Coordinates.X, Index3Coordinates.Y, Index3Coordinates.Z);
 			UE_LOG(LogTemp, Warning, TEXT("Triangle %d Index3Normal[%d] x: %f y: %f z: %f at PointCalculationForICP()"), Triangle, Index3, Index3Normals.X, Index3Normals.Y, Index3Normals.Z);
 		}
 
 		FVector PointInTriangle = BarycentricCoordinates.X * Index1Coordinates + BarycentricCoordinates.Y * Index2Coordinates + BarycentricCoordinates.Z * Index3Coordinates;
 		FVector InterpolatedNormal = BarycentricCoordinates.X * Index1Normals + BarycentricCoordinates.Y * Index2Normals + BarycentricCoordinates.Z * Index3Normals;
+		FVector NewNormal = (1.f / 3.f) * (Index1Normals + Index2Normals + Index3Normals);
 
 		if (i == TestIndex)
 		{
@@ -2467,7 +2469,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 		}
 
 		TargetVerticesArray.Emplace(PointInTriangle);
-		TargetNormalsArray.Emplace(InterpolatedNormal);
+		TargetNormalsArray.Emplace(NewNormal);
 
 		CoordinatesToSave += FString::SanitizeFloat(PointInTriangle.X) + " " + FString::SanitizeFloat(PointInTriangle.Y) + " " + FString::SanitizeFloat(PointInTriangle.Z) + "\n";
 		NormalsToSave += FString::SanitizeFloat(InterpolatedNormal.X) + " " + FString::SanitizeFloat(InterpolatedNormal.Y) + " " + FString::SanitizeFloat(InterpolatedNormal.Z) + "\n";
@@ -2484,7 +2486,7 @@ void AHandsGameMode::BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVect
 
 		if (PlatformFile.CreateDirectoryTree(*SaveDirectory))
 		{
-			FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_pear-tesselated_pepper-rotated.txt";
+			FString AbsoluteFilePath = LoadDirectory + "/" + "BlendedMapActualPoints_test.txt";
 			if (!PlatformFile.FileExists(*AbsoluteFilePath))
 			{
 				FFileHelper::SaveStringToFile(CoordinatesToSave, *AbsoluteFilePath);
@@ -2727,16 +2729,16 @@ void AHandsGameMode::SpawnObjectsForVisualization()
 			// spawn the pickup
 			FVector PositionForObject = FVector(50.f, -15.f, 0.f) + RootLocation;
 
-			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, -45.f, 0.f), SpawnParams);
+			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
 			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 
 			PositionForObject = FVector(50.f, 15.f, 0.f) + RootLocation;
 
 			DecisionObject2 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn3, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
-			DecisionObject2->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 			if (DecisionObject2)
 			{
 				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
+				DecisionObject2->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
 			}
 			else
 			{
@@ -2766,12 +2768,12 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 
 	int32 limit = PearVertices.Num();
 
-	int32 SamplingRate = 150;
+	int32 SamplingRate = 10;
 
 	for (int32 i = 0; i < limit; i++)
 	{
-		if (i % limit / SamplingRate == 0)
-		//if (i == 39 || i == 40 || i == 41)
+		if (i % (limit / SamplingRate) == 0)
+		//if (i == 1088)
 		{
 			int32 ColorRange = (255 * i) / limit;
 			FVector TransformedPearVertices = PearTransform.TransformPosition(PearVertices[i]);
@@ -2792,10 +2794,12 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 			DrawDebugLine(GetWorld(), TransformedPearVertices, TransformedPearVertices + TransformedPearTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedPearVertices, TransformedPearVertices + TransformedPearBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Coordinates[%d] x: %f y: %f z: %f"), i, PepperMappedPoints[i].X, PepperMappedPoints[i].Y, PepperMappedPoints[i].Z));
 			DrawDebugString(GetWorld(), TransformedPepperVertices, FString::FromInt(i), NULL, FColor::Red, 0.1f, false);
+			DrawDebugPoint(GetWorld(), TransformedPepperVertices, 5.f, FColor::Red, false, .1f);
 			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+			//DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+			//DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 		}
 	}
 
