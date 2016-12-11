@@ -57,7 +57,10 @@ AHands_Character::AHands_Character()
 	RightPinkyFingerSensorOffset = FVector(1.296994, 1.144543, -0.005556);
 	RightThumbSensorOffset = FVector(2.08541, 1.472764, 0.654292);
 
+	RightIndexKnuckleSensorOffset = FVector(-2.520503, 1.646863, 2.551013);
 	RightMiddleKnuckleSensorOffset = FVector(-2.252283, 1.617367, 0.055583);
+	RightRingKnuckleSensorOffset = FVector(-2.199424, 0.868081, -2.279425);
+	RightPinkyKnuckleSensorOffset = FVector(-1.821449, 0.867593, -4.397741);
 
 	SensorDelayRangeHigh = 0.5;
 
@@ -116,6 +119,8 @@ void AHands_Character::Tick( float DeltaTime )
 
 			if (bAreDPsActive)
 			{
+				// Left Hand
+
 				//UE_LOG(LogTemp, Warning, TEXT("We entered the if statement for AreDPsActive"));
 				//LeftHandWeights.Empty();
 				//LeftHandTransformation.Empty();
@@ -175,40 +180,63 @@ void AHands_Character::Tick( float DeltaTime )
 				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights, bDrawDebugWeightsLeftThumb);
 				DPLeftThumbPosition = NewJointPosition(LeftThumbWeights, LeftThumbTransformationArray, false);
 
-				RightHandWeights.Empty();
+				// Right hand
+
+				/*RightHandWeights.Empty();
 				RightHandTransformation.Empty();
 				AHands_Character::WeightsComputation(RightHandWeights, RightHandTransformation, RightHandPosition);
-				DPRightHandPosition = AHands_Character::NewJointPosition(RightHandWeights, RightHandTransformation, DPVirtualObject);
+				DPRightHandPosition = AHands_Character::NewJointPosition(RightHandWeights, RightHandTransformation, DPVirtualObject);*/
+				WeightsComputation(RightHandPosition, RightHandTransformationArray, RightHandWeights, bDrawDebugWeightsRightHand);
+				DPRightHandPosition = NewJointPosition(RightHandWeights, RightHandTransformationArray, false);
 
-				RightMiddleKnuckleWeights.Empty();
+				/*RightMiddleKnuckleWeights.Empty();
 				RightMiddleKnuckleTransformation.Empty();
 				AHands_Character::WeightsComputation(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, RightMiddleKnucklePosition);
-				DPRightMiddleKnucklePosition = AHands_Character::NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, DPVirtualObject);
+				DPRightMiddleKnucklePosition = AHands_Character::NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, DPVirtualObject);*/
+				WeightsComputation(RightMiddleKnucklePosition, RightMiddleKnuckleTransformationArray, RightMiddleKnuckleWeights, bDrawDebugWeightsRightKnuckle);
+				DPRightMiddleKnucklePosition = NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformationArray, false);
 
-				RightIndexFingerWeights.Empty();
+				/*RightIndexFingerWeights.Empty();
 				RightIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(RightIndexFingerWeights, RightIndexFingerTransformation, RightIndexFingerPosition);
-				DPRightIndexFingerPosition = AHands_Character::NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformation, DPVirtualObject);
+				DPRightIndexFingerPosition = AHands_Character::NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(RightIndexFingerPosition, RightIndexFingerTransformationArray, RightIndexFingerWeights, bDrawDebugWeightsRightIndex);
+				DPRightIndexFingerPosition = NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformationArray, bDrawDebugJointPositionsRightIndex);
+				WeightsComputation(RightIndexKnucklePosition, RightIndexKnuckleTransformationArray, RightIndexKnuckleWeights, bDrawDebugWeightsRightKnuckle);
+				DPRightIndexKnucklePosition = NewJointPosition(RightIndexKnuckleWeights, RightIndexKnuckleTransformationArray, false);
 
-				RightMiddleFingerWeights.Empty();
+				/*RightMiddleFingerWeights.Empty();
 				RightMiddleFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(RightMiddleFingerWeights, RightMiddleFingerTransformation, RightMiddleFingerPosition);
-				DPRightMiddleFingerPosition = AHands_Character::NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformation, DPVirtualObject);
+				DPRightMiddleFingerPosition = AHands_Character::NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(RightMiddleFingerPosition, RightMiddleFingerTransformationArray, RightMiddleFingerWeights, bDrawDebugWeightsRightMiddle);
+				DPRightMiddleFingerPosition = NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformationArray, false);
 
-				RightRingFingerWeights.Empty();
+				/*RightRingFingerWeights.Empty();
 				RightRingFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(RightRingFingerWeights, RightRingFingerTransformation, RightRingFingerPosition);
-				DPRightRingFingerPosition = AHands_Character::NewJointPosition(RightRingFingerWeights, RightRingFingerTransformation, DPVirtualObject);
+				DPRightRingFingerPosition = AHands_Character::NewJointPosition(RightRingFingerWeights, RightRingFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(RightRingFingerPosition, RightRingFingerTransformationArray, RightRingFingerWeights, bDrawDebugWeightsRightRing);
+				DPRightRingFingerPosition = NewJointPosition(RightRingFingerWeights, RightRingFingerTransformationArray, false);
+				WeightsComputation(RightRingKnucklePosition, RightRingKnuckleTransformationArray, RightRingKnuckleWeights, bDrawDebugWeightsRightKnuckle);
+				DPRightRingKnucklePosition = NewJointPosition(RightRingKnuckleWeights, RightRingKnuckleTransformationArray, false);
 
-				RightPinkyFingerWeights.Empty();
+
+				/*RightPinkyFingerWeights.Empty();
 				RightPinkyFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(RightPinkyFingerWeights, RightPinkyFingerTransformation, RightPinkyFingerPosition);
-				DPRightPinkyFingerPosition = AHands_Character::NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformation, DPVirtualObject);
+				DPRightPinkyFingerPosition = AHands_Character::NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformation, DPVirtualObject);*/
+				WeightsComputation(RightPinkyFingerPosition, RightPinkyFingerTransformationArray, RightPinkyFingerWeights, bDrawDebugWeightsRightPinky);
+				DPRightPinkyFingerPosition = NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformationArray, false);
+				WeightsComputation(RightPinkyKnucklePosition, RightPinkyKnuckleTransformationArray, RightPinkyKnuckleWeights, bDrawDebugWeightsRightKnuckle);
+				DPRightPinkyKnucklePosition = NewJointPosition(RightPinkyKnuckleWeights, RightPinkyKnuckleTransformationArray, false);
 
-				RightThumbWeights.Empty();
+				/*RightThumbWeights.Empty();
 				RightThumbTransformation.Empty();
 				AHands_Character::WeightsComputation(RightThumbWeights, RightThumbTransformation, RightThumbPosition);
-				DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);
+				DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);*/
+				WeightsComputation(RightThumbPosition, RightThumbTransformationArray, RightThumbWeights, bDrawDebugWeightsRightThumb);
+				DPRightThumbPosition = NewJointPosition(RightThumbWeights, RightThumbTransformationArray, false);
 			}
 
 
@@ -372,7 +400,14 @@ void AHands_Character::RightHandMovement(float ValueX)
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightHandPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}
 
+	// Set the knuckle position taking into consideration the sensor offset
+	FVector RightIndexKnuckleWithOffset = ApplySensorOffset(RectifiedRightHandPosition, RightIndexKnuckleSensorOffset, RightHandOrientation);
+	RightIndexKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(RightIndexKnuckleWithOffset);
 	RightMiddleKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightHandPosition, RightMiddleKnuckleSensorOffset, RightHandOrientation));
+	FVector RightRingKnuckleWithOffset = ApplySensorOffset(RectifiedRightHandPosition, RightRingKnuckleSensorOffset, RightHandOrientation);
+	RightRingKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(RightRingKnuckleWithOffset);
+	FVector RightPinkyKnuckleWithOffset = ApplySensorOffset(RectifiedRightHandPosition, RightPinkyKnuckleSensorOffset, RightHandOrientation);
+	RightPinkyKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(RightPinkyKnuckleWithOffset);
 }
 
 void AHands_Character::RightIndexFingerMovement(float ValueX)
@@ -394,7 +429,7 @@ void AHands_Character::RightIndexFingerMovement(float ValueX)
 		RightIndexFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightIndexFingerPosition, FVector(0.f,0.f,0.f), RightIndexFingerOrientation));
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightIndexFingerPosition, 5.0, FColor(0, 255, 0), false, 0.1);
 		RightIndexFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightIndexFingerPosition, RightIndexFingerSensorOffset, RightIndexFingerOrientation));
-		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightIndexFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
+		//if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightIndexFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}	
 }
 
@@ -417,7 +452,7 @@ void AHands_Character::RightMiddleFingerMovement(float ValueX)
 		RightMiddleFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightMiddleFingerPosition, FVector(0.f,0.f,0.f), RightMiddleFingerOrientation));
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightMiddleFingerPosition, 5.0, FColor(0, 255, 0), false, 0.1);
 		RightMiddleFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightMiddleFingerPosition, RightMiddleFingerSensorOffset, RightMiddleFingerOrientation));
-		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightMiddleFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
+		//if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightMiddleFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}	
 }
 
@@ -440,7 +475,7 @@ void AHands_Character::RightRingFingerMovement(float ValueX)
 		RightRingFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightRingFingerPosition, FVector(0.f,0.f,0.f), RightRingFingerOrientation));
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightRingFingerPosition, 5.0, FColor(0, 255, 0), false, 0.1);
 		RightRingFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightRingFingerPosition, RightRingFingerSensorOffset, RightRingFingerOrientation));
-		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightRingFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
+		//if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightRingFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}	
 }
 
@@ -463,7 +498,7 @@ void AHands_Character::RightPinkyFingerMovement(float ValueX)
 		RightPinkyFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightPinkyFingerPosition, FVector(0.f,0.f,0.f), RightPinkyFingerOrientation));
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightPinkyFingerPosition, 5.0, FColor(0, 255, 0), false, 0.1);
 		RightPinkyFingerPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightPinkyFingerPosition, RightPinkyFingerSensorOffset, RightPinkyFingerOrientation));
-		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightPinkyFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
+		//if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightPinkyFingerPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}
 }
 
@@ -486,7 +521,7 @@ void AHands_Character::RightThumbMovement(float ValueX)
 		RightThumbPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightThumbPosition, FVector(0.f,0.f,0.f), RightThumbOrientation));
 		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightThumbPosition, 5.0, FColor(0, 255, 0), false, 0.1);
 		RightThumbPosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedRightThumbPosition, RightThumbSensorOffset, RightThumbOrientation));
-		if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightThumbPosition, 5.0, FColor(255, 0, 0), false, 0.1);
+		//if (bDrawRightHandPoints) DrawDebugPoint(GetWorld(), RightThumbPosition, 5.0, FColor(255, 0, 0), false, 0.1);
 	}	
 }
 
@@ -2039,6 +2074,19 @@ FRotator AHands_Character::GetRightThumbOrientation()
 
 // Functions to access the Right knuckles P & O
 
+FVector AHands_Character::GetRightIndexKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPRightIndexKnucklePosition;
+	}
+	else
+	{
+		return RightIndexKnucklePosition;
+	}
+}
+
 FVector AHands_Character::GetRightMiddleKnucklePosition()
 {
 	//if (false)
@@ -2049,6 +2097,32 @@ FVector AHands_Character::GetRightMiddleKnucklePosition()
 	else
 	{
 		return RightMiddleKnucklePosition;
+	}
+}
+
+FVector AHands_Character::GetRightRingKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPRightRingKnucklePosition;
+	}
+	else
+	{
+		return RightRingKnucklePosition;
+	}
+}
+
+FVector AHands_Character::GetRightPinkyKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPRightPinkyKnucklePosition;
+	}
+	else
+	{
+		return RightPinkyKnucklePosition;
 	}
 }
 
