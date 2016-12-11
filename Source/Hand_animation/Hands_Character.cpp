@@ -37,12 +37,16 @@ AHands_Character::AHands_Character()
 	// Left hand sensors offset
 	LeftHandSensorOffset = FVector(-10.581812, -2.98531, 0.622225);
 	LeftIndexFingerSensorOffset = FVector(-1.561717, -1.282756, 0.064839);
-	LeftMiddleFingerSensorOffset = FVector(-2.739685, -0.870843, 0.165751);
+	LeftMiddleFingerSensorOffset = FVector(-2.739685, -0.870843, -0.165751);
 	LeftRingFingerSensorOffset = FVector(-1.81612, -1.565517, 0.065366);
 	LeftPinkyFingerSensorOffset = FVector(-1.296994, -1.144543, 0.005556);
 	LeftThumbSensorOffset = FVector(-2.08541, -1.472764, -0.654292);
 
+	LeftIndexKnuckleSensorOffset = FVector(2.520503, -1.646863, -2.551013);
 	LeftMiddleKnuckleSensorOffset = FVector(2.252283, -1.617367, -0.055583);
+	LeftRingKnuckleSensorOffset = FVector(2.199424, -0.868081, 2.279425);
+	LeftPinkyKnuckleSensorOffset = FVector(1.821449, -0.867593, 4.397741);
+
 	
 	//LeftHandSensorOffset = FVector(0, -3.5, 0);
 	RightHandSensorOffset = FVector(10.581812, 2.98531, -0.622225);
@@ -127,6 +131,9 @@ void AHands_Character::Tick( float DeltaTime )
 				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
 				DPLeftMiddleKnucklePosition = NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformationArray, false);
 
+				WeightsComputation(LeftIndexKnucklePosition, LeftIndexKnuckleTransformationArray, LeftIndexKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
+				DPLeftIndexKnucklePosition = NewJointPosition(LeftIndexKnuckleWeights, LeftIndexKnuckleTransformationArray, false);
+
 				/*LeftIndexFingerWeights.Empty();
 				LeftIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
@@ -141,12 +148,18 @@ void AHands_Character::Tick( float DeltaTime )
 				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights, bDrawDebugWeightsLeftMiddle);
 				DPLeftMiddleFingerPosition = NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray, false);
 
+				WeightsComputation(LeftRingKnucklePosition, LeftRingKnuckleTransformationArray, LeftRingKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
+				DPLeftRingKnucklePosition = NewJointPosition(LeftRingKnuckleWeights, LeftRingKnuckleTransformationArray, false);
+
 				/*LeftRingFingerWeights.Empty();
 				LeftRingFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftRingFingerWeights, LeftRingFingerTransformation, LeftRingFingerPosition);
 				DPLeftRingFingerPosition = AHands_Character::NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights, bDrawDebugWeightsLeftRing);
 				DPLeftRingFingerPosition = NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformationArray, false);
+
+				WeightsComputation(LeftPinkyKnucklePosition, LeftPinkyKnuckleTransformationArray, LeftPinkyKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
+				DPLeftPinkyKnucklePosition = NewJointPosition(LeftPinkyKnuckleWeights, LeftPinkyKnuckleTransformationArray, false);
 
 				/*LeftPinkyFingerWeights.Empty();
 				LeftPinkyFingerTransformation.Empty();
@@ -504,7 +517,13 @@ void AHands_Character::LeftHandMovement(float ValueX)
 	}
 
 	// Set the knuckle position taking into consideration the sensor offset
+	FVector LeftIndexKnuckleWithOffset = ApplySensorOffset(RectifiedLeftHandPosition, LeftIndexKnuckleSensorOffset, LeftHandOrientation);
+	LeftIndexKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(LeftIndexKnuckleWithOffset);
 	LeftMiddleKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(ApplySensorOffset(RectifiedLeftHandPosition, LeftMiddleKnuckleSensorOffset, LeftHandOrientation));
+	FVector LeftRingKnuckleWithOffset = ApplySensorOffset(RectifiedLeftHandPosition, LeftRingKnuckleSensorOffset, LeftHandOrientation);
+	LeftRingKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(LeftRingKnuckleWithOffset);
+	FVector LeftPinkyKnuckleWithOffset = ApplySensorOffset(RectifiedLeftHandPosition, LeftPinkyKnuckleSensorOffset, LeftHandOrientation);
+	LeftPinkyKnucklePosition = MyMesh->ComponentToWorld.TransformPosition(LeftPinkyKnuckleWithOffset);
 }
 
 void AHands_Character::LeftIndexFingerMovement(float ValueX)
@@ -1863,6 +1882,19 @@ FRotator AHands_Character::GetLeftThumbOrientation()
 
 // Functions to access the left knuckles P & O
 
+FVector AHands_Character::GetLeftIndexKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftIndexKnucklePosition;
+	}
+	else
+	{
+		return LeftIndexKnucklePosition;
+	}
+}
+
 FVector AHands_Character::GetLeftMiddleKnucklePosition()
 {
 	//if (false)
@@ -1873,6 +1905,32 @@ FVector AHands_Character::GetLeftMiddleKnucklePosition()
 	else
 	{
 		return LeftMiddleKnucklePosition;
+	}
+}
+
+FVector AHands_Character::GetLeftRingKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftRingKnucklePosition;
+	}
+	else
+	{
+		return LeftRingKnucklePosition;
+	}
+}
+
+FVector AHands_Character::GetLeftPinkyKnucklePosition()
+{
+	//if (false)
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftPinkyKnucklePosition;
+	}
+	else
+	{
+		return LeftPinkyKnucklePosition;
 	}
 }
 
