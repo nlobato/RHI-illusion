@@ -259,47 +259,77 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawOriginalMeshPoints;
 
+	// Green points represent sensor location, red points represent their offset position
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawRightHandPoints;
 
+	// Green points represent sensor location, red points represent their offset position
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawLeftHandPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	// Left hand & fingers weights
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftHand;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftKnuckle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftIndex;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugJointPositionsLeftIndex;
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugWeightsRightHand;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugWeightsRightKnuckle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugWeightsRightIndex;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugJointPositionsRightIndex;
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftMiddle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftRing;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftPinky;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftThumb;
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	
+	// Right hand & fingers weights
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightHand;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightKnuckle;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightIndex;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
 	bool bDrawDebugWeightsRightMiddle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
 	bool bDrawDebugWeightsRightRing;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
 	bool bDrawDebugWeightsRightPinky;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
 	bool bDrawDebugWeightsRightThumb;
+
+	// Left hand & fingers position vectors
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftHandPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftKnucklePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftIndexPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftMiddlePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftRingPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftPinkyPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftThumbPosition;
+
+	// Right hand & fingers position vectors
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightHandPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightKnucklePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightIndexPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightMiddlePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightRingPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightPinkyPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightThumbPosition;
 
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bSamplePoints;
