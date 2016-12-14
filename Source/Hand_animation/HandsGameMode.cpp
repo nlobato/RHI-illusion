@@ -559,8 +559,8 @@ void AHandsGameMode::InitializeArrays()
 		else
 		{
 			// Read the text file with the dense correspondence indices
-			/*FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
-			ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);*/
+			FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
+			ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
 
 			// Read the Blended Intrinsic Maps text file 
 			FString BlendedIntrinsicMapsFilePath = LoadDirectory + "/" + BlendedIntrinsicMapsFileName;
@@ -602,8 +602,7 @@ void AHandsGameMode::InitializeArrays()
 				// The mapping between te UE4 asset indices and the obj indices is done to use them later when calculating the blended correspondences
 
 				//AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshVerticesFromUE4Asset, OriginalMeshNormalsFromUE4Asset, OriginalMeshTangentsFromUE4Asset, OriginalMeshBinormalsFromUE4Asset,OriginalMeshAsset2ObjIndicesMap);
-				AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVertices, *PtrOriginalMeshNormals, OriginalMeshAsset2ObjIndicesMap);
-				TangentBinormalCalculation(*PtrOriginalMeshVertices, *PtrOriginalMeshNormals, OriginalMeshTriangleIndicesFromObjFile, *PtrOriginalMeshTangents, *PtrOriginalMeshBinormals, TangentIndicesMap);
+				AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVertices, *PtrOriginalMeshNormals, *PtrOriginalMeshTangents, *PtrOriginalMeshBinormals);
 				UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));
 			}
 			else
@@ -616,12 +615,14 @@ void AHandsGameMode::InitializeArrays()
 			{			
 				//AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshVerticesFromUE4Asset, SecondMeshNormalsFromUE4Asset, SecondMeshTangentsFromUE4Asset, SecondMeshBinormalsFromUE4Asset, SecondMeshAsset2ObjIndicesMap);
 				
-				TArray<FVector> SecondMeshVerticesFromAsset;
-				TArray<FVector> SecondMeshNormalsFromsAsset;
+				//TArray<FVector> SecondMeshVerticesFromAsset;
+				//TArray<FVector> SecondMeshNormalsFromsAsset;
 				
-				AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshVerticesFromAsset, SecondMeshNormalsFromsAsset, SecondMeshAsset2ObjIndicesMap);
+				/*AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshVerticesFromAsset, SecondMeshNormalsFromsAsset, SecondMeshAsset2ObjIndicesMap);
 				BlendedMapData(SecondMeshVerticesFromAsset, SecondMeshNormalsFromsAsset, *PtrSecondMeshVertices, *PtrSecondMeshNormals);
-				TangentBinormalCalculation(*PtrSecondMeshVertices, *PtrSecondMeshNormals, TangentIndicesMap, *PtrSecondMeshTangents, *PtrSecondMeshBinormals);
+				TangentBinormalCalculation(*PtrSecondMeshVertices, *PtrSecondMeshNormals, TangentIndicesMap, *PtrSecondMeshTangents, *PtrSecondMeshBinormals);*/
+				
+				AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVertices, *PtrSecondMeshNormals, *PtrSecondMeshTangents, *PtrSecondMeshBinormals);
 
 				UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of second mesh"));
 			}
@@ -982,22 +983,67 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 	LODModel.IndexBuffer.GetCopy(IndicesFromBuffer);
 	int32 NumIndices = Indices.Num();
 	
-	TargetVerticesArray.Reserve(NumIndices);
-	TargetNormalsArray.Reserve(NumIndices);
-	TargetTangentsArray.Reserve(NumIndices);
-	TargetBinormalsArray.Reserve(NumIndices);
+	TargetVerticesArray.Reserve(ArrayFromObj.Num());
+	TargetNormalsArray.Reserve(ArrayFromObj.Num());
+	TargetTangentsArray.Reserve(ArrayFromObj.Num());
+	TargetBinormalsArray.Reserve(ArrayFromObj.Num());
+
+	TargetVerticesArray.AddUninitialized(ArrayFromObj.Num());
+	TargetNormalsArray.AddUninitialized(ArrayFromObj.Num());
+	TargetTangentsArray.AddUninitialized(ArrayFromObj.Num());
+	TargetBinormalsArray.AddUninitialized(ArrayFromObj.Num());
+
+	TArray<FVector> NonRepeatedCoordinates;
+	NonRepeatedCoordinates.Reserve(ArrayFromObj.Num());
+
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Num indices: %d"), NumIndices));
 	for (int32 i = 0; i < NumIndices; i++)
 	{
 		FVector Coordinates = PositionVertexBuffer.VertexPosition(Indices[i]);
-		if (!TargetVerticesArray.Contains(Coordinates))
+		int32 Index;
+		FVector Tangent;
+		if (!NonRepeatedCoordinates.Contains(Coordinates))
 		{
-			TargetVerticesArray.Emplace(Coordinates);
-			TargetNormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentZ(Indices[i]));
-			//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-			TargetBinormalsArray.Emplace(LODModel.VertexBuffer.VertexTangentY(Indices[i]));
-			FVector Tangent = FVector::CrossProduct(TargetNormalsArray.Last().GetSafeNormal(), TargetBinormalsArray.Last().GetSafeNormal());
-			TargetTangentsArray.Emplace(Tangent);
+			NonRepeatedCoordinates.Emplace(Coordinates);
+			
+			if (!ArrayFromObj.Contains(Coordinates))
+			{
+				FVector CoordinatesCorrection = FVector(Coordinates.X, Coordinates.Y * (-1), Coordinates.Z);
+				if (!ArrayFromObj.Contains(CoordinatesCorrection))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Asset coordinates at Indices[%d] = %d, x: %f y: %f z: %f not found on Obj. At AHandsGameMode::AccessMeshVertices()"), 
+						i, Indices[i], Coordinates.X, Coordinates.Y, Coordinates.Z);
+					return;
+				}
+				Index = ArrayFromObj.Find(CoordinatesCorrection);
+				if (!TargetVerticesArray.IsValidIndex(Index))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for PruebaArray at AHandsGameMode::AccessMeshVertices()"), Index);
+					return;
+				}
+				TargetVerticesArray[Index] = Coordinates;
+				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
+				//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]);
+				Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
+				TargetTangentsArray[Index] = Tangent;
+				
+			}
+			else
+			{
+				Index = ArrayFromObj.Find(Coordinates);
+				if (!TargetVerticesArray.IsValidIndex(Index))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Index %d not valid for PruebaArray at AHandsGameMode::AccessMeshVertices()"), Index);
+					return;
+				}
+				TargetVerticesArray[Index] = Coordinates;
+				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
+				//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
+				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]);
+				Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
+				TargetTangentsArray[Index] = Tangent;
+			}
 		}
 	}
 	
@@ -1331,13 +1377,13 @@ void AHandsGameMode::TangentBinormalCalculation(TArray<FVector>& VerticesArray, 
 	TargetBinormalsArray.AddUninitialized(ArraySize);
 	TangentIndices.AddUninitialized(ArraySize);
 
-	TArray<FVector>& Triangles = OriginalMeshTriangleIndicesFromObjFile;	
+	//TArray<FVector>& Triangles = OriginalMeshTriangleIndicesFromObjFile;	
 	TArray<int32> RepeatedIndices;
 	int32 contar = 0;
 
-	for (int32 i = 0; i < Triangles.Num(); i++)
+	for (int32 i = 0; i < TrianglesFromObj.Num(); i++)
 	{
-		FVector TriangleVertices = Triangles[i];
+		FVector TriangleVertices = TrianglesFromObj[i];
 		int32 Index1 = TriangleVertices.X - 1;
 		int32 Index2 = TriangleVertices.Y - 1;
 		int32 Index3 = TriangleVertices.Z - 1;
@@ -1347,7 +1393,7 @@ void AHandsGameMode::TangentBinormalCalculation(TArray<FVector>& VerticesArray, 
 
 		if (!VerticesArray.IsValidIndex(Index1) || !VerticesArray.IsValidIndex(Index2) || !VerticesArray.IsValidIndex(Index3))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Invalid Index for Vertices Array, Index0: %d Index1: %d Index: %d. At AHandsGameMode::TangentComputation()"), Index1, Index2, Index3);
+			UE_LOG(LogTemp, Warning, TEXT("Invalid Index for Vertices Array, Index0: %d Index1: %d Index: %d, Triangle %d At AHandsGameMode::TangentComputation()"), Index1, Index2, Index3, i);
 			return;
 		}
 		if (!RepeatedIndices.Contains(Index1))
@@ -1357,7 +1403,7 @@ void AHandsGameMode::TangentBinormalCalculation(TArray<FVector>& VerticesArray, 
 			TangentIndices[Index1] = Index2;
 			if (!NormalsArray.IsValidIndex(Index1))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid &d for NormalsArray. At AHandsGameMode::TangentComputation()"), Index1);
+				UE_LOG(LogTemp, Warning, TEXT("Invalid %d for NormalsArray. At AHandsGameMode::TangentComputation()"), Index1);
 				return;
 			}
 			FVector Normal = NormalsArray[Index1];
