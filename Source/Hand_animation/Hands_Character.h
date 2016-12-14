@@ -202,7 +202,10 @@ protected:
 	TArray<float> RightPinkyFingerWeights;
 	TArray<float> RightThumbWeights;
 
+	TArray<float> RightIndexKnuckleWeights;
 	TArray<float> RightMiddleKnuckleWeights;
+	TArray<float> RightRingKnuckleWeights;
+	TArray<float> RightPinkyKnuckleWeights;
 
 	TArray<float> LeftHandTransformation;
 	TArray<float> LeftIndexFingerTransformation;
@@ -241,7 +244,10 @@ protected:
 	TArray<FVector> RightPinkyFingerTransformationArray;
 	TArray<FVector> RightThumbTransformationArray;
 
+	TArray<FVector> RightIndexKnuckleTransformationArray;
 	TArray<FVector> RightMiddleKnuckleTransformationArray;
+	TArray<FVector> RightRingKnuckleTransformationArray;
+	TArray<FVector> RightPinkyKnuckleTransformationArray;
 	
 	/** Number of descriptor points */
 	UPROPERTY(EditAnywhere, Category = "Vertices")
@@ -253,31 +259,77 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawOriginalMeshPoints;
 
+	// Green points represent sensor location, red points represent their offset position
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawRightHandPoints;
 
+	// Green points represent sensor location, red points represent their offset position
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bDrawLeftHandPoints;
 
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	// Left hand & fingers weights
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftHand;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftKnuckle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftIndex;
-	UPROPERTY(EditAnywhere, Category = "Debug")
-	bool bDrawDebugJointPositionsLeftIndex;
-
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftMiddle;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftRing;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftPinky;
-	UPROPERTY(EditAnywhere, Category = "Debug")
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
 	bool bDrawDebugWeightsLeftThumb;
+	
+	// Right hand & fingers weights
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightHand;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightKnuckle;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightIndex;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightMiddle;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightRing;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightPinky;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugWeightsRightThumb;
 
+	// Left hand & fingers position vectors
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftHandPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftKnucklePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftIndexPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftMiddlePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftRingPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftPinkyPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Left Hand")
+	bool bDrawDebugLeftThumbPosition;
 
+	// Right hand & fingers position vectors
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightHandPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightKnucklePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightIndexPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightMiddlePosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightRingPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightPinkyPosition;
+	UPROPERTY(EditAnywhere, Category = "Debug|Right Hand")
+	bool bDrawDebugRightThumbPosition;
 
 	UPROPERTY(EditAnywhere, Category = "Debug")
 	bool bSamplePoints;
@@ -480,11 +532,29 @@ protected:
 
 	// Right hand knuckles
 
+	/* Middle finger knuckle P & O*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector RightIndexKnucklePosition;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector DPRightIndexKnucklePosition;
+
 	/* Middle Index finger knuckle P & O*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FVector RightMiddleKnucklePosition;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FVector DPRightMiddleKnucklePosition;
+
+	/* Ring finger knuckle P & O*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector RightRingKnucklePosition;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector DPRightRingKnucklePosition;
+
+	/* Pinky finger knuckle P & O*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector RightPinkyKnucklePosition;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FVector DPRightPinkyKnucklePosition;
 
 protected:
 
@@ -502,56 +572,49 @@ protected:
 
 	/** Position of the left hand sensor measured from the skeletal mesh hand bone position */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
-	FVector LeftHandSensorOffset;
-	
+	FVector LeftHandSensorOffset;	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftIndexFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftMiddleFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftRingFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftPinkyFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftThumbSensorOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftMiddleKnuckleSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftIndexKnuckleSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftRingKnuckleSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector LeftPinkyKnuckleSensorOffset;
 	
 	/** Position of the left hand sensor measured from the skeletal mesh hand bone position */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightHandSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightIndexFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightMiddleFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightRingFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightPinkyFingerSensorOffset;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightThumbSensorOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
+	FVector RightIndexKnuckleSensorOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
 	FVector RightMiddleKnuckleSensorOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
+	FVector RightRingKnuckleSensorOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Calibration", meta = (BlueprintProtected = "true"))
+	FVector RightPinkyKnuckleSensorOffset;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Timer", meta = (BlueprintProtected = "true"))
 	float SensorDelayRangeLow;
@@ -700,7 +763,16 @@ public:
 	FRotator GetRightThumbOrientation();	
 	
 	UFUNCTION(BlueprintPure, Category = "Hand")
-	FVector GetRightMiddleKnucklePosition();
+	FVector GetRightIndexKnucklePosition();
+
+	UFUNCTION(BlueprintPure, Category = "Hand")
+	FVector GetRightMiddleKnucklePosition();	
+	
+	UFUNCTION(BlueprintPure, Category = "Hand")
+	FVector GetRightRingKnucklePosition();
+
+	UFUNCTION(BlueprintPure, Category = "Hand")
+	FVector GetRightPinkyKnucklePosition();
 
 	//
 

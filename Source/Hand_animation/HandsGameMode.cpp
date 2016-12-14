@@ -2730,7 +2730,7 @@ void AHandsGameMode::SpawnObjectsForVisualization()
 			FVector PositionForObject = FVector(50.f, -15.f, 0.f) + RootLocation;
 
 			DecisionObject1 = World->SpawnActor<AInteractionObject>(MyCharacter->ObjectToSpawn4, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
-			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
+			DecisionObject1->OurVisibleComponent->SetRelativeScale3D(FVector(2.5f, 2.5f, 2.5f));
 
 			PositionForObject = FVector(50.f, 15.f, 0.f) + RootLocation;
 
@@ -2738,7 +2738,7 @@ void AHandsGameMode::SpawnObjectsForVisualization()
 			if (DecisionObject2)
 			{
 				DecisionObject2->OurVisibleComponent->SetStaticMesh(SecondMesh);
-				DecisionObject2->OurVisibleComponent->SetRelativeScale3D(FVector(2.f, 2.f, 2.f));
+				DecisionObject2->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 			}
 			else
 			{
@@ -2768,12 +2768,12 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 
 	int32 limit = PearVertices.Num();
 
-	int32 SamplingRate = 10;
+	int32 SamplingRate = 100;
 
 	for (int32 i = 0; i < limit; i++)
 	{
-		//if (i % (limit / SamplingRate) == 0)
-		if (i == 265 || i == 266 || i == 267)
+		if (i % (limit / SamplingRate) == 0)
+		//if (i == 1265)
 		{
 			int32 ColorRange = (255 * i) / limit;
 			FVector TransformedPearVertices = PearTransform.TransformPosition(PearVertices[i]);
@@ -2794,7 +2794,8 @@ void AHandsGameMode::DrawLines(UStaticMeshComponent* PearMeshComponent, UStaticM
 			DrawDebugLine(GetWorld(), TransformedPearVertices, TransformedPearVertices + TransformedPearTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedPearVertices, TransformedPearVertices + TransformedPearBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
 
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Coordinates[%d] x: %f y: %f z: %f"), i, PepperMappedPoints[i].X, PepperMappedPoints[i].Y, PepperMappedPoints[i].Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("BigPearCoordinates[%d] x: %f y: %f z: %f"), i, TransformedPearNormals.X, TransformedPearNormals.Y, TransformedPearNormals.Z));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("SmallPearCoordinates[%d] x: %f y: %f z: %f"), i, TransformedPepperNormals.X, TransformedPepperNormals.Y, TransformedPepperNormals.Z));
 			DrawDebugString(GetWorld(), TransformedPepperVertices, FString::FromInt(i), NULL, FColor::Red, 0.1f, false);
 			//DrawDebugPoint(GetWorld(), TransformedPepperVertices, 5.f, FColor::Red, false, .1f);
 			DrawDebugLine(GetWorld(), TransformedPepperVertices, TransformedPepperVertices + TransformedPepperNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
