@@ -1461,7 +1461,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedVertices x: %f y: %f z: %f"), TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
 
 			Distance.Emplace(FVector::Dist(p_j, TransformedVertices));
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Distance: %f"), Distance.Last()));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Distance: %f"), Distance.Last()));
 			if (!Normals.IsValidIndex(i))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Invalid index while calculating 'TransformedNormals' on WeightComputation()"));
@@ -1500,7 +1500,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("components Distance: %f"), TransformationComponents.Last().Size()));
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("components Distance: %f"), TransformationComponents.Last().Size()));
 
 			if (bDrawOriginalMeshPoints)
 			{
