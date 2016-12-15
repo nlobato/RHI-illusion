@@ -232,7 +232,7 @@ void AHandsGameMode::DPExperimentFirstPartOver()
 		}
 		else if (bIsSizeToChange)
 		{
-			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn3);
 			ChangeSizeObject();
 		}
 	}
@@ -539,22 +539,19 @@ void AHandsGameMode::InitializeArrays()
 		
 		if (bIsSizeToChange)
 		{
-			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
-			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
+			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
+			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
 			
+			// Read the text file with the OBJ coordinates and triangle indices for the first mesh
+			FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
+			ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+
 			if (InteractionObjectForMeshChange)
 			{
 				AccessMeshVertices(OneMesh, OriginalMeshVerticesCoordinatesFromObjFile, *PtrOriginalMeshVertices, *PtrOriginalMeshNormals, *PtrOriginalMeshTangents, *PtrOriginalMeshBinormals);
 				
 				UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of Original mesh"));
-			}
-			
-			if (SecondMesh != nullptr || SecondMesh->RenderData != nullptr)
-			{
-				AccessMeshVertices(SecondMesh, SecondMeshVerticesCoordinatesFromObjFile, *PtrSecondMeshVertices, *PtrSecondMeshNormals, *PtrSecondMeshTangents, *PtrSecondMeshBinormals);
-				
-				UE_LOG(LogTemp, Warning, TEXT("Succesfully accesed the vertices of second mesh"));
-			}			
+			}						
 		}
 		else
 		{

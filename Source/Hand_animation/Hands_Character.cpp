@@ -1234,8 +1234,15 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 
 	int32 SamplingRate = 5;
 
-	//UE_LOG(LogTemp, Warning, TEXT("Vertices.Num() %d at DrawDescriptionPoints()"), Vertices.Num());
-	int32 limit = ICPIndex.Num();
+	int32 limit;
+	if (bHasObjectMeshChanged)
+	{
+		limit = ICPIndex.Num();
+	}
+	else
+	{
+		limit = Vertices.Num();
+	}
 	for (int32 i = 0; i < limit; i++)
 	{
 		//int32 i = 500;
@@ -1245,27 +1252,32 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 		//if (i >= Test_index && i < upper_limit)
 		{
 
-			int32 NewIndex = ICPIndex[i];
+			FVector TransformedVertices;
+			FVector TransformedNormals;
+			FVector TransformedTangents;
+			FVector TransformedBinormals;
 
-			/*FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();*/
+			if (bHasObjectMeshChanged)
+			{
+				int32 NewIndex = ICPIndex[i];
 
-			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[NewIndex]);
-			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[NewIndex]).GetSafeNormal();
-			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[NewIndex]).GetSafeNormal();
-			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[NewIndex]).GetSafeNormal();
+				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[NewIndex]);
+				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[NewIndex]).GetSafeNormal();
+				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[NewIndex]).GetSafeNormal();
+				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[NewIndex]).GetSafeNormal();
 
-			/*GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Vertices[%d] x: %f y: %f z: %f"), i, TransformedVertices.X, TransformedVertices.Y, TransformedVertices.Z));
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Normals[%d] x: %f y: %f z: %f"), i, TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Tangents[%d] x: %f y: %f z: %f"), i, TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
-			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Binormals[%d] x: %f y: %f z: %f"), i, TransformedBinormals.X, TransformedBinormals.Y, TransformedBinormals.Z));*/
+				DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(NewIndex), NULL, FColor::Red, .1f, false);
+			}
+			else
+			{
+				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
 
+				DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Red, .1f, false);
+			}	
 
-
-			//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 0, 255), false, -1);
-			DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(NewIndex), NULL, FColor::Red, .1f, false);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
 			DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
@@ -1659,169 +1671,87 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 
 	float sum_wbiprime = 0;
 	
-	int32 Test_index = (2284 / 5) * 0;
-	int32 upper_limit = Test_index + 1;
-
-	int32 SamplingRate = 5;
-
 	int32 j = 0;
 
-	if (bHasObjectSizeChanged || bHasObjectMeshChanged)
+	int32 limit;
+	if (bHasObjectMeshChanged) limit = ICPIndices.Num();
+	else limit = Vertices.Num();
+	for (int32 i = 0; i < limit; i++)
 	{
-
-		int32 limit = ICPIndices.Num();
-		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
-		for (int32 i = 0; i < limit; i++)
+		//j = i;
+		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
+		if (Module == 0)
+		//if (i >= Test_index && i < upper_limit)
 		{
-			//j = i;
-			int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-			if (Module == 0)
-			//if (i >= Test_index && i < upper_limit)
+			
+			if (!w_biprime.IsValidIndex(j))
 			{
-				
-				if (!w_biprime.IsValidIndex(j))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
-					return FVector(0.f, 0.f, 0.f);
-				}
-				sum_wbiprime += w_biprime[j];
-				j++;
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
+				return FVector(0.f, 0.f, 0.f);
 			}
+			sum_wbiprime += w_biprime[j];
+			j++;
 		}
-
+	}
 		j = 0;
-		for (int32 i = 0; i < limit; i++)
+	for (int32 i = 0; i < limit; i++)
+	{
+		//j = i;
+		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
+		if (Module == 0)
+		//if (i >= Test_index && i < upper_limit)
 		{
-			//j = i;
-			int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-			if (Module == 0)
-			//if (i >= Test_index && i < upper_limit)
+			if (!TransformationComponents.IsValidIndex(j))
 			{
-				if (!TransformationComponents.IsValidIndex(j))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
-					return FVector(0.f, 0.f, 0.f);
-				}
-				float& Alpha = TransformationComponents[j].X;
-				float& Beta = TransformationComponents[j].Y;
-				float& Gamma = TransformationComponents[j].Z;			
-
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
+				return FVector(0.f, 0.f, 0.f);
+			}
+			float& Alpha = TransformationComponents[j].X;
+			float& Beta = TransformationComponents[j].Y;
+			float& Gamma = TransformationComponents[j].Z;			
+			FVector TransformedVertices;
+			FVector TransformedNormals;
+			FVector TransformedTangents;
+			FVector TransformedBinormals;
+			if (bHasObjectMeshChanged)
+			{
 				int32 IndexToUse = ICPIndices[i];
-
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("ICPIndex[%d] = %d"), i, IndexToUse));
-
-				/*FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-				FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-				FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();*/
-
+				
 				if (!Vertices.IsValidIndex(IndexToUse))
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointPosition()"), IndexToUse, i);
 					return FVector(0.f, 0.f, 0.f);
 				}
-
-				FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
-				FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
-				FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
-				FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
-
+				
+				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
+				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
+				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
+				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
+			}
+			else
+			{
+				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+			}
 				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-
 				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Current Mesh TransformedNormals x: %f y: %f z: %f"), TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
-
-				if (bDrawDebugLines)
+			if (bDrawDebugLines)
+			{
+				if (w_biprime[j] != 0)
 				{
-					if (w_biprime[j] != 0)
-					{
-						FVector CurrentVector = (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-						FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
-						DrawDebugLine(GetWorld(), TransformedVertices, CurrentVector, colorgradient, false, -1, 0, .1f);
-					}
+					FVector CurrentVector = (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+					FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
+					DrawDebugLine(GetWorld(), TransformedVertices, CurrentVector, colorgradient, false, -1, 0, .1f);
 				}
-				j++;
 			}
-
+			j++;
 		}
-		return NewJointPosition;
+
 	}
-	else
-	{
-		/*int32 limit = w_biprime.Num();
-		for (int32 i = 0; i < limit; i++)
-		{
-			if (!w_biprime.IsValidIndex(i))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointPosition()"), i);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			sum_wbiprime += w_biprime[i];
-		}	*/			
-		
-		//UE_LOG(LogTemp, Warning, TEXT("sum_wbiprime %f"), sum_wbiprime);
-		//UE_LOG(LogTemp, Warning, TEXT("Vertices Num on CurrentVertices %d"), Vertices.Num());
-		//UE_LOG(LogTemp, Warning, TEXT("Alpha: %f Beta: %f Gamma: %f"), TransformationComponents[0].X, TransformationComponents[0].Y, TransformationComponents[0].Z);
-		int32 limit = Vertices.Num();
-		FVector NotQuiteNewJointPosition(0.f, 0.f, 0.f);
-		for (int32 i = 0; i < limit; i++)
-		{
-			//int32 i = 500;
+	return NewJointPosition;
 
-			if (!SecondMeshIndices.IsValidIndex(i))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for OriginalMeshIndices at AHands_Character::NewJointPosition()"), i);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			int32 Index = SecondMeshIndices[i];
-			
-			if (!DenseCorrespondenceIndices.IsValidIndex(Index))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for DenseCorrespondenceIndices at AHands_Character::NewJointPosition()"), Index);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			int32 Index2 = DenseCorrespondenceIndices[Index];				
-
-			if (!OriginalMeshIndices.Contains(Index2))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Index %d not found on OriginalMeshIndices, Iteration %d. At AHands_Character::NewJointPosition()"), Index2, i);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			int32 Index3 = OriginalMeshIndices.Find(Index2);
-
-			if (!TransformationComponents.IsValidIndex(Index3))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponents at AHands_Character::NewJointPosition()"), Index3);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			float& Alpha = TransformationComponents[Index3].X;
-			float& Beta = TransformationComponents[Index3].Y;
-			float& Gamma = TransformationComponents[Index3].Z;
-			
-			if (!Vertices.IsValidIndex(i))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices/Normals/Tangents/Binormals, iteration %d at AHands_Character::NewJointPosition()"), Index, i);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			FVector TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-			FVector TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-			FVector TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-			FVector TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-
-			if (!w_biprime.IsValidIndex(Index3))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for w_biprime, iteration %d. at AHands_Character::NewJointPosition()"), Index3, i);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			sum_wbiprime += w_biprime[Index3];
-
-
-			NotQuiteNewJointPosition += (w_biprime[Index3]) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-						
-		}
-		NewJointPosition = NotQuiteNewJointPosition / sum_wbiprime;
-		//UE_LOG(LogTemp, Warning, TEXT("NewJointPosition x: %f y: %f z: %f"), NewJointPosition.X, NewJointPosition.Y, NewJointPosition.Z);
-		return NewJointPosition;
-	}
 }
 
 void AHands_Character::Answer1()
