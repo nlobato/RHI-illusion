@@ -1235,11 +1235,11 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 	int32 SamplingRate = 5;
 
 	//UE_LOG(LogTemp, Warning, TEXT("Vertices.Num() %d at DrawDescriptionPoints()"), Vertices.Num());
-
-	for (int32 i = 0; i < ICPIndex.Num(); i++)
+	int32 limit = ICPIndex.Num();
+	for (int32 i = 0; i < limit; i++)
 	{
 		//int32 i = 500;
-		int32 Module = CalculateModule(bSamplePoints, Vertices.Num(), i);
+		int32 Module = CalculateModule(bSamplePoints, limit , i);
 		
 		if (Module == 0)
 		//if (i >= Test_index && i < upper_limit)
