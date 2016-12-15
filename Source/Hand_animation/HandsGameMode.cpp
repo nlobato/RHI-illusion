@@ -225,7 +225,7 @@ void AHandsGameMode::DPExperimentFirstPartOver()
 	if (MyCharacter)
 	{
 		// Object 4 is the default for DP algorithm
-		MyCharacter->SpawnObject4();
+		MyCharacter->SpawnObject3();
 		if (bIsMeshToChange)
 		{	
 			ChangeMeshObject();
@@ -592,8 +592,8 @@ void AHandsGameMode::InitializeArrays()
 			UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
 
 			TArray<int32> TangentIndicesMap;
-			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
-			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
+			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
+			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
 			//PointerToObjectSpawnedByCharacter = &MyCharacter->ObjectToSpawn4;
 			//if (PointerToObjectSpawnedByCharacter)
 			if (InteractionObjectForMeshChange)
