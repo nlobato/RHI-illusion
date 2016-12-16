@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "GameFramework/GameMode.h"
+#include "Hands_Character.h"
 #include "HandsGameMode.generated.h"
 
 // Enum to store the current state of gameplay
@@ -62,7 +63,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Calibration")
 	void CalibrateSystem();
-	
+		
 protected:
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
@@ -75,11 +76,34 @@ protected:
 	FString FileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
-	bool bIsExperimentForRHIReplication;
-	
-	// Descriptor Points Algorithm experiment
-	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	bool bIsExperimentForDPAlgorithm;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment setup")
+	bool bIsExperimentForRHIReplication;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString LoadDirectory;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString DenseCorrespondanceIndicesFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString DenseCorrespondanceVerticesFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString BlendedIntrinsicMapsFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString OriginalMeshVerticesCoordinatesFromObjFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	FString SecondMeshVerticesCoordinatesFromObjFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Experiment log")
+	bool bWriteBlendedMapFiles;
+
+	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
+	bool AllowOverwriting;*/
 
 	UPROPERTY(EditAnywhere, Category = "Experiment setup")
 	float SensorsSourceHeight;
@@ -117,6 +141,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
 	bool bIsSizeToChange;
+
+	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
+	bool bCalculateBlendedIntrinsicPoints;
 	
 	// Number of cases for the mesh/shape experiment
 	UPROPERTY(EditAnywhere, Category = "DP Algorithm Experiment")
@@ -127,6 +154,18 @@ protected:
 
 	UPROPERTY()
 	class UUserWidget* CurrentWidget;	
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	UStaticMesh* SecondMesh;
+
+	/*UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh2Path;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh3Path;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	FString Mesh4Path;*/
 
 private:
 	/** Keeps track of the current playing state */
@@ -191,5 +230,115 @@ private:
 
 	bool bIsShoulderCalibrated;
 
+	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray, TArray<FVector>& TargetTrianglesIndices);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<FVector>& TargetCoordinatesArray);
+
+	void ReadTextFile(FString AbsolutePathToFile, TArray<int32>& TargetIndicesArray, TArray<FVector>& TargetBarycentricCoordinatesArray);
+	
 	void DPExperimentFirstPartOver();
+
+	bool bIsOriginalMesh;
+
+	void InitializeArrays();
+
+	UStaticMesh* OriginalMesh;
+	
+	TArray<int32>* PtrDenseCorrespondenceIndices;
+	TArray<FVector> DenseCorrespondenceCoordinates;
+
+	TArray<FVector> OriginalMeshVerticesCoordinatesFromObjFile;
+	TArray<FVector> SecondMeshVerticesCoordinatesFromObjFile;
+	TArray<FVector> SecondMeshTriangleIndicesFromObjFile;
+	TArray<FVector> OriginalMeshTriangleIndicesFromObjFile;
+
+	TArray<FVector>* PtrOriginalMeshVertices;
+	TArray<FVector>* PtrOriginalMeshNormals;
+	TArray<FVector>* PtrOriginalMeshTangents;
+	TArray<FVector>* PtrOriginalMeshBinormals;
+
+	TArray<FVector>* PtrSecondMeshVertices;
+	TArray<FVector>* PtrSecondMeshNormals;
+	TArray<FVector>* PtrSecondMeshTangents;
+	TArray<FVector>* PtrSecondMeshBinormals;
+
+	TArray<FArrayForStoringIndices>* PtrMesh2Mesh1Correspondences;
+
+	//TArray<FArrayForStoringIndices> Map2ndMeshAssetObjIndices;
+
+	TArray<FVector> SecondMeshMapTriangleIndices;
+
+	//TArray<FArrayForStoringIndices> Mapping2ndAssetToObj;
+
+	TArray<int32> Mapped1stMeshCorrespondences;
+
+	TArray<int32> Mapped2ndMeshCorrespondences;
+
+	TArray<int32>* PtrOriginalMeshIndices;
+
+	TArray<int32>* PtrSecondMeshIndices;
+
+	TArray<int32> OriginalMeshAsset2ObjIndicesMap;
+	TArray<int32> SecondMeshAsset2ObjIndicesMap;
+	TArray<int32> OriginalMeshTangentsIndicesMap;
+
+	TArray<FVector> OriginalMeshVerticesFromUE4Asset;
+	TArray<FVector> OriginalMeshNormalsFromUE4Asset;
+	TArray<FVector> OriginalMeshBinormalsFromUE4Asset;
+	TArray<FVector> OriginalMeshTangentsFromUE4Asset;
+	TArray<FVector> OriginalMeshBlendedMapBinormals;
+
+	TArray<FVector> SecondMeshVerticesFromUE4Asset;
+	TArray<FVector> SecondMeshNormalsFromUE4Asset;
+	TArray<FVector> SecondMeshBinormalsFromUE4Asset;
+	TArray<FVector> SecondMeshTangentsFromUE4Asset;
+	TArray<FVector> SecondMeshBlendedMapBinormals;
+
+	TArray<int32> BlendedIntrinsicMapsTrianglesMap;
+	TArray<FVector> BlendedIntrinsicMapsBarycentricCoordinates;
+
+	AInteractionObject* DecisionObject1;
+	AInteractionObject* DecisionObject2;
+	
+	//TArray<FVector>* PtrArrayForTestingVertices;
+
+	//FArrayOfint32Arrays* PtrMappingBetweenMeshes;
+
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
+
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndicesMap);
+
+	void AccessMeshVertices(UStaticMesh* MeshToAccess, TArray<FVector>& ObjFile, TArray<FVector>& ArrayToStoreCoordinates, TArray<FVector>& ArrayToStoreNormals, TArray<int32>& ArrayToStoreIndicesMap);
+
+	void TangentBinormalCalculation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TrianglesFromObj, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+
+	void TangentBinormalCalculation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<int32>& TangentIndices, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals);
+	
+	void NewTangentFunction(FVector Normal, FVector ProposedTangent, FVector& NewTangent, FVector& NewBinormal);
+	
+	void Map2ndMeshCorrespondences(TArray<FVector>& UE4Asset, TArray<FVector>& ObjFile, TArray<int32>& MappingAssetToObj);
+
+	void MappingBetweenMeshes(TArray<FVector>& OriginalUE4Asset, TArray<FVector>& OriginalObjFile, TArray<FArrayForStoringIndices>& MappedCorrespondences);
+
+	void MappingTriangles(UStaticMesh* MeshToAccess, TArray<FVector>& ArrayFromObj, TArray<FVector>& VerticesCoordinates, TArray<FVector>& VerticesNormals, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
+	
+	void MappingTriangles(TArray<int32>& Asset2ObjIndicesMap, TArray<FVector>& TriangleIndicesFromObjFile, TArray<FVector>& TargetTriangleIndicesMap);
+
+	void OriginalMeshTangentComputation(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& ArrayToStoreVertices, TArray<FVector>& ArrayToStoreNormals, TArray<FVector>& ArrayToStoreTangents, TArray<FVector>& ArrayToStoreBinormals, TArray<int32>& ArrayToStoreIndices);
+
+	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray, TArray<int32>& VertexTriangleMap, TArray<FVector>& BarycentricCoordinates, TArray<FVector>& MeshTriangleIndices, TArray<FVector>& MeshVertices, TArray<FVector>& MeshNormals, TArray<int32>& MeshTangentsIndices, TArray<int32>& MeshIndicesMap);
+
+	void SecondMeshTangentComputation(TArray<FVector>& PointCoordinatesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TangentsArray, TArray<FVector>& BinormalsArray);
+
+	void BlendedMapData(TArray<FVector>& VerticesArray, TArray<FVector>& NormalsArray, TArray<FVector>& TargetVerticesArray, TArray<FVector>& TargetNormalsArray);
+
+	void MeshAlignment();
+
+	void MeasureMeshAlingment();
+
+	void SpawnObjectsForVisualization();
+
+	void DrawLines(UStaticMeshComponent* Object1, UStaticMeshComponent* Object2);
 };
