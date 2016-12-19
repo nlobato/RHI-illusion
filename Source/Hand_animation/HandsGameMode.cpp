@@ -225,14 +225,14 @@ void AHandsGameMode::DPExperimentFirstPartOver()
 	if (MyCharacter)
 	{
 		// Object 4 is the default for DP algorithm
-		MyCharacter->SpawnObject3();
+		MyCharacter->SpawnObject4();
 		if (bIsMeshToChange)
 		{	
 			ChangeMeshObject();
 		}
 		else if (bIsSizeToChange)
 		{
-			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn3);
+			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
 			ChangeSizeObject();
 		}
 	}
@@ -306,7 +306,7 @@ void AHandsGameMode::ChangeMeshObject()
 			if (bIsOriginalMesh)
 			{
 				//MyCharacter->SpawnedObject->ChangeMesh();
-				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->StaticMesh;
+				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->GetStaticMesh();
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
 				MyCharacter->bAreDPset = false;
 				MyCharacter->CurrentMeshIdentificator = 2;
@@ -486,6 +486,7 @@ void AHandsGameMode::CalibrateSystem()
 			MessageToDisplay = EMessages::ECalibrationReady;
 			bIsSystemCalibrated = true;
 			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 2.0f, false);
+			
 			if (bIsExperimentForDPAlgorithm)
 			{
 				SetCurrentState(EExperimentPlayState::EDPExperimentInProgress);
@@ -539,8 +540,8 @@ void AHandsGameMode::InitializeArrays()
 		
 		if (bIsSizeToChange)
 		{
-			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
-			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
+			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
 			
 			// Read the text file with the OBJ coordinates and triangle indices for the first mesh
 			FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
@@ -589,8 +590,8 @@ void AHandsGameMode::InitializeArrays()
 			UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
 
 			TArray<int32> TangentIndicesMap;
-			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
-			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->StaticMesh;
+			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
 			//PointerToObjectSpawnedByCharacter = &MyCharacter->ObjectToSpawn4;
 			//if (PointerToObjectSpawnedByCharacter)
 			if (InteractionObjectForMeshChange)

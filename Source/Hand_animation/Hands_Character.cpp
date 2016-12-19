@@ -794,7 +794,7 @@ void AHands_Character::SpawnObject1()
 		if (SpawnedObject)
 		{
 			bIsObject1Spawned = true;
-			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		}
 	}
 }
@@ -823,7 +823,7 @@ void AHands_Character::SpawnObject2()
 		if (SpawnedObject)
 		{
 			bIsObject2Spawned = true;
-			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		}
 	}
 }
@@ -852,7 +852,7 @@ void AHands_Character::SpawnObject3()
 		if (SpawnedObject)
 		{
 			bIsObject3Spawned = true;
-			OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+			OriginalMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		}
 	}
 }
@@ -881,7 +881,7 @@ void AHands_Character::SpawnObject4()
 			if (SpawnedObject)
 			{
 				bIsObject4Spawned = true;
-				OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+				OriginalMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 			}
 		}
 }
@@ -1076,7 +1076,7 @@ void AHands_Character::AssignPointers()
 
 void AHands_Character::GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMesh, FMatrix& CurrentMatrix, FTransform& CurrentTransform, int32& VerticesNum)
 {
-	UStaticMesh* StaticMesh = InStaticMesh->StaticMesh;
+	UStaticMesh* StaticMesh = InStaticMesh->GetStaticMesh();
 	if (StaticMesh == nullptr || StaticMesh->RenderData == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Error while accesing 'StaticMesh' on GetMeshCurrentTransform()"));
@@ -1124,7 +1124,7 @@ void AHands_Character::InitDescriptionPoints(uint32 NumDP, uint32 NumVertices)
 // Access the mesh information and get the position, normal, tangent & binormal of the vertices
 void AHands_Character::AccessTriVertices(const UStaticMeshComponent* InStaticMesh, TArray<FVector>& DPInfo)
 {
-	UStaticMesh* StaticMesh = InStaticMesh->StaticMesh;
+	UStaticMesh* StaticMesh = InStaticMesh->GetStaticMesh();
 	if (StaticMesh == nullptr || StaticMesh->RenderData == nullptr)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Error while accesing the static mesh")));
@@ -1411,7 +1411,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	int32 limit;
 	if (bHasObjectSizeChanged)
 	{
-		UStaticMesh* OriginalMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+		UStaticMesh* OriginalMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		FVector ObjectScale = SpawnedObject->OurVisibleComponent->RelativeScale3D;
 		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		//SpawnedObject->OurVisibleComponent->SetMaterial();
@@ -1424,7 +1424,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 	} 
 	else if (bHasObjectMeshChanged)
 	{
-		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->StaticMesh;
+		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
