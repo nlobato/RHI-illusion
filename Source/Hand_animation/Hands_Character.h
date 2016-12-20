@@ -24,21 +24,6 @@ struct FArrayForStoringIndices
 
 };
 
-//USTRUCT()
-//struct FArrayForStoringAlphaBetaGammaValues
-//{
-//	GENERATED_USTRUCT_BODY()
-//
-//	UPROPERTY()
-//	TArray<float> ComponentsArray;
-//
-//	FArrayForStoringAlphaBetaGammaValues()
-//	{
-//
-//	}
-//
-//};
-
 UCLASS()
 class HAND_ANIMATION_API AHands_Character : public ACharacter
 {

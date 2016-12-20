@@ -158,6 +158,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Meshes path")
 	UStaticMesh* SecondMesh;
 
+	// Mesh of the table where objects will be spawned
+	UPROPERTY(EditAnywhere, Category = "Meshes Path")
+	TSubclassOf<class ATableActor> TableMesh;
+
 	/*UPROPERTY(EditAnywhere, Category = "Meshes path")
 	FString Mesh2Path;
 
@@ -219,7 +223,7 @@ private:
 	//AInteractionObject* DecisionObject;
 
 	TSubclassOf<class AInteractionObject>* PointerToObjectSpawnedByCharacter;
-
+	
 	FVector RootLocation;
 
 	void DecisionEvaluation(int32 ObjectChosen);

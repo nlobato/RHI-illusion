@@ -8,8 +8,14 @@
 ATableActor::ATableActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
+	USphereComponent* SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("RootComponent"));
+	RootComponent = SphereComponent;
+	SphereComponent->InitSphereRadius(1.0f);
+	// RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	OurVisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OurVisibleComponent"));
+	OurVisibleComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned

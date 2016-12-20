@@ -10,6 +10,7 @@
 #include "Misc/CoreMisc.h"
 #include "Misc/Char.h"
 #include "Public/StaticMeshResources.h"
+#include "TableActor.h"
 
 AHandsGameMode::AHandsGameMode()
 {
@@ -487,6 +488,25 @@ void AHandsGameMode::CalibrateSystem()
 			bIsSystemCalibrated = true;
 			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 2.0f, false);
 			
+			//UWorld* const World = GetWorld();
+			//if (World)
+			//{
+			//	// Set the spawn parameters
+			//	FActorSpawnParameters SpawnParams;
+			//	SpawnParams.Owner = this;
+			//	SpawnParams.Instigator = Instigator;
+
+			//	// spawn the pickup
+			//	FRotator MeshRotation = MyCharacter->MyMesh->GetComponentRotation();
+			//	MeshRotation.Add(0.f, 90.f, 0.f);
+			//	
+			//	FVector PositionForObject = 80.f * MeshRotation.Vector() + MyCharacter->MyMesh->GetComponentLocation();
+			//	
+			//	PositionForObject.Z = 18.5f;
+
+			//	ATableActor* const MyTable = World->SpawnActor<ATableActor>(TableMesh, PositionForObject, FRotator(0.f, 0.f, 0.f), SpawnParams);
+			//}
+
 			if (bIsExperimentForDPAlgorithm)
 			{
 				SetCurrentState(EExperimentPlayState::EDPExperimentInProgress);

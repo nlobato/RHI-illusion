@@ -17,7 +17,7 @@ AInteractionObject::AInteractionObject()
 	SphereComponent->InitSphereRadius(1.0f);
 	// RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	OurVisibleComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OurVisibleComponent"));
-	OurVisibleComponent->AttachTo(RootComponent);
+	OurVisibleComponent->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
