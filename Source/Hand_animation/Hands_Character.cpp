@@ -314,10 +314,10 @@ void AHands_Character::SetupPlayerInputComponent(class UInputComponent* InputCom
 	InputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
 	// Object spawning
-	InputComponent->BindAction("SpawnObject1", IE_Pressed, this, &AHands_Character::Answer1);
-	InputComponent->BindAction("SpawnObject2", IE_Pressed, this, &AHands_Character::Answer2);
-	InputComponent->BindAction("SpawnObject3", IE_Pressed, this, &AHands_Character::Answer3);
-	InputComponent->BindAction("SpawnObject4", IE_Pressed, this, &AHands_Character::Answer4);
+	InputComponent->BindAction("DecisionObject1", IE_Pressed, this, &AHands_Character::Answer1);
+	InputComponent->BindAction("DecisionObject2", IE_Pressed, this, &AHands_Character::Answer2);
+	InputComponent->BindAction("DecisionObject3", IE_Pressed, this, &AHands_Character::Answer3);
+	InputComponent->BindAction("DecisionObject4", IE_Pressed, this, &AHands_Character::Answer4);
 
 	//Object movement and modification
 	InputComponent->BindAxis("ObjectSensor1", this, &AHands_Character::Object1Movement);
