@@ -9,6 +9,7 @@
 #include "Public/PackedNormal.h"
 #include "Public/GenericPlatform/GenericPlatformMath.h"
 #include "HandsGameMode.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 // Sets default values
@@ -282,6 +283,43 @@ void AHands_Character::Tick( float DeltaTime )
 			DrawDebugPoint(GetWorld(), LeftPinkyFingerPosition, 5.0, FColor(0, 255, 0), false, 0.05);
 			DrawDebugPoint(GetWorld(), LeftThumbPosition, 5.0, FColor(0, 255, 0), false, 0.05);
 		}*/
+	}
+
+	{
+		if (SpawnedObject)
+		{ 
+			// Get socket location
+			FVector StartLocation = MyMesh->GetSocketLocation(TEXT("index_l_collision"));
+			FRotator BoneRotation = MyMesh->GetSocketRotation(TEXT("index_l_collision"));				
+							
+			// line trace to component
+			FVector VectorForCasting(0.f);
+			FVector TestVector(0.f);
+			
+			UKismetMathLibrary::GetAxes(BoneRotation, TestVector, VectorForCasting, TestVector);
+
+			float RayLength = 300.f;
+
+			FVector EndLocation = StartLocation + (RayLength * BoneRotation.Vector());
+			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 0.1f);
+
+			FHitResult Hit;
+
+			FCollisionQueryParams CollisionParams;
+
+			CollisionParams.bTraceComplex = false;
+
+			if (ActorLineTraceSingle(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Something was hit! %s"), *Hit.GetComponent()->GetName());
+			}
+
+			//FString ActorName = Hit.GetActor().GetDebugName();
+
+			//if (Hit.GetActor()) UE_LOG(LogTemp, Warning, TEXT("Something was hit!"));
+			
+			// set new object position
+		}
 	}
 
 }
