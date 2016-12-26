@@ -308,8 +308,8 @@ void AHands_Character::Tick( float DeltaTime )
 			FCollisionQueryParams CollisionParams;
 
 			CollisionParams.bTraceComplex = false;
-
-			if (ActorLineTraceSingle(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_Visibility, CollisionParams))
+			
+			if (ActorLineTraceSingle(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_Camera, CollisionParams))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Something was hit! %s"), *Hit.GetComponent()->GetName());
 			}
