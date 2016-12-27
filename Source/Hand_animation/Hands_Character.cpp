@@ -285,7 +285,7 @@ void AHands_Character::Tick( float DeltaTime )
 		}*/
 	}
 
-	{
+	/*{
 		if (SpawnedObject)
 		{ 
 			// Get socket location
@@ -320,7 +320,7 @@ void AHands_Character::Tick( float DeltaTime )
 			
 			// set new object position
 		}
-	}
+	}*/
 
 }
 
