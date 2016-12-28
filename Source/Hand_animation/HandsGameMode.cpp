@@ -226,13 +226,25 @@ void AHandsGameMode::DPExperimentFirstPartOver()
 	if (MyCharacter)
 	{
 		// Object 4 is the default for DP algorithm
-		MyCharacter->SpawnObject4();
 		if (bIsMeshToChange)
 		{	
+			switch (InteractionObjectIdentifier)
+			{
+			case 1:
+				MyCharacter->SpawnObject2();
+				break;
+			case 2:
+				MyCharacter->SpawnObject3();
+				break;
+			case 3:
+				MyCharacter->SpawnObject4();
+				break;
+			}
 			ChangeMeshObject();
 		}
 		else if (bIsSizeToChange)
 		{
+			MyCharacter->SpawnObject4();
 			PointerToObjectSpawnedByCharacter = &(MyCharacter->ObjectToSpawn4);
 			ChangeSizeObject();
 		}
@@ -611,11 +623,23 @@ void AHandsGameMode::InitializeArrays()
 
 			UE_LOG(LogTemp, Warning, TEXT("2nd obj text file read succesfully"));
 
-			TArray<int32> TangentIndicesMap;
-			AInteractionObject* InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
-			UStaticMesh* OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
-			//PointerToObjectSpawnedByCharacter = &MyCharacter->ObjectToSpawn4;
-			//if (PointerToObjectSpawnedByCharacter)
+			AInteractionObject* InteractionObjectForMeshChange;
+			UStaticMesh* OneMesh;
+			switch (InteractionObjectIdentifier)
+			{
+			case 1:
+				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn2.GetDefaultObject();
+				OneMesh = MyCharacter->ObjectToSpawn2->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+				break;
+			case 2:
+				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
+				OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+				break;
+			case 3:
+				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+				OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+			}
+
 			if (InteractionObjectForMeshChange)
 			{
 				// We are getting the vertices information (coordinates, normal, tangent, binormal) and indices now instead of getting them each frame, this information doesn't change.

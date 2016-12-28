@@ -155,11 +155,15 @@ protected:
 	UPROPERTY()
 	class UUserWidget* CurrentWidget;	
 
-	UPROPERTY(EditAnywhere, Category = "Meshes path")
+	// 1: pear, 2: sphere, 3: pepper
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	int32 InteractionObjectIdentifier;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	UStaticMesh* SecondMesh;
 
 	// Mesh of the table where objects will be spawned
-	UPROPERTY(EditAnywhere, Category = "Meshes Path")
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	TSubclassOf<class ATableActor> TableMesh;
 
 	/*UPROPERTY(EditAnywhere, Category = "Meshes path")
