@@ -84,20 +84,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString LoadDirectory;
 
-	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString DenseCorrespondanceIndicesFileName;
 
-	UPROPERTY(EditAnywhere, Category = "Experiment log")
+
+	/*UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString DenseCorrespondanceVerticesFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString BlendedIntrinsicMapsFileName;
+	FString BlendedIntrinsicMapsFileName;*/
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	FString OriginalMeshVerticesCoordinatesFromObjFileName;
-
-	UPROPERTY(EditAnywhere, Category = "Experiment log")
-	FString SecondMeshVerticesCoordinatesFromObjFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Experiment log")
 	bool bWriteBlendedMapFiles;
@@ -160,7 +156,13 @@ protected:
 	int32 InteractionObjectIdentifier;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString DenseCorrespondanceIndicesFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	UStaticMesh* SecondMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString SecondMeshVerticesCoordinatesFromObjFileName;
 
 	// Mesh of the table where objects will be spawned
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")

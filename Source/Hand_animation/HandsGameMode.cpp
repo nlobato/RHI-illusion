@@ -150,16 +150,27 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 7.0, false);
 			MyCharacter->ExperimentSetup(bIsSynchronousActive, false);
 			ObjectIndex.Empty();
-			SpawnNewObject();				
+			switch (InteractionObjectIdentifier)
+			{
+			case 1:
+				MyCharacter->SpawnObject2();
+				break;
+			case 2:
+				MyCharacter->SpawnObject3();
+				break;
+			case 3:
+				MyCharacter->SpawnObject4();
+				break;
+			}
+			//SpawnNewObject();				
 			//MyCharacter->SpawnObject4();					
 		}	
 	}
 		break;
 
 	case EExperimentPlayState::EDPExperimentInProgress:
-	{
-		float TimeInSeconds = IllusionExperimentDurationTime * 60.f;
-		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::DPExperimentFirstPartOver, TimeInSeconds, false);
+	{		
+		
 		AHands_Character* MyCharacter = Cast<AHands_Character>(UGameplayStatics::GetPlayerPawn(this, 0));
 		if (MyCharacter)
 		{
@@ -170,8 +181,10 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			MyCharacter->ExperimentSetup(true, bAreDPsActive);
 			bSpawnObjectsWithTimer = false;		
 			//SpawnNewObject();
-			MyCharacter->SpawnObject1();	
+			//MyCharacter->SpawnObject1();	
 		}
+		float TimeInSeconds = IllusionExperimentDurationTime * 60.f;
+		GetWorldTimerManager().SetTimer(ExperimentDurationTimerHandle, this, &AHandsGameMode::DPExperimentFirstPartOver, TimeInSeconds, false);
 	}
 		break;
 	case EExperimentPlayState::EExperimentFinished:
@@ -340,7 +353,8 @@ void AHandsGameMode::ChangeMeshObject()
 			GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("No spawned object when casted from AHandsGameMode::ChangeMeshObject()")));
 		}
 	}
-	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ((VirtualObjectChangesDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
+	//GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, ((VirtualObjectChangesDurationTime * 60.f) / (2 * AmountOfChangesInObject)), false);
+	GetWorldTimerManager().SetTimer(ObjectModificationTimerHandle, this, &AHandsGameMode::ChangeMeshObject, VirtualObjectChangesDurationTime * 60.f, false);
 }
 
 void AHandsGameMode::ChangeSizeObject()
@@ -595,9 +609,9 @@ void AHandsGameMode::InitializeArrays()
 			ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
 
 			// Read the Blended Intrinsic Maps text file 
-			FString BlendedIntrinsicMapsFilePath = LoadDirectory + "/" + BlendedIntrinsicMapsFileName;
+			/*FString BlendedIntrinsicMapsFilePath = LoadDirectory + "/" + BlendedIntrinsicMapsFileName;
 			ReadTextFile(BlendedIntrinsicMapsFilePath, BlendedIntrinsicMapsTrianglesMap, BlendedIntrinsicMapsBarycentricCoordinates);
-			UE_LOG(LogTemp, Warning, TEXT("BlendedIntrinsicMaps text file read succesfully"));
+			UE_LOG(LogTemp, Warning, TEXT("BlendedIntrinsicMaps text file read succesfully"));*/
 			//int32 test_index = 1234;
 			/*if (BlendedIntrinsicMapsBarycentricCoordinates.IsValidIndex(test_index))
 			{
@@ -605,11 +619,10 @@ void AHandsGameMode::InitializeArrays()
 			}*/
 
 			// Read the text file with the OBJ coordinates and triangle indices for the first mesh
-			FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
-			ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+			//FString OriginalMeshFilePath = LoadDirectory + "/" + OriginalMeshVerticesCoordinatesFromObjFileName;
+			//ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
 			//UE_LOG(LogTemp, Warning, TEXT("Obj[1201] x: %f y: %f z: %f"), OriginalMeshVerticesCoordinatesFromObjFile[1201].X, OriginalMeshVerticesCoordinatesFromObjFile[1201].Y, OriginalMeshVerticesCoordinatesFromObjFile[1201].Z);
-
-			UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+			//UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
 
 			// Read the text file with the OBJ coordinates and triangle indices for the 2nd mesh
 			FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
@@ -625,19 +638,41 @@ void AHandsGameMode::InitializeArrays()
 
 			AInteractionObject* InteractionObjectForMeshChange;
 			UStaticMesh* OneMesh;
+			FString OriginalMeshFilePath;
 			switch (InteractionObjectIdentifier)
 			{
 			case 1:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn2.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn2->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+
+				OriginalMeshFilePath = LoadDirectory + "/" + "pear_no_stem.txt";
+				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
 				break;
 			case 2:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+
+				OriginalMeshFilePath = LoadDirectory + "/" + "sphere.txt";
+				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
 				break;
 			case 3:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+
+				OriginalMeshFilePath = LoadDirectory + "/" + "pepper_no_stem.txt";
+				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+				break;
+			default:
+				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
+				OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
+				
+				OriginalMeshFilePath = LoadDirectory + "/" + "pepper_no_stem.txt";
+				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+				break;
 			}
 
 			if (InteractionObjectForMeshChange)
