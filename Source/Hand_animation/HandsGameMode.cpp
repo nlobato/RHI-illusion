@@ -150,15 +150,15 @@ void AHandsGameMode::HandleNewState(EExperimentPlayState NewState)
 			GetWorldTimerManager().SetTimer(MessagesTimerHandle, this, &AHandsGameMode::ToggleMessage, 7.0, false);
 			MyCharacter->ExperimentSetup(bIsSynchronousActive, false);
 			ObjectIndex.Empty();
-			switch (InteractionObjectIdentifier)
+			switch (ObjectEnum)
 			{
-			case 1:
+			case EObjectEnum::EPear2Pear:
 				MyCharacter->SpawnObject2();
 				break;
-			case 2:
+			case EObjectEnum::ESphere2Sphere:
 				MyCharacter->SpawnObject3();
 				break;
-			case 3:
+			case EObjectEnum::EPepper2Pepper:
 				MyCharacter->SpawnObject4();
 				break;
 			}
@@ -241,15 +241,15 @@ void AHandsGameMode::DPExperimentFirstPartOver()
 		// Object 4 is the default for DP algorithm
 		if (bIsMeshToChange)
 		{	
-			switch (InteractionObjectIdentifier)
+			switch (ObjectEnum)
 			{
-			case 1:
+			case EObjectEnum::ECurvedObject2Pear:
 				MyCharacter->SpawnObject2();
 				break;
-			case 2:
+			case EObjectEnum::EFootball2Sphere:
 				MyCharacter->SpawnObject3();
 				break;
-			case 3:
+			case EObjectEnum::EPumpkin2Pepper:
 				MyCharacter->SpawnObject4();
 				break;
 			}
@@ -535,7 +535,7 @@ void AHandsGameMode::CalibrateSystem()
 
 			MyCharacter->GetMesh()->SetVisibility(true, false);
 
-			if (bIsExperimentForDPAlgorithm)
+			if (ObjectEnum == EObjectEnum::ECurvedObject2Pear || ObjectEnum == EObjectEnum::EFootball2Sphere || ObjectEnum == EObjectEnum::EPumpkin2Pepper)
 			{
 				SetCurrentState(EExperimentPlayState::EDPExperimentInProgress);
 			}
@@ -605,8 +605,8 @@ void AHandsGameMode::InitializeArrays()
 		else
 		{
 			// Read the text file with the dense correspondence indices
-			FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
-			ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+			//FString DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + DenseCorrespondanceIndicesFileName;
+			//ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
 
 			// Read the Blended Intrinsic Maps text file 
 			/*FString BlendedIntrinsicMapsFilePath = LoadDirectory + "/" + BlendedIntrinsicMapsFileName;
@@ -625,8 +625,8 @@ void AHandsGameMode::InitializeArrays()
 			//UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
 
 			// Read the text file with the OBJ coordinates and triangle indices for the 2nd mesh
-			FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
-			ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+			// FString SecondMeshFilePath = LoadDirectory + "/" + SecondMeshVerticesCoordinatesFromObjFileName;
+			//ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
 			//UE_LOG(LogTemp, Warning, TEXT("Triangle Indices Array size: %d"), SecondMeshTriangleIndicesFromObjFile.Num());
 			/*int32 test_index = 2699;
 			if (SecondMeshTriangleIndicesFromObjFile.IsValidIndex(test_index))
@@ -639,31 +639,60 @@ void AHandsGameMode::InitializeArrays()
 			AInteractionObject* InteractionObjectForMeshChange;
 			UStaticMesh* OneMesh;
 			FString OriginalMeshFilePath;
-			switch (InteractionObjectIdentifier)
+			FString SecondMeshFilePath;
+			FString DenseCorrespondaceIndicesFilePath;
+			switch (ObjectEnum)
 			{
-			case 1:
+			case EObjectEnum::ECurvedObject2Pear:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn2.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn2->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
 
 				OriginalMeshFilePath = LoadDirectory + "/" + "pear_no_stem.txt";
 				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
-				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+				UE_LOG(LogTemp, Warning, TEXT("pear_no_stem.txt file read succesfully"));
+
+				SecondMeshFilePath = LoadDirectory + "/" + "curved_object.txt";
+				ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("curved_object.txt file read succesfully"));
+
+				DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + "ICP_TestCorrespondences_ID_CurvedObject2PearNoStem.txt";
+				ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+				UE_LOG(LogTemp, Warning, TEXT("ICP_TestCorrespondences_ID_CurvedObject2PearNoStem.txt file read succesfully"));
+
 				break;
-			case 2:
+			case EObjectEnum::EFootball2Sphere:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn3.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn3->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
 
 				OriginalMeshFilePath = LoadDirectory + "/" + "sphere.txt";
 				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
 				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+
+				SecondMeshFilePath = LoadDirectory + "/" + "football.txt";
+				ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("football.txt file read succesfully"));
+
+				DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + "ICP_TestCorrespondences_ID_Football2Sphere.txt";
+				ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+				UE_LOG(LogTemp, Warning, TEXT("ICP_TestCorrespondences_ID_Football2Sphere.txt file read succesfully"));
+
 				break;
-			case 3:
+			case EObjectEnum::EPumpkin2Pepper:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
 				OneMesh = MyCharacter->ObjectToSpawn4->GetDefaultObject<AInteractionObject>()->OurVisibleComponent->GetStaticMesh();
 
 				OriginalMeshFilePath = LoadDirectory + "/" + "pepper_no_stem.txt";
 				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
 				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+
+				SecondMeshFilePath = LoadDirectory + "/" + "pumpkin.txt";
+				ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("pumpkin.txt file read succesfully"));
+
+				DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + "ICP_TestCorrespondences_ID_Pumpkin2PepperNoStem.txt";
+				ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+				UE_LOG(LogTemp, Warning, TEXT("ICP_TestCorrespondences_ID_Pumpkin2PepperNoStem.txt file read succesfully"));
+
 				break;
 			default:
 				InteractionObjectForMeshChange = MyCharacter->ObjectToSpawn4.GetDefaultObject();
@@ -672,6 +701,14 @@ void AHandsGameMode::InitializeArrays()
 				OriginalMeshFilePath = LoadDirectory + "/" + "pepper_no_stem.txt";
 				ReadTextFile(OriginalMeshFilePath, OriginalMeshVerticesCoordinatesFromObjFile, OriginalMeshTriangleIndicesFromObjFile);
 				UE_LOG(LogTemp, Warning, TEXT("1st obj text file read succesfully"));
+				
+				SecondMeshFilePath = LoadDirectory + "/" + "pumpkin.txt";
+				ReadTextFile(SecondMeshFilePath, SecondMeshVerticesCoordinatesFromObjFile, SecondMeshTriangleIndicesFromObjFile);
+				UE_LOG(LogTemp, Warning, TEXT("pumpkin.txt file read succesfully"));
+
+				DenseCorrespondaceIndicesFilePath = LoadDirectory + "/" + "ICP_TestCorrespondences_ID_Pumpkin2PepperNoStem.txt";
+				ReadTextFile(DenseCorrespondaceIndicesFilePath, *PtrDenseCorrespondenceIndices);
+				UE_LOG(LogTemp, Warning, TEXT("ICP_TestCorrespondences_ID_Pumpkin2PepperNoStem.txt file read succesfully"));
 				break;
 			}
 

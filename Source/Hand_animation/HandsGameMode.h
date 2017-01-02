@@ -31,6 +31,18 @@ enum class EMessages
 	EUnknown
 };
 
+UENUM(BlueprintType)
+enum class EObjectEnum : uint8
+{
+	ECurvedObject2Pear,
+	EFootball2Sphere,
+	EPumpkin2Pepper,
+	EPear2Pear,
+	ESphere2Sphere,
+	EPepper2Pepper,
+	EUnkown
+};
+
 UCLASS()
 class HAND_ANIMATION_API AHandsGameMode : public AGameMode
 {
@@ -150,19 +162,18 @@ protected:
 
 	UPROPERTY()
 	class UUserWidget* CurrentWidget;	
-
-	// 1: pear, 2: sphere, 3: pepper
+	
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")
-	int32 InteractionObjectIdentifier;
+	EObjectEnum ObjectEnum;
 
-	UPROPERTY(EditAnywhere, Category = "Meshes setup")
-	FString DenseCorrespondanceIndicesFileName;
+	//UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	//FString DenseCorrespondanceIndicesFileName;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	UStaticMesh* SecondMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Meshes setup")
-	FString SecondMeshVerticesCoordinatesFromObjFileName;
+	//UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	//FString SecondMeshVerticesCoordinatesFromObjFileName;
 
 	// Mesh of the table where objects will be spawned
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")
