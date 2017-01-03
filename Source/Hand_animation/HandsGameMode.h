@@ -34,9 +34,9 @@ enum class EMessages
 UENUM(BlueprintType)
 enum class EObjectEnum : uint8
 {
-	ECurvedObject2Pear,
-	EFootball2Sphere,
-	EPumpkin2Pepper,
+	EObject2Pear,
+	EObject2Sphere,
+	EObject2Pepper,
 	EPear2Pear,
 	ESphere2Sphere,
 	EPepper2Pepper,
@@ -168,9 +168,35 @@ protected:
 
 	//UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	//FString DenseCorrespondanceIndicesFileName;
+		
+	UStaticMesh* SecondMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes setup")
-	UStaticMesh* SecondMesh;
+	UStaticMesh* ObjectMesh1;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh1CoordinatesFromObjFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh1DenseCorrespondence;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	UStaticMesh* ObjectMesh2;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh2CoordinatesFromObjFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh2DenseCorrespondence;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	UStaticMesh* ObjectMesh3;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh3CoordinatesFromObjFileName;
+
+	UPROPERTY(EditAnywhere, Category = "Meshes setup")
+	FString ObjectMesh3DenseCorrespondence;
 
 	//UPROPERTY(EditAnywhere, Category = "Meshes setup")
 	//FString SecondMeshVerticesCoordinatesFromObjFileName;
