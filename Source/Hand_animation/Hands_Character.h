@@ -217,6 +217,8 @@ protected:
 	TArray<FVector> LeftPinkyFingerTransformationArray;
 	TArray<FVector> LeftThumbTransformationArray;
 
+	TArray<FQuat> LeftIndexFingerRelativeOrientationArray;
+
 	TArray<FVector> LeftIndexKnuckleTransformationArray;
 	TArray<FVector> LeftMiddleKnuckleTransformationArray;
 	TArray<FVector> LeftRingKnuckleTransformationArray;
@@ -351,6 +353,8 @@ protected:
 
 	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, bool bDrawDebugPoints);
 
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, FRotator JointOrientation, TArray<FQuat>& OrientationArrays, bool bDrawDebugPoints);
+
 	void AssignPointers();
 
 	/** Calculate a new joint position with the descriptor points weights */
@@ -358,7 +362,7 @@ protected:
 
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, bool bDrawDebugLines);
 
-	FRotator NewJointOrientation(TArray<float>& WeightsArray);
+	FRotator NewJointOrientation(TArray<float>& WeightsArray, TArray<FQuat>& RelativeOrientation);
 
 protected:
 
