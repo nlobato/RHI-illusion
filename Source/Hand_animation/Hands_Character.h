@@ -358,6 +358,8 @@ protected:
 
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, bool bDrawDebugLines);
 
+	FRotator NewJointOrientation(TArray<float>& WeightsArray);
+
 protected:
 
 	FMatrix CurrentMeshLocalToWorldMatrix;
@@ -450,6 +452,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftIndexFingerOrientation;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftIndexFingerOrientation;
 
 	/** Left Middle finger P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))

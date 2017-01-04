@@ -145,6 +145,7 @@ void AHands_Character::Tick( float DeltaTime )
 				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights, bDrawDebugWeightsLeftIndex);
 				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray, bDrawDebugLeftIndexPosition);
+				DPLeftIndexFingerOrientation = NewJointOrientation(LeftIndexFingerWeights);
 
 				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
@@ -1756,6 +1757,83 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 
 }
 
+FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray)
+{
+	TArray<FVector>& Vertices = *PointerToCurrentMeshVertices;
+	TArray<FVector>& Normals = *PointerToCurrentMeshNormals;
+	TArray<FVector>& Tangents = *PointerToCurrentMeshTangents;
+	TArray<FVector>& Binormals = *PointerToCurrentMeshBinormals;
+
+	int32 limit;
+
+	TArray<int32>&ICPIndices = DenseCorrespondenceIndices;
+
+	if (bHasObjectMeshChanged) limit = ICPIndices.Num();
+	else limit = Vertices.Num();
+	
+	float sum_wbiprime = 0;
+	int32 j = 0;
+	for (int32 i = 0; i < limit; i++)
+	{
+		//j = i;
+		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
+		if (Module == 0)
+			//if (i >= Test_index && i < upper_limit)
+		{
+
+			if (!WeightsArray.IsValidIndex(j))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::NewJointOrientation()"), j);
+				return FRotator(0.f, 0.f, 0.f);
+			}
+			sum_wbiprime += WeightsArray[j];
+			j++;
+		}
+	}
+
+	FVector SumAxis(0.f);
+	float SumAngle = 0;
+	j = 0;
+	for (int32 i = 0; i < limit; i++)
+	{
+		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
+		if (Module == 0)
+			//if (i >= Test_index && i < upper_limit)
+		{
+			FVector TransformedVertices;
+			FVector TransformedNormals;
+			FVector TransformedTangents;
+			FVector TransformedBinormals;
+			if (bHasObjectMeshChanged)
+			{
+				int32 IndexToUse = ICPIndices[i];
+
+				if (!Vertices.IsValidIndex(IndexToUse))
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointPosition()"), IndexToUse, i);
+					return FRotator(0.f, 0.f, 0.f);
+				}
+
+				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
+				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
+				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
+				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
+			}
+			
+			FQuat VertexOrientation = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
+
+			FVector Axis;
+			float Angle;
+			VertexOrientation.ToAxisAndAngle(Axis, Angle);
+
+			SumAxis += (WeightsArray[j] / sum_wbiprime) * Axis;
+			SumAngle += (WeightsArray[j] / sum_wbiprime) * Angle;
+		}
+		j++;
+	}
+	return FQuat(SumAxis, FMath::DegreesToRadians(SumAngle)).Rotator();
+}
+
 void AHands_Character::Answer1()
 {
 	// if experiment has ended
@@ -1887,7 +1965,14 @@ FRotator AHands_Character::GetLeftHandOrientation()
 
 FRotator AHands_Character::GetLeftIndexFingerOrientation()
 {
-	return LeftIndexFingerOrientation;
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftIndexFingerOrientation;
+	}
+	else
+	{
+		return LeftIndexFingerOrientation;
+	}
 }
 
 FRotator AHands_Character::GetLeftMiddleFingerOrientation()
