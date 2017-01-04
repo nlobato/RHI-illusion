@@ -334,6 +334,7 @@ void AHandsGameMode::ChangeMeshObject()
 				//MyCharacter->SpawnedObject->ChangeMesh();
 				OriginalMesh = MyCharacter->SpawnedObject->OurVisibleComponent->GetStaticMesh();
 				MyCharacter->SpawnedObject->OurVisibleComponent->SetStaticMesh(SecondMesh);
+				MyCharacter->SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 				MyCharacter->bAreDPset = false;
 				MyCharacter->CurrentMeshIdentificator = 2;
 				MyCharacter->bHasObjectMeshChanged = true;

@@ -1427,9 +1427,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 
 		limit = OriginalMeshVertices.Num();
 	}
