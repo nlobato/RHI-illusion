@@ -143,9 +143,11 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
 				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Left Index Orientation %s"), *LeftIndexFingerOrientation.ToString()));
 				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights, LeftIndexFingerOrientation, LeftIndexFingerRelativeOrientationArray, bDrawDebugWeightsLeftIndex);
 				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray, bDrawDebugLeftIndexPosition);
 				DPLeftIndexFingerOrientation = NewJointOrientation(LeftIndexFingerWeights, LeftIndexFingerRelativeOrientationArray);
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Left Index DP Orientation %s"), *DPLeftIndexFingerOrientation.ToString()));
 
 				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
@@ -1428,11 +1430,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
+		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 
 		limit = OriginalMeshVertices.Num();
 	}
@@ -1659,11 +1661,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
-		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
+		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 
 		limit = OriginalMeshVertices.Num();
 	}
@@ -2082,7 +2084,7 @@ FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArr
 
 			FQuat VertexOrientation = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
 
-			FQuat NewOrientation = RelativeOrientation[j] * VertexOrientation;
+			FQuat NewOrientation = VertexOrientation *RelativeOrientation[j];
 
 			FVector Axis;
 			float Angle;
