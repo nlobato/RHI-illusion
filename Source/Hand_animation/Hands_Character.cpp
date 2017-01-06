@@ -1775,7 +1775,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			FQuat JointOrientationQuat = JointOrientation.Quaternion();
 
 			RelativeOrientation.Emplace(VertexOrientationQuat.Inverse() * JointOrientationQuat);
-			
+
 			//FMatrix JointOrientationMatrix = FMatrix(JointOrientationQuat.GetAxisX(), JointOrientationQuat.GetAxisY(), JointOrientationQuat.GetAxisZ(), FVector::ZeroVector);
 			
 			//FMatrix VertexOrientationMatrix = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector);
@@ -2064,13 +2064,16 @@ FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArr
 	for (int32 i = 0; i < limit; i++)
 	{
 		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-		if (Module == 0)
-			//if (i >= Test_index && i < upper_limit)
+		if (Module == 0)			
 		{
 			if (!RelativeOrientation.IsValidIndex(j))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for RelativeOrientation on AHands_Character::NewJointOrientation()"), j);
+				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for RelativeOrientation, iteration %d. on AHands_Character::NewJointOrientation()"), j, i);
 				return FRotator(0.f, 0.f, 0.f);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%d"), j);
 			}
 			
 			FVector TransformedVertices;
