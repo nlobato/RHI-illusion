@@ -66,6 +66,11 @@ AHands_Character::AHands_Character()
 
 	SensorDelayRangeLow = 0.f;
 	
+	bSamplePoints = true;
+	NumberSamplingPoints = 5;
+	bDrawCurrentMeshPoints = true;
+	bDrawOriginalMeshPoints = true;
+
 	MyMesh = GetMesh();
 }
 
@@ -143,11 +148,11 @@ void AHands_Character::Tick( float DeltaTime )
 				LeftIndexFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
 				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Left Index Orientation %s"), *LeftIndexFingerOrientation.ToString()));
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Original Orientation %s"), *LeftIndexFingerOrientation.ToString()));
 				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights, LeftIndexFingerOrientation, LeftIndexFingerRelativeOrientationArray, bDrawDebugWeightsLeftIndex);
 				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray, bDrawDebugLeftIndexPosition);
 				DPLeftIndexFingerOrientation = NewJointOrientation(LeftIndexFingerWeights, LeftIndexFingerRelativeOrientationArray);
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Left Index DP Orientation %s"), *DPLeftIndexFingerOrientation.ToString()));
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Left Index DP Orientation %s"), *DPLeftIndexFingerOrientation.ToString()));
 
 				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
@@ -1259,8 +1264,8 @@ void AHands_Character::DrawDescriptionPoints(TArray<FVector>& DPInfo)
 			FVector TransformedNormals;
 			FVector TransformedTangents;
 			FVector TransformedBinormals;
-
-			if (bHasObjectMeshChanged)
+			if (false)
+			//if (bHasObjectMeshChanged)
 			{
 				int32 NewIndex = ICPIndex[i];
 
@@ -1758,7 +1763,14 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
+
+
+
+
+
 			FQuat VertexOrientationQuat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
+
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Original Descriptor Point orientation %s"), *VertexOrientationQuat.Rotator().ToString()));
 
 			FQuat JointOrientationQuat = JointOrientation.Quaternion();
 
@@ -1769,6 +1781,13 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			//FMatrix VertexOrientationMatrix = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector);
 
 			//RelativeOrientation.Emplace(VertexOrientationMatrix.GetTransposed() * JointOrientationMatrix);
+
+
+
+
+
+
+
 
 			if (bDrawOriginalMeshPoints)
 			{
@@ -2083,8 +2102,9 @@ FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArr
 			}
 
 			FQuat VertexOrientation = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
+			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Second Mesh Descriptor Point orientation %s"), *VertexOrientation.Rotator().ToString()));
 
-			FQuat NewOrientation = VertexOrientation *RelativeOrientation[j];
+			FQuat NewOrientation = VertexOrientation * RelativeOrientation[j];
 
 			FVector Axis;
 			float Angle;
@@ -2095,7 +2115,8 @@ FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArr
 		}
 		j++;
 	}
-	return FQuat(SumAxis, FMath::DegreesToRadians(SumAngle)).Rotator();
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation %s"), *FQuat(SumAxis, SumAngle).Rotator().ToString()));
+	return FQuat(SumAxis, SumAngle).Rotator();
 }
 
 void AHands_Character::Answer1()
