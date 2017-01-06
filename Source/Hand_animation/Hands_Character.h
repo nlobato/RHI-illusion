@@ -337,6 +337,8 @@ protected:
 
 protected:
 
+	FQuat Comparisson;
+
 	void GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMeshComponent, FMatrix& TransformationMatrix, FTransform& CurrentTranform, int32& VerticesNum);
 	
 	//Function for accesing the triangles information
