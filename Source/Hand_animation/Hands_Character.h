@@ -217,7 +217,8 @@ protected:
 	TArray<FVector> LeftPinkyFingerTransformationArray;
 	TArray<FVector> LeftThumbTransformationArray;
 
-	TArray<FQuat> LeftIndexFingerRelativeOrientationArray;
+	TArray<FMatrix> LeftIndexFingerRelativeOrientationArray;
+	//TArray<FQuat> LeftIndexFingerRelativeOrientationArray;
 
 	TArray<FVector> LeftIndexKnuckleTransformationArray;
 	TArray<FVector> LeftMiddleKnuckleTransformationArray;
@@ -336,8 +337,8 @@ protected:
 	float sum_w_biprime;
 
 protected:
-
-	FQuat Comparisson;
+	
+	int32 Index1;
 
 	void GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMeshComponent, FMatrix& TransformationMatrix, FTransform& CurrentTranform, int32& VerticesNum);
 	
@@ -355,7 +356,7 @@ protected:
 
 	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, bool bDrawDebugPoints);
 
-	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, FRotator JointOrientation, TArray<FQuat>& OrientationArrays, bool bDrawDebugPoints);
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, FRotator JointOrientation, TArray<FMatrix>& OrientationArrays, bool bDrawDebugPoints);
 
 	void AssignPointers();
 
@@ -364,7 +365,7 @@ protected:
 
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, bool bDrawDebugLines);
 
-	FRotator NewJointOrientation(TArray<float>& WeightsArray, TArray<FQuat>& RelativeOrientation);
+	FRotator NewJointOrientation(TArray<float>& WeightsArray, TArray<FMatrix>& RelativeOrientation);
 
 protected:
 

@@ -66,6 +66,12 @@ AHands_Character::AHands_Character()
 
 	SensorDelayRangeLow = 0.f;
 	
+	bSamplePoints = true;
+	NumberSamplingPoints = 1;
+	bDrawCurrentMeshPoints = true;
+	bDrawOriginalMeshPoints = true;
+	Index1 = 0;
+
 	MyMesh = GetMesh();
 }
 
@@ -144,14 +150,12 @@ void AHands_Character::Tick( float DeltaTime )
 				AHands_Character::WeightsComputation(LeftIndexFingerWeights, LeftIndexFingerTransformation, LeftIndexFingerPosition);
 				DPLeftIndexFingerPosition = AHands_Character::NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformation, DPVirtualObject);*/
 				
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Original Sensor Orientation %s"), *LeftIndexFingerOrientation.Quaternion().GetNormalized().ToString()));
-				
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Sensor original orientation %s"), *LeftIndexFingerOrientation.ToString()));
 				WeightsComputation(LeftIndexFingerPosition, LeftIndexFingerTransformationArray, LeftIndexFingerWeights, LeftIndexFingerOrientation, LeftIndexFingerRelativeOrientationArray, bDrawDebugWeightsLeftIndex);
 				DPLeftIndexFingerPosition = NewJointPosition(LeftIndexFingerWeights, LeftIndexFingerTransformationArray, bDrawDebugLeftIndexPosition);
 				DPLeftIndexFingerOrientation = NewJointOrientation(LeftIndexFingerWeights, LeftIndexFingerRelativeOrientationArray);
-				
-				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("Left Index DP Orientation %s"), *DPLeftIndexFingerOrientation.Quaternion().GetNormalized().ToString()));
-
+				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation %s"), *DPLeftIndexFingerOrientation.ToString()));
+							
 				/*LeftMiddleFingerWeights.Empty();
 				LeftMiddleFingerTransformation.Empty();
 				AHands_Character::WeightsComputation(LeftMiddleFingerWeights, LeftMiddleFingerTransformation, LeftMiddleFingerPosition);
@@ -1433,11 +1437,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
-		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
-		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 
 		limit = OriginalMeshVertices.Num();
 	}
@@ -1643,7 +1647,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 }
 
-void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& w_biprime, FRotator JointOrientation, TArray<FQuat>& RelativeOrientation, bool bDrawDebugPoints)
+void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& w_biprime, FRotator JointOrientation, TArray<FMatrix>& RelativeOrientation, bool bDrawDebugPoints)
 {
 	int32 limit;
 	if (bHasObjectSizeChanged)
@@ -1664,11 +1668,11 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		UStaticMesh* CurrentMesh = SpawnedObject->OurVisibleComponent->GetStaticMesh();
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(OriginalMesh);
 
-		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		GetMeshCurrentTransform(SpawnedObject->OurVisibleComponent, OriginalMeshLocalToWorldMatrix, OriginalMeshComponentToWorldTransform, OriginalVerticesNum);
 
 		SpawnedObject->OurVisibleComponent->SetStaticMesh(CurrentMesh);
-		//SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
+		SpawnedObject->OurVisibleComponent->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 
 		limit = OriginalMeshVertices.Num();
 	}
@@ -1711,8 +1715,8 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 		float Gamma;
 		int32 Module = CalculateModule(bSamplePoints, Vertices.Num(), i);
 
+		//if (i == ClosestDP)
 		if (Module == 0)
-			//if (i >= Test_index && i < upper_limit)
 		{
 
 			if (!Vertices.IsValidIndex(i))
@@ -1763,66 +1767,82 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 
 			TransformationComponents.Emplace(FVector(Alpha, Beta, Gamma));
 
-
-
-
-
-
-			FQuat VertexOrientationQuat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
-
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Original Descriptor Point orientation %s"), *VertexOrientationQuat.ToString()));
-
-			FQuat JointOrientationQuat = JointOrientation.Quaternion();
 			
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("JoinOrientation %s"), *JointOrientation.Quaternion().GetNormalized().ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("JoinOrientation rotator %s"), *JointOrientation.ToString()));
+				// We get the orientation of the vertex in quat form for simplicity sake. Fmatrix -> Fquat is not normalized, so GetNormalized is needed.
+				FQuat VertexOrientationQuat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat().GetNormalized();
+				FMatrix VertexOrientationMat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector);
+				
+				if (i == Index1)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("DP original mesh Mat%s"), *VertexOrientationMat.ToString()));
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("DP original mesh Quat %s"), *VertexOrientationMat.ToQuat().ToString()));
+				}
 
-			Comparisson = VertexOrientationQuat.Inverse() * JointOrientationQuat;
-			FQuat Comparison2 = VertexOrientationQuat * VertexOrientationQuat.Inverse() * JointOrientationQuat;
+				/*if (i == Index1)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("DP original mesh Quat %s"), *VertexOrientationMat.ToQuat().ToString()));
+				}*/
+				// Screen messages for debbuging purposes
+				/*if (VertexOrientationQuat.IsNormalized()) GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Original DP quat is normalized")));
+				else GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Original DP quat is not normalized")));*/
 
-			FQuat Comparison3 = VertexOrientationQuat * VertexOrientationQuat.Inverse();
+				// The orientation of the finger's sensor is also transformed to a quaternion, this quat is already normalized.
+				FQuat JointOrientationQuat = JointOrientation.Quaternion();
+				FMatrix JointOrientationMat = FMatrix(JointOrientationQuat.GetAxisX(), JointOrientationQuat.GetAxisY(), JointOrientationQuat.GetAxisZ(), FVector::ZeroVector);
 
+				// Screen messages for debbuging purposes
+				/*if (JointOrientationQuat.IsNormalized())
+				{
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Sensor orientation is normalized")));
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("JoinOrientation %s"), *JointOrientationQuat.ToString()));
+				}
+				else
+				{
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Sensor orientation is not normalized")));
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("JoinOrientation not normalized %s"), *JointOrientation.Quaternion().ToString()));
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("JoinOrientation normalized %s"), *JointOrientation.Quaternion().GetNormalized().ToString()));
+				}*/
 
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue , FString::Printf(TEXT("comparison2 %s"), *Comparison2.ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Blue, FString::Printf(TEXT("comparison3 %s"), *Comparison3.ToString()));
+				// We get the relative orientation of the sensor to the descriptor point
+				FQuat RelativeOrientationQuat = VertexOrientationQuat.Inverse() * JointOrientationQuat;
+				FMatrix RelativeOrientationMat = VertexOrientationMat.Inverse() * JointOrientationMat;
+				
+				/*if (i == Index1)
+				{
+					GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("DP_inv * Sensor %s"), *RelativeOrientationMat.ToString()));
+				}*/
+				// Screen messages for debbuging purposes
+				/*if (RelativeOrientationQuat.IsNormalized()) GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("The result of the relative orientation transformation is normalized")));
+				else GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("The result of the relative orientation transformation is not normalized")));*/
 
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("DP inversed %s"), *VertexOrientationQuat.Inverse().ToString()));
+				/*GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Relative Orientation %s"), *RelativeOrientationQuat.ToString()));*/
 
-			RelativeOrientation.Emplace(Comparisson);
+				RelativeOrientation.Emplace(RelativeOrientationMat);
+				//RelativeOrientation.Emplace(RelativeOrientationQuat);
 
-			//FMatrix JointOrientationMatrix = FMatrix(JointOrientationQuat.GetAxisX(), JointOrientationQuat.GetAxisY(), JointOrientationQuat.GetAxisZ(), FVector::ZeroVector);
+				if (bDrawOriginalMeshPoints)
+				{
+					//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
+					DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
+					//DrawDebugPoint(GetWorld(), TransformedVertices, 5.f, FColor::Green, false, 0.1f);
+					DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+					DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+					DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+				}
+				//FVector TransformedVertices2 = CurrentMeshComponentToWorldTransform.TransformPosition((*PointerToCurrentMeshVertices)[i]);
+
+				//DrawDebugLine(GetWorld(), TransformedVertices2, TransformedVertices, FColor::Cyan, false, -1, 0, .1f);
+
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedTangent x: %f y: %f z: %f"),Tangents[i].X, Tangents[i].Y, Tangents[i].Z));
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTangent x: %f y: %f z: %f"), TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
 			
-			//FMatrix VertexOrientationMatrix = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector);
-
-			//RelativeOrientation.Emplace(VertexOrientationMatrix.GetTransposed() * JointOrientationMatrix);
-
-
-
-
-
-
-
-
-			if (bDrawOriginalMeshPoints)
-			{
-				//DrawDebugSphere(GetWorld(), TransformedVertices, 0.2f, 10, FColor(255, 255, 0), false, -1);
-				DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(i), NULL, FColor::Blue, 0.1f, false);
-				//DrawDebugPoint(GetWorld(), TransformedVertices, 5.f, FColor::Green, false, 0.1f);
-				DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
-				DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
-				DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
-			}
-			//FVector TransformedVertices2 = CurrentMeshComponentToWorldTransform.TransformPosition((*PointerToCurrentMeshVertices)[i]);
-
-			//DrawDebugLine(GetWorld(), TransformedVertices2, TransformedVertices, FColor::Cyan, false, -1, 0, .1f);
-
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("UntransformedTangent x: %f y: %f z: %f"),Tangents[i].X, Tangents[i].Y, Tangents[i].Z));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("TransformedTangent x: %f y: %f z: %f"), TransformedTangents.X, TransformedTangents.Y, TransformedTangents.Z));
-
 		}
 	}
 
+	
 	float r_j_1 = FMath::Min<float>(Distance);
+
+
 	float r_j_2 = r_j_1 + (0.25 * 200);
 	sum_w_biprime = 0;
 	float valor = 0;
@@ -1865,30 +1885,26 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 			j++;
 		}
 	}
+
+	//int32 Index1;
+	float MaxWeightDP = FMath::Max<float>(w_biprime, &Index1);
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Cyan, FString::Printf(TEXT("Index with max weight: %d"), Index1));
+
+	FVector TransformedVertices = OriginalMeshComponentToWorldTransform.TransformPosition(Vertices[Index1]);
+	FVector TransformedNormals = OriginalMeshLocalToWorldMatrix.TransformVector(Normals[Index1]).GetSafeNormal();
+	FVector TransformedTangents = OriginalMeshLocalToWorldMatrix.TransformVector(Tangents[Index1]).GetSafeNormal();
+	FVector TransformedBinormals = OriginalMeshLocalToWorldMatrix.TransformVector(Binormals[Index1]).GetSafeNormal();
+	DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(Index1), NULL, FColor::Blue, 0.1f, false);
+	//DrawDebugPoint(GetWorld(), TransformedVertices, 5.f, FColor::Green, false, 0.1f);
+	DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+	DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+	DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Original DP_N %s"), *TransformedNormals.ToString()));
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Original DP_T %s"), *TransformedTangents.ToString()));
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Original DP_B %s"), *TransformedBinormals.ToString()));
+
 	if (bDrawDebugPoints)
-	{
-
-		j = 0;
-		float sum_wbiprime = 0;
-		//UE_LOG(LogTemp, Warning, TEXT("Limit %d"), limit);
-		for (int32 i = 0; i < limit; i++)
-		{
-			//j = i;
-			int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-			if (Module == 0)
-				//if (i >= Test_index && i < upper_limit)
-			{
-
-				if (!w_biprime.IsValidIndex(j))
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d while calculating 'sum_biprime' on AHands_Character::WeightsComputation()"), j);
-					return;
-				}
-				sum_wbiprime += w_biprime[j];
-				j++;
-			}
-		}
-
+	{	
 		j = 0;
 		for (int32 i = 0; i < limit; i++)
 		{
@@ -1904,7 +1920,7 @@ void AHands_Character::WeightsComputation(FVector p_j, TArray<FVector>& Transfor
 				}
 				if (w_biprime[j] != 0)
 				{
-					FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
+					FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_w_biprime);
 					FVector TransformedVertices = ArrayTransformedVertices[j];
 					DrawDebugLine(GetWorld(), TransformedVertices, p_j, colorgradient, false, -1, 0, .1f);
 					//UE_LOG(LogTemp, Warning, TEXT("index %d at ArrayTransformedVertices"), j);
@@ -1956,7 +1972,6 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 
 	int32 limit;
 	if (bHasObjectMeshChanged) limit = ICPIndices.Num();
-	//if (false) limit = ICPIndices.Num();
 	else limit = Vertices.Num();
 	for (int32 i = 0; i < limit; i++)
 	{
@@ -1975,70 +1990,73 @@ FVector AHands_Character::NewJointPosition(TArray<float>& w_biprime, TArray<FVec
 			j++;
 		}
 	}
-		j = 0;
-	for (int32 i = 0; i < limit; i++)
+	j = 0;
+	if (sum_wbiprime != 0)
 	{
-		//j = i;
-		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-		if (Module == 0)
-		//if (i >= Test_index && i < upper_limit)
+		for (int32 i = 0; i < limit; i++)
 		{
-			if (!TransformationComponents.IsValidIndex(j))
+			//j = i;
+			int32 Module = CalculateModule(bSamplePoints, limit, i, j);
+			if (Module == 0)
+				//if (i >= Test_index && i < upper_limit)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
-				return FVector(0.f, 0.f, 0.f);
-			}
-			float& Alpha = TransformationComponents[j].X;
-			float& Beta = TransformationComponents[j].Y;
-			float& Gamma = TransformationComponents[j].Z;			
-			FVector TransformedVertices;
-			FVector TransformedNormals;
-			FVector TransformedTangents;
-			FVector TransformedBinormals;
-			
-			//if (false)
-			if (bHasObjectMeshChanged)
-			{
-				int32 IndexToUse = ICPIndices[i];
-				
-				if (!Vertices.IsValidIndex(IndexToUse))
+				if (!TransformationComponents.IsValidIndex(j))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointPosition()"), IndexToUse, i);
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for TransformationComponent 'sum_biprime' on AHands_Character::NewJointPosition()"), j);
 					return FVector(0.f, 0.f, 0.f);
 				}
-				
-				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
-				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
-				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
-				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
-			}
-			else
-			{
-				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
-			}
-				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Current Mesh TransformedNormals x: %f y: %f z: %f"), TransformedNormals.X, TransformedNormals.Y, TransformedNormals.Z));
-			if (bDrawDebugLines)
-			{
-				if (w_biprime[j] != 0)
+				float& Alpha = TransformationComponents[j].X;
+				float& Beta = TransformationComponents[j].Y;
+				float& Gamma = TransformationComponents[j].Z;
+				FVector TransformedVertices;
+				FVector TransformedNormals;
+				FVector TransformedTangents;
+				FVector TransformedBinormals;
+
+				//if (false)
+				if (bHasObjectMeshChanged)
 				{
-					FVector CurrentVector = (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
-					FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
-					DrawDebugLine(GetWorld(), TransformedVertices, CurrentVector, colorgradient, false, -1, 0, .1f);
+					int32 IndexToUse = ICPIndices[i];
+
+					if (!Vertices.IsValidIndex(IndexToUse))
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointPosition()"), IndexToUse, i);
+						return FVector(0.f, 0.f, 0.f);
+					}
+
+					TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
+					TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
+					TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
+					TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
 				}
+				else
+				{
+					TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+					TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+					TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+					TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+				}
+				NewJointPosition += (w_biprime[j] / sum_wbiprime) * (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+				//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Weight value at NewJointPosition: %f"), (w_biprime[j] / sum_wbiprime)));
+				if (bDrawDebugLines)
+				{
+					if (w_biprime[j] != 0)
+					{
+						FVector CurrentVector = (TransformedVertices + (Alpha * TransformedNormals) + (Beta * TransformedTangents) + (Gamma * TransformedBinormals));
+						FColor colorgradient = FColor::MakeRedToGreenColorFromScalar(w_biprime[j] / sum_wbiprime);
+						DrawDebugLine(GetWorld(), TransformedVertices, CurrentVector, colorgradient, false, -1, 0, .1f);
+					}
+				}
+				j++;
 			}
-			j++;
+
 		}
-
+		return NewJointPosition;
 	}
-	return NewJointPosition;
-
+	else return FVector(0.f);
 }
 
-FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArray<FQuat>&RelativeOrientation)
+FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArray<FMatrix>&RelativeOrientation)
 {
 	TArray<FVector>& Vertices = *PointerToCurrentMeshVertices;
 	TArray<FVector>& Normals = *PointerToCurrentMeshNormals;
@@ -2072,72 +2090,143 @@ FRotator AHands_Character::NewJointOrientation(TArray<float>& WeightsArray, TArr
 		}
 	}
 
-	FVector SumAxis(0.f);
-	float SumAngle = 0;
-	j = 0;
-	for (int32 i = 0; i < limit; i++)
+	/*int32 Index;
+	float MaxWeightDP = FMath::Max<float>(WeightsArray, &Index);
+	GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Index with max weight: %d"), Index));*/
+	FMatrix ReturnValue;
+	//FQuat ReturnValue;
+	if (sum_wbiprime != 0)
 	{
-		int32 Module = CalculateModule(bSamplePoints, limit, i, j);
-		if (Module == 0)			
+		FVector SumAxis(0.f);
+		float SumAngle = 0;
+		j = 0;
+		for (int32 i = 0; i < limit; i++)
 		{
-			if (!RelativeOrientation.IsValidIndex(j))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for RelativeOrientation, iteration %d. on AHands_Character::NewJointOrientation()"), j, i);
-				return FRotator(0.f, 0.f, 0.f);
-			}
+			int32 Module = CalculateModule(bSamplePoints, limit, i, j);
 			
-			FVector TransformedVertices;
-			FVector TransformedNormals;
-			FVector TransformedTangents;
-			FVector TransformedBinormals;
-			//if(false)
-			if (bHasObjectMeshChanged)
+			//if(i == Index1)
+			if (Module == 0)
 			{
-				int32 IndexToUse = ICPIndices[i];
-
-				if (!Vertices.IsValidIndex(IndexToUse))
+				if (!RelativeOrientation.IsValidIndex(j))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointOrientation()"), IndexToUse, i);
+					UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for RelativeOrientation, iteration %d. on AHands_Character::NewJointOrientation()"), j, i);
 					return FRotator(0.f, 0.f, 0.f);
 				}
 
-				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
-				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
-				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
-				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
-			}
-			else
-			{
-				TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
-				TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
-				TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
-				TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+				FVector TransformedVertices;
+				FVector TransformedNormals;
+				FVector TransformedTangents;
+				FVector TransformedBinormals;
+				//if(false)
+				if (bHasObjectMeshChanged)
+				{
+					int32 IndexToUse = ICPIndices[i];
+
+					if (!Vertices.IsValidIndex(IndexToUse))
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Invalid index %d for Vertices, iteration %d. on AHands_Character::NewJointOrientation()"), IndexToUse, i);
+						return FRotator(0.f, 0.f, 0.f);
+					}
+
+					TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[IndexToUse]);
+					TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[IndexToUse]).GetSafeNormal();
+					TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[IndexToUse]).GetSafeNormal();
+					TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[IndexToUse]).GetSafeNormal();
+				}
+				else
+				{
+					TransformedVertices = CurrentMeshComponentToWorldTransform.TransformPosition(Vertices[i]);
+					TransformedNormals = CurrentMeshLocalToWorldMatrix.TransformVector(Normals[i]).GetSafeNormal();
+					TransformedTangents = CurrentMeshLocalToWorldMatrix.TransformVector(Tangents[i]).GetSafeNormal();
+					TransformedBinormals = CurrentMeshLocalToWorldMatrix.TransformVector(Binormals[i]).GetSafeNormal();
+				}
+
+				
+					
+					if (j == Index1)
+					{
+						DrawDebugString(GetWorld(), TransformedVertices, FString::FromInt(j), NULL, FColor::Red, 0.1f, false);
+						//DrawDebugPoint(GetWorld(), TransformedVertices, 5.f, FColor::Green, false, 0.1f);
+						DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedNormals * 1.f, FColor(0, 255, 0), false, -1, 0, .1f);
+						DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedTangents * 1.f, FColor(255, 0, 0), false, -1, 0, .1f);
+						DrawDebugLine(GetWorld(), TransformedVertices, TransformedVertices + TransformedBinormals * 1.f, FColor(0, 0, 255), false, -1, 0, .1f);
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP_N %s"), *TransformedNormals.ToString()));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP_T %s"), *TransformedTangents.ToString()));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP_B %s"), *TransformedBinormals.ToString()));
+					}
+
+					// We get the orientation of the descriptor point in the current mesh, in quat form for simplicity sake.  Fmatrix -> Fquat is not normalized, so GetNormalized is needed.
+					FQuat NewVertexOrientationQuat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat().GetNormalized();
+					FMatrix NewVertexOrientationMat = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector);
+					
+					//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("DP new mesh Quat %s"), *NewVertexOrientationQuat.ToString()));
+
+					if (j == Index1)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("DP new mesh Mat %s"), *NewVertexOrientationMat.ToString()));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("DP new mesh Quat %s"), *NewVertexOrientationMat.ToQuat().ToString()));
+					}
+					//FQuat AnotherRelativeOrientationQuat = NewVertexOrientationQuat.Inverse() * 
+
+					// Screen messages for debbuging purposes
+					/*if (NewVertexOrientationQuat.IsNormalized()) GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP quat is normalized")));
+					else GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP quat is not normalized")));*/
+
+					//FQuat NewOrientationQuat = NewVertexOrientationQuat * RelativeOrientation[j];
+					FMatrix NewOrientationMat = NewVertexOrientationMat * RelativeOrientation[j];
+					//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New DP * Relative_T %s"), *NewOrientationMat.ToString()));
+					//ReturnValue = NewVertexOrientationQuat * RelativeOrientation[j];
+					ReturnValue = NewOrientationMat;
+					//ReturnValue = NewOrientationQuat;
+
+					// Screen messages for debbuging purposes
+					/*if (NewOrientationQuat.IsNormalized())
+					{
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("The result of the new orientation transformation is normalized")));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation %s"), *NewOrientationQuat.ToString()));
+					}
+					else
+					{
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("The result of the new orientation transformation is not normalized")));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation not normalized %s"), *NewOrientationQuat.ToString()));
+						GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation normalized %s"), *NewOrientationQuat.GetNormalized().ToString()));
+					}*/
+
+					/*FVector Axis;
+					float Angle;
+					NewOrientationQuat.ToAxisAndAngle(Axis, Angle);
+
+					SumAxis += (WeightsArray[j] / sum_wbiprime) * Axis;
+					SumAngle += (WeightsArray[j] / sum_wbiprime) * Angle;*/
+					//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Weight value %f"), (WeightsArray[j] / sum_wbiprime)));
+				
+				j++;
 			}
 
-			FQuat VertexOrientation = FMatrix(TransformedTangents, TransformedBinormals, TransformedNormals, FVector::ZeroVector).ToQuat();
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Second Mesh Descriptor Point orientation %s"), *VertexOrientation.ToString()));
-			
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Value stored in array %s"), *RelativeOrientation[j].ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Red, FString::Printf(TEXT("Value stored in global variable %s"), *Comparisson.ToString()));
-			
-			FQuat NewOrientation = VertexOrientation * RelativeOrientation[j];
-			
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation %s"), *NewOrientation.ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation normalized %s"), *NewOrientation.GetNormalized().ToString()));
-			//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New orientation rotator %s"), *NewOrientation.GetNormalized().Rotator().ToString()));
-			
-			FVector Axis;
-			float Angle;
-			NewOrientation.GetNormalized().ToAxisAndAngle(Axis, Angle);
-
-			SumAxis += (WeightsArray[j] / sum_wbiprime) * Axis;
-			SumAngle += (WeightsArray[j] / sum_wbiprime) * Angle;
-			j++;
 		}
-		
+
+		//FQuat FinalOrientationQuat = FQuat(SumAxis, SumAngle);
+
+		// Screen messages for debbuging purposes
+		/*if (FinalOrientationQuat.IsNormalized())
+		{
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("The weighted sum of the new orientation is normalized")));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Final orientation %s"), *FinalOrientationQuat.ToString()));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("The weighted sum of the new orientation is not normalized")));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Final orientation not normalized %s"), *FinalOrientationQuat.ToString()));
+			GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Final orientation normalized %s"), *FinalOrientationQuat.GetNormalized().ToString()));
+		}*/
+		//return FinalOrientationQuat.Rotator();
+		return ReturnValue.Rotator();
 	}
-	//GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("Iterations %d"), j));
-	return FQuat(SumAxis, SumAngle).GetNormalized().Rotator();
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("The weights total sum is zero")));
+		return FRotator(0.f);
+	}
 }
 
 void AHands_Character::Answer1()
