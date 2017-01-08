@@ -138,14 +138,7 @@ void AHands_Character::Tick( float DeltaTime )
 				FTransform LeftHandTransform = NewJointTransform(LeftHandWeights, LeftHandTransformationArray, LeftHandRelativeOrientationArray);
 				DPLeftHandPosition = LeftHandTransform.GetLocation();
 				DPLeftHandOrientation = LeftHandTransform.GetRotation().Rotator();
-
-				/*LeftMiddleKnuckleWeights.Empty();
-				LeftMiddleKnuckleTransformation.Empty();
-				AHands_Character::WeightsComputation(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, LeftMiddleKnucklePosition);
-				DPLeftMiddleKnucklePosition = AHands_Character::NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
-				DPLeftMiddleKnucklePosition = NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformationArray, bDrawDebugLeftKnucklePosition);
-
+				
 				WeightsComputation(LeftIndexKnucklePosition, LeftIndexKnuckleTransformationArray, LeftIndexKnuckleWeights, false);
 				DPLeftIndexKnucklePosition = NewJointPosition(LeftIndexKnuckleWeights, LeftIndexKnuckleTransformationArray, bDrawDebugWeightsLeftKnuckle);
 						
@@ -160,88 +153,71 @@ void AHands_Character::Tick( float DeltaTime )
 				DPLeftIndexFingerOrientation = LeftIndexFingerTransform.GetRotation().Rotator();
 				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New T_Orientation%s"), *LeftIndexFingerTransform.GetRotation().Rotator().ToString()));
 				GEngine->AddOnScreenDebugMessage(-1, .1f, FColor::Green, FString::Printf(TEXT("New T_Position%s"), *LeftIndexFingerTransform.GetLocation().ToString()));
-							
-				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights, bDrawDebugWeightsLeftMiddle);
-				DPLeftMiddleFingerPosition = NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray, bDrawDebugLeftMiddlePosition);
+				
+				WeightsComputation(LeftMiddleKnucklePosition, LeftMiddleKnuckleTransformationArray, LeftMiddleKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
+				DPLeftMiddleKnucklePosition = NewJointPosition(LeftMiddleKnuckleWeights, LeftMiddleKnuckleTransformationArray, bDrawDebugLeftKnucklePosition);
+
+				/*WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights, bDrawDebugWeightsLeftMiddle);
+				DPLeftMiddleFingerPosition = NewJointPosition(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray, bDrawDebugLeftMiddlePosition);*/
+				WeightsComputation(LeftMiddleFingerPosition, LeftMiddleFingerTransformationArray, LeftMiddleFingerWeights, LeftMiddleFingerOrientation, LeftMiddleFingerRelativeOrientationArray, bDrawDebugWeightsLeftMiddle);
+				FTransform LeftMiddleFingerTransform = NewJointTransform(LeftMiddleFingerWeights, LeftMiddleFingerTransformationArray, LeftMiddleFingerRelativeOrientationArray);
+				DPLeftMiddleFingerPosition = LeftMiddleFingerTransform.GetLocation();
+				DPLeftMiddleFingerOrientation = LeftMiddleFingerTransform.GetRotation().Rotator();
 
 				WeightsComputation(LeftRingKnucklePosition, LeftRingKnuckleTransformationArray, LeftRingKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
 				DPLeftRingKnucklePosition = NewJointPosition(LeftRingKnuckleWeights, LeftRingKnuckleTransformationArray, bDrawDebugLeftKnucklePosition);
 
-				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights, bDrawDebugWeightsLeftRing);
-				DPLeftRingFingerPosition = NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformationArray, bDrawDebugLeftRingPosition);
+				/*WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights, bDrawDebugWeightsLeftRing);
+				DPLeftRingFingerPosition = NewJointPosition(LeftRingFingerWeights, LeftRingFingerTransformationArray, bDrawDebugLeftRingPosition);*/
+				WeightsComputation(LeftRingFingerPosition, LeftRingFingerTransformationArray, LeftRingFingerWeights, LeftRingFingerOrientation, LeftRingFingerRelativeOrientationArray, bDrawDebugWeightsLeftRing);
+				FTransform LeftRingFingerTransform = NewJointTransform(LeftRingFingerWeights, LeftRingFingerTransformationArray, LeftRingFingerRelativeOrientationArray);
+				DPLeftRingFingerPosition = LeftRingFingerTransform.GetLocation();
+				DPLeftRingFingerOrientation = LeftRingFingerTransform.GetRotation().Rotator();
 
 				WeightsComputation(LeftPinkyKnucklePosition, LeftPinkyKnuckleTransformationArray, LeftPinkyKnuckleWeights, bDrawDebugWeightsLeftKnuckle);
 				DPLeftPinkyKnucklePosition = NewJointPosition(LeftPinkyKnuckleWeights, LeftPinkyKnuckleTransformationArray, bDrawDebugLeftKnucklePosition);
 
-				/*LeftPinkyFingerWeights.Empty();
-				LeftPinkyFingerTransformation.Empty();
-				AHands_Character::WeightsComputation(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, LeftPinkyFingerPosition);
-				DPLeftPinkyFingerPosition = AHands_Character::NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights, bDrawDebugWeightsLeftPinky);
-				DPLeftPinkyFingerPosition = NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformationArray, bDrawDebugLeftPinkyPosition);
+				/*WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights, bDrawDebugWeightsLeftPinky);
+				DPLeftPinkyFingerPosition = NewJointPosition(LeftPinkyFingerWeights, LeftPinkyFingerTransformationArray, bDrawDebugLeftPinkyPosition);*/
+				WeightsComputation(LeftPinkyFingerPosition, LeftPinkyFingerTransformationArray, LeftPinkyFingerWeights, LeftPinkyFingerOrientation, LeftPinkyFingerRelativeOrientationArray, bDrawDebugWeightsLeftPinky);
+				FTransform LeftPinkyFingerTransform = NewJointTransform(LeftPinkyFingerWeights, LeftPinkyFingerTransformationArray, LeftPinkyFingerRelativeOrientationArray);
+				DPLeftPinkyFingerPosition = LeftPinkyFingerTransform.GetLocation();
+				DPLeftPinkyFingerOrientation = LeftPinkyFingerTransform.GetRotation().Rotator();
 
-				/*LeftThumbWeights.Empty();
-				LeftThumbTransformation.Empty();
-				AHands_Character::WeightsComputation(LeftThumbWeights, LeftThumbTransformation, LeftThumbPosition);
-				DPLeftThumbPosition = AHands_Character::NewJointPosition(LeftThumbWeights, LeftThumbTransformation, DPVirtualObject);*/
-				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights, bDrawDebugWeightsLeftThumb);
-				DPLeftThumbPosition = NewJointPosition(LeftThumbWeights, LeftThumbTransformationArray, bDrawDebugLeftThumbPosition);
+				/*WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights, bDrawDebugWeightsLeftThumb);
+				DPLeftThumbPosition = NewJointPosition(LeftThumbWeights, LeftThumbTransformationArray, bDrawDebugLeftThumbPosition);*/
+				WeightsComputation(LeftThumbPosition, LeftThumbTransformationArray, LeftThumbWeights, LeftThumbOrientation, LeftThumbRelativeOrientationArray, bDrawDebugWeightsLeftMiddle);
+				FTransform LeftThumbTransform = NewJointTransform(LeftThumbWeights, LeftThumbTransformationArray, LeftThumbRelativeOrientationArray);
+				DPLeftThumbPosition = LeftThumbTransform.GetLocation();
+				DPLeftThumbOrientation = LeftThumbTransform.GetRotation().Rotator();
 
 				// Right hand
 
-				/*RightHandWeights.Empty();
-				RightHandTransformation.Empty();
-				AHands_Character::WeightsComputation(RightHandWeights, RightHandTransformation, RightHandPosition);
-				DPRightHandPosition = AHands_Character::NewJointPosition(RightHandWeights, RightHandTransformation, DPVirtualObject);*/
 				WeightsComputation(RightHandPosition, RightHandTransformationArray, RightHandWeights, bDrawDebugWeightsRightHand);
 				DPRightHandPosition = NewJointPosition(RightHandWeights, RightHandTransformationArray, bDrawDebugRightHandPosition);
 
-				/*RightMiddleKnuckleWeights.Empty();
-				RightMiddleKnuckleTransformation.Empty();
-				AHands_Character::WeightsComputation(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, RightMiddleKnucklePosition);
-				DPRightMiddleKnucklePosition = AHands_Character::NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformation, DPVirtualObject);*/
 				WeightsComputation(RightMiddleKnucklePosition, RightMiddleKnuckleTransformationArray, RightMiddleKnuckleWeights, bDrawDebugWeightsRightKnuckle);
 				DPRightMiddleKnucklePosition = NewJointPosition(RightMiddleKnuckleWeights, RightMiddleKnuckleTransformationArray, bDrawDebugRightKnucklePosition);
 
-				/*RightIndexFingerWeights.Empty();
-				RightIndexFingerTransformation.Empty();
-				AHands_Character::WeightsComputation(RightIndexFingerWeights, RightIndexFingerTransformation, RightIndexFingerPosition);
-				DPRightIndexFingerPosition = AHands_Character::NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(RightIndexFingerPosition, RightIndexFingerTransformationArray, RightIndexFingerWeights, bDrawDebugWeightsRightIndex);
 				DPRightIndexFingerPosition = NewJointPosition(RightIndexFingerWeights, RightIndexFingerTransformationArray, bDrawDebugRightIndexPosition);
 				WeightsComputation(RightIndexKnucklePosition, RightIndexKnuckleTransformationArray, RightIndexKnuckleWeights, bDrawDebugWeightsRightKnuckle);
 				DPRightIndexKnucklePosition = NewJointPosition(RightIndexKnuckleWeights, RightIndexKnuckleTransformationArray, bDrawDebugRightKnucklePosition);
 
-				/*RightMiddleFingerWeights.Empty();
-				RightMiddleFingerTransformation.Empty();
-				AHands_Character::WeightsComputation(RightMiddleFingerWeights, RightMiddleFingerTransformation, RightMiddleFingerPosition);
-				DPRightMiddleFingerPosition = AHands_Character::NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(RightMiddleFingerPosition, RightMiddleFingerTransformationArray, RightMiddleFingerWeights, bDrawDebugWeightsRightMiddle);
 				DPRightMiddleFingerPosition = NewJointPosition(RightMiddleFingerWeights, RightMiddleFingerTransformationArray, bDrawDebugRightMiddlePosition);
 
-				/*RightRingFingerWeights.Empty();
-				RightRingFingerTransformation.Empty();
-				AHands_Character::WeightsComputation(RightRingFingerWeights, RightRingFingerTransformation, RightRingFingerPosition);
-				DPRightRingFingerPosition = AHands_Character::NewJointPosition(RightRingFingerWeights, RightRingFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(RightRingFingerPosition, RightRingFingerTransformationArray, RightRingFingerWeights, bDrawDebugWeightsRightRing);
 				DPRightRingFingerPosition = NewJointPosition(RightRingFingerWeights, RightRingFingerTransformationArray, bDrawDebugRightRingPosition);
 				WeightsComputation(RightRingKnucklePosition, RightRingKnuckleTransformationArray, RightRingKnuckleWeights, bDrawDebugWeightsRightKnuckle);
 				DPRightRingKnucklePosition = NewJointPosition(RightRingKnuckleWeights, RightRingKnuckleTransformationArray, bDrawDebugRightKnucklePosition);
 
 
-				/*RightPinkyFingerWeights.Empty();
-				RightPinkyFingerTransformation.Empty();
-				AHands_Character::WeightsComputation(RightPinkyFingerWeights, RightPinkyFingerTransformation, RightPinkyFingerPosition);
-				DPRightPinkyFingerPosition = AHands_Character::NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformation, DPVirtualObject);*/
 				WeightsComputation(RightPinkyFingerPosition, RightPinkyFingerTransformationArray, RightPinkyFingerWeights, bDrawDebugWeightsRightPinky);
 				DPRightPinkyFingerPosition = NewJointPosition(RightPinkyFingerWeights, RightPinkyFingerTransformationArray, bDrawDebugRightPinkyPosition);
 				WeightsComputation(RightPinkyKnucklePosition, RightPinkyKnuckleTransformationArray, RightPinkyKnuckleWeights, bDrawDebugWeightsRightKnuckle);
 				DPRightPinkyKnucklePosition = NewJointPosition(RightPinkyKnuckleWeights, RightPinkyKnuckleTransformationArray, bDrawDebugRightKnucklePosition);
 
-				/*RightThumbWeights.Empty();
-				RightThumbTransformation.Empty();
-				AHands_Character::WeightsComputation(RightThumbWeights, RightThumbTransformation, RightThumbPosition);
-				DPRightThumbPosition = AHands_Character::NewJointPosition(RightThumbWeights, RightThumbTransformation, DPVirtualObject);*/
 				WeightsComputation(RightThumbPosition, RightThumbTransformationArray, RightThumbWeights, bDrawDebugWeightsRightThumb);
 				DPRightThumbPosition = NewJointPosition(RightThumbWeights, RightThumbTransformationArray, bDrawDebugRightThumbPosition);
 			}
@@ -2547,22 +2523,50 @@ FRotator AHands_Character::GetLeftIndexFingerOrientation()
 
 FRotator AHands_Character::GetLeftMiddleFingerOrientation()
 {
-	return LeftMiddleFingerOrientation;
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftMiddleFingerOrientation;
+	}
+	else
+	{
+		return LeftMiddleFingerOrientation;
+	}
 }
 
 FRotator AHands_Character::GetLeftRingFingerOrientation()
 {
-	return LeftRingFingerOrientation;
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftRingFingerOrientation;
+	}
+	else
+	{
+		return LeftRingFingerOrientation;
+	}
 }
 
 FRotator AHands_Character::GetLeftPinkyFingerOrientation()
 {
-	return LeftPinkyFingerOrientation;
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftPinkyFingerOrientation;
+	}
+	else
+	{
+		return LeftPinkyFingerOrientation;
+	}
 }
 
 FRotator AHands_Character::GetLeftThumbOrientation()
 {
-	return LeftThumbOrientation;
+	if (SpawnedObject && bAreDPsActive && (bHasObjectSizeChanged || bHasObjectMeshChanged))
+	{
+		return DPLeftThumbOrientation;
+	}
+	else
+	{
+		return LeftThumbOrientation;
+	}
 }
 
 // Functions to access the left knuckles P & O
