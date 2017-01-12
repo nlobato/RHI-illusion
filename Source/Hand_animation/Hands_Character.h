@@ -217,6 +217,13 @@ protected:
 	TArray<FVector> LeftPinkyFingerTransformationArray;
 	TArray<FVector> LeftThumbTransformationArray;
 
+	TArray<FMatrix> LeftHandRelativeOrientationArray;
+	TArray<FMatrix> LeftIndexFingerRelativeOrientationArray;
+	TArray<FMatrix> LeftMiddleFingerRelativeOrientationArray;
+	TArray<FMatrix> LeftRingFingerRelativeOrientationArray;
+	TArray<FMatrix> LeftPinkyFingerRelativeOrientationArray;
+	TArray<FMatrix> LeftThumbRelativeOrientationArray;
+
 	TArray<FVector> LeftIndexKnuckleTransformationArray;
 	TArray<FVector> LeftMiddleKnuckleTransformationArray;
 	TArray<FVector> LeftRingKnuckleTransformationArray;
@@ -334,6 +341,8 @@ protected:
 	float sum_w_biprime;
 
 protected:
+	
+	int32 Index1;
 
 	void GetMeshCurrentTransform(const UStaticMeshComponent* InStaticMeshComponent, FMatrix& TransformationMatrix, FTransform& CurrentTranform, int32& VerticesNum);
 	
@@ -351,12 +360,18 @@ protected:
 
 	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, bool bDrawDebugPoints);
 
+	void WeightsComputation(FVector p_j, TArray<FVector>& TransformationComponents, TArray<float>& WeightsArray, FRotator JointOrientation, TArray<FMatrix>& OrientationArrays, bool bDrawDebugPoints);
+
 	void AssignPointers();
 
 	/** Calculate a new joint position with the descriptor points weights */
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<float>& TransformationArray, TArray<FVector>& DescriptorPointsArray);
 
 	FVector NewJointPosition(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, bool bDrawDebugLines);
+
+	FRotator NewJointOrientation(TArray<float>& WeightsArray, TArray<FMatrix>& RelativeOrientation);
+
+	FTransform NewJointTransform(TArray<float>& WeightsArray, TArray<FVector>& TransformationArray, TArray<FMatrix>& RelativeOrientation);
 
 protected:
 
@@ -441,6 +456,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftHandOrientation;
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftHandOrientation;
 		
 	/** Left Index finger P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
@@ -451,6 +468,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftIndexFingerOrientation;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftIndexFingerOrientation;
+
 	/** Left Middle finger P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FVector LeftMiddleFingerPosition;
@@ -459,6 +479,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftMiddleFingerOrientation;
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftMiddleFingerOrientation;
 
 	/** Left ring finger P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
@@ -468,6 +490,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftRingFingerOrientation;
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftRingFingerOrientation;
 
 	/** Left pinky P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
@@ -477,6 +501,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftPinkyFingerOrientation;
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftPinkyFingerOrientation;
 
 	/** Left thumb P & O */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
@@ -486,6 +512,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
 	FRotator LeftThumbOrientation;
+	UPROPERTY(BlueprintReadOnly, Category = "Hand", meta = (BlueprintProtected = "true"))
+	FRotator DPLeftThumbOrientation;
 	//
 	
 	// Left hand knuckles

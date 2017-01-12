@@ -341,7 +341,7 @@ void AHandsGameMode::ChangeMeshObject()
 				bIsOriginalMesh = false;
 				if (bAreDPsActive)
 				{
-					MyCharacter->SpawnedObject->ChangeColor(1);
+					MyCharacter->SpawnedObject->ChangeColor(3);
 				}
 				else
 				{
@@ -1155,11 +1155,11 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 					return;
 				}
 				TargetVerticesArray[Index] = Coordinates;
-				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
-				//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]);
-				Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
-				TargetTangentsArray[Index] = Tangent;
+				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]).GetSafeNormal();
+				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]).GetSafeNormal();
+				Tangent = FVector::CrossProduct(TargetNormalsArray[Index], TargetBinormalsArray[Index]);
+				TargetTangentsArray[Index] = Tangent.GetSafeNormal();
+				TargetBinormalsArray[Index] = FVector::CrossProduct(TargetTangentsArray[Index], TargetNormalsArray[Index]).GetSafeNormal();
 				
 			}
 			else
@@ -1171,11 +1171,11 @@ void AHandsGameMode::AccessMeshVertices(UStaticMesh* MyMesh, TArray<FVector>& Ar
 					return;
 				}
 				TargetVerticesArray[Index] = Coordinates;
-				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]);
-				//TargetTangentsArray.Emplace(LODModel.VertexBuffer.VertexTangentX(Indices[i]));
-				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]);
-				Tangent = FVector::CrossProduct(TargetNormalsArray[Index].GetSafeNormal(), TargetBinormalsArray[Index].GetSafeNormal());
-				TargetTangentsArray[Index] = Tangent;
+				TargetNormalsArray[Index] = LODModel.VertexBuffer.VertexTangentZ(Indices[i]).GetSafeNormal();
+				TargetBinormalsArray[Index] = LODModel.VertexBuffer.VertexTangentY(Indices[i]).GetSafeNormal();
+				Tangent = FVector::CrossProduct(TargetNormalsArray[Index], TargetBinormalsArray[Index]);
+				TargetTangentsArray[Index] = Tangent.GetSafeNormal();
+				TargetBinormalsArray[Index] = FVector::CrossProduct(TargetTangentsArray[Index], TargetNormalsArray[Index]).GetSafeNormal();
 			}
 		}
 	}
